@@ -1,1 +1,8 @@
 
+# Heavy folders
+
+build
+docs
+
+# Compiled Static libraries
+*.lib
