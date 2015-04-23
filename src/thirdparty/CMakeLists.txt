@@ -1,5 +1,5 @@
 FILE (GLOB_RECURSE tinyxml2_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp)
-FILE (GLOB tinyxml2_HEADERS *.h *.hpp)
+FILE (GLOB_RECURSE tinyxml2_HEADERS *.h *.hpp) #WORKS HERE BUT NOT VERY GENERIC
 
 ADD_LIBRARY(tinyxml2 STATIC ${tinyxml2_SRCS})
 SET_TARGET_PROPERTIES(tinyxml2 PROPERTIES LINKER_LANGUAGE CXX)
