@@ -2,12 +2,26 @@
 
  * Software Name: tinyxml2
    ** License Name: zlib license
-   ** License File: share/licenses/ZLIB.txt
+   ** License File: licenses/ZLIB.txt
    ** Files List:
      1.) src/thirdparty/tinyxml2/**
 
  * Software Name: Catch
    ** License Name: Boost Software License - Version 1.0 - August 17th, 2003
-   ** License File: share/licenses/Boost Software License - Version 1.0 - August 17th, 2003.txt
+   ** License File: licenses/Boost Software License - Version 1.0 - August 17th, 2003.txt
    ** Files List:
      1.) thirdparty/include/catch/**
+
+ * Software Name: android.toolchain.cmake
+   ** License Name: BSD 3-Clause License
+   ** License File: http://opensource.org/licenses/BSD-3-Clause
+   ** Files List:
+     1.) thirdparty/share/cmake/android.toolchain.cmake
+     2.) thirdparty/share/cmake/AndroidNdkModules.cmake
+     3.) thirdparty/share/cmake/AndroidNdkGdb.cmake
+
+ * Software Name: OpenCL
+   ** License File: OpenCLHeadersLicense.txt
+   ** Files List:
+     1.) thirdparty/include/Android/CL/**
+
