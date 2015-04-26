@@ -1,27 +1,11 @@
-#ifndef EXCEPTION_H_
-#define EXCEPTION_H_
+#ifndef ATML_OPENCLHELPER_OPENCLUTILITY_H_
+#define ATML_OPENCLHELPER_OPENCLUTILITY_H_
+
 #include <exception>
-#endif
-
-#ifndef STDEXCEPT_H_
-#define STDEXCEPT_H_
 #include <stdexcept>
-#endif
-
-#ifndef SSTREAM_H_
-#define SSTREAM_H_
 #include <sstream>
-#endif
-
-#ifndef STRING_H_
-#define STRING_H_
 #include <string>
-#endif
-
-#ifndef CL_CL_H_
-#define CL_CL_H_
 #include <CL/cl.h>
-#endif
 
 using namespace std;
 
@@ -282,3 +266,5 @@ namespace ATML
 
 	}
 }
+
+#endif /* ATML_OPENCLHELPER_OPENCLUTILITY_H_ */

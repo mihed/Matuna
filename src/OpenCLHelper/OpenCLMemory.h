@@ -1,16 +1,22 @@
-#ifndef CL_CL_H_ 
-#define CL_CL_H_
-#include <CL/cl.h>
-#endif 
+/*
+ * OpenCLMemory.h
+ *
+ *  Created on: Apr 26, 2015
+ *      Author: Mikael
+ */
 
-namespace ATML
-{
-	namespace Helper
-	{
-		//Forward declarations to avoid circular includes
+#ifndef OPENCLHELPER_OPENCLMEMORY_H_
+#define OPENCLHELPER_OPENCLMEMORY_H_
+
+#include <CL/cl.h>
+
+namespace ATML {
+namespace Helper {
+
+//Forward declarations to avoid circular includes
 		class OpenCLDevice;
 
-		//This class 
+		//This class
 		class OpenCLMemory
 		{
 			friend class OpenCLDevice;
@@ -30,6 +36,8 @@ namespace ATML
 			OpenCLMemory(cl_mem memory, const OpenCLDevice* const owningDevice, cl_mem_flags readWriteFlag);
 			~OpenCLMemory();
 		};
-	}
-}
 
+} /* namespace Helper */
+} /* namespace ATML */
+
+#endif /* OPENCLHELPER_OPENCLMEMORY_H_ */

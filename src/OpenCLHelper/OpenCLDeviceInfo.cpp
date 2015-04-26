@@ -1,21 +1,21 @@
 /*
- * OpenCLDevice.cpp
+ * OpenCLDeviceInfo.cpp
  *
  *  Created on: Apr 26, 2015
  *      Author: Mikael
  */
 
-#include "OpenCLDevice.h"
+#include "OpenCLDeviceInfo.h"
 
 namespace ATML {
 namespace Helper {
 
-OpenCLDevice::OpenCLDevice() {
+OpenCLDeviceInfo::OpenCLDeviceInfo() {
 	// TODO Auto-generated constructor stub
 
 }
 
-OpenCLDevice::~OpenCLDevice() {
+OpenCLDeviceInfo::~OpenCLDeviceInfo() {
 	// TODO Auto-generated destructor stub
 }
 
