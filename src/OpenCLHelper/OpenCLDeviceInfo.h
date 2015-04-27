@@ -44,14 +44,14 @@ private:
 	unsigned int nativeFloatVectorWidth;
 	unsigned int nativeDoubleVectorWidth;
 	unsigned int nativeHalfVectorWidth;
-	unsigned long maxMemoryAllocationSize;
+	unsigned long long maxMemoryAllocationSize;
 	bool imageSupport;
 	size_t maxParametersSize;
-	unsigned long globalMemoryCacheSize;
-	unsigned long globalMemorySize;
-	unsigned long maxConstantBufferSize;
+	unsigned long long globalMemoryCacheSize;
+	unsigned long long globalMemorySize;
+	unsigned long long maxConstantBufferSize;
 	unsigned int maxConstantArguments;
-	unsigned long localMemorySize;
+	unsigned long long localMemorySize;
 	bool deviceAvailable;
 	bool compilerAvailable;
 	string deviceName;
@@ -82,16 +82,23 @@ public:
 			unsigned int nativeFloatVectorWidth,
 			unsigned int nativeDoubleVectorWidth,
 			unsigned int nativeHalfVectorWidth,
-			unsigned long maxMemoryAllocationSize, bool imageSupport,
-			size_t maxParametersSize, unsigned long globalMemoryCacheSize,
-			unsigned long globalMemorySize, unsigned long maxConstantBufferSize,
-			unsigned int maxConstantArguments, unsigned long localMemorySize,
-			bool deviceAvailable, bool compilerAvailable, string deviceName,
-			string deviceVendor, string driverVersion, string deviceProfile,
-			string deviceVersion, string deviceOpenCLVersion,
-			string deviceExtensions);
-	~OpenCLDeviceInfo();
-
+			unsigned long long maxMemoryAllocationSize, bool imageSupport,
+			size_t maxParametersSize,
+			unsigned long long globalMemoryCacheSize,
+			unsigned long long globalMemorySize,
+			unsigned long long maxConstantBufferSize,
+			unsigned int maxConstantArguments,
+			unsigned long long localMemorySize,
+			bool deviceAvailable, bool compilerAvailable, 
+			string deviceName,
+			string deviceVendor,
+			string driverVersion,
+			string deviceProfile,					
+			string deviceVersion,					
+			string deviceOpenCLVersion,				
+			string deviceExtensions);				
+	~OpenCLDeviceInfo();							
+													
 	OpenCLPlatformInfo PlatformInfo() const {
 		return platformInfo;
 	}
@@ -193,7 +200,7 @@ public:
 		return nativeHalfVectorWidth;
 	}
 	;
-	unsigned long MaxMemoryAllocationSize() const {
+	unsigned long long MaxMemoryAllocationSize() const {
 		return maxMemoryAllocationSize;
 	}
 	;
@@ -205,15 +212,15 @@ public:
 		return maxParametersSize;
 	}
 	;
-	unsigned long GlobalMemoryCacheSize() const {
+	unsigned long long GlobalMemoryCacheSize() const {
 		return globalMemoryCacheSize;
 	}
 	;
-	unsigned long GlobalMemorySize() const {
+	unsigned long long GlobalMemorySize() const {
 		return globalMemorySize;
 	}
 	;
-	unsigned long MaxConstantBufferSize() const {
+	unsigned long long MaxConstantBufferSize() const {
 		return maxConstantBufferSize;
 	}
 	;
@@ -221,7 +228,7 @@ public:
 		return maxConstantArguments;
 	}
 	;
-	unsigned long LocalMemorySize() const {
+	unsigned long long LocalMemorySize() const {
 		return localMemorySize;
 	}
 	;

@@ -10,10 +10,18 @@
 namespace ATML {
 namespace Helper {
 
-OpenCLDevice::OpenCLDevice() {
-	// TODO Auto-generated constructor stub
+	//Initialize the object with a standard single in-order command queue
+	OpenCLDevice::OpenCLDevice(cl_context context, OpenCLDeviceInfo deviceInfo)
+	{
 
-}
+	}
+
+	//Initiaize the object with a single command queue define in the properties
+	OpenCLDevice::OpenCLDevice(cl_context context, OpenCLDeviceInfo deviceInfo, cl_command_queue_properties properties)
+	{
+
+	}
+
 
 OpenCLDevice::~OpenCLDevice() {
 	// TODO Auto-generated destructor stub

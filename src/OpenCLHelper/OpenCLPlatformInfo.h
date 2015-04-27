@@ -36,6 +36,12 @@ public:
 	~OpenCLPlatformInfo();
 
 	string GetString() const;
+
+	cl_platform_id PlatformInfo() const
+	{
+		return platformInfo;
+	}
+	;
 	string PlatformName() const {
 		return platformName;
 	}

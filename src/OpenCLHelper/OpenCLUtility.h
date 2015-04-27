@@ -39,7 +39,7 @@ namespace ATML
 			int errorCode;
 			string errorString;
 			string constructedMessage;
-			const string message;
+			string message;
 
 		public:
 			OpenCLException(int errorCode, const string& message)
