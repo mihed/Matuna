@@ -8,7 +8,7 @@
 #ifndef ATML_OPENCLHELPER_OPENCLDEVICEHANDLER_H_
 #define ATML_OPENCLHELPER_OPENCLDEVICEHANDLER_H_
 
-#include <CL\cl.h>
+#include <CL/cl.h>
 #include <vector>
 #include <memory>
 
