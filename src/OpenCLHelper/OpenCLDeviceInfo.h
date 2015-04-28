@@ -100,7 +100,9 @@ public:
 			string deviceVersion,					
 			string deviceOpenCLVersion,				
 			string deviceExtensions);				
-	~OpenCLDeviceInfo();							
+	~OpenCLDeviceInfo();
+
+	string GetString() const;
 													
 	OpenCLPlatformInfo PlatformInfo() const {
 		return platformInfo;
