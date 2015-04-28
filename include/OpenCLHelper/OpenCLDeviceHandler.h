@@ -8,7 +8,7 @@
 #ifndef ATML_OPENCLHELPER_OPENCLDEVICEHANDLER_H_
 #define ATML_OPENCLHELPER_OPENCLDEVICEHANDLER_H_
 
-#include <CL\cl.h>
+#include <CL/cl.h>
 #include <vector>
 #include <memory>
 
@@ -21,7 +21,7 @@ using namespace std;
 namespace ATML {
 namespace Helper {
 
-class OpenCLDeviceHandler {
+class OpenCLDeviceHandler final{
 
 private:
 	OpenCLPlatformInfo GetPlatformInfo(cl_platform_id platformID);
@@ -49,19 +49,22 @@ public:
 			const vector<OpenCLPlatformInfo>& platformInfos);
 
 	//Returns all the devices given in the specified platform information
-	vector<shared_ptr<OpenCLDevice>> GetDevices(
+	vector<unique_ptr<OpenCLDevice>> GetDevices(
 			const OpenCLPlatformInfo& platformInfo);
 
 	//Returns all the devices given in the specified platform information
-	vector<shared_ptr<OpenCLDevice>> GetDevices(
+	vector<unique_ptr<OpenCLDevice>> GetDevices(
 			const vector<OpenCLPlatformInfo>& platformInfos);
 
 	//Returns all of the present devices
-	vector<shared_ptr<OpenCLDevice>> GetDevices();
+	vector<unique_ptr<OpenCLDevice>> GetDevices();
 
 	//Returns the devices given by the device info
-	vector<shared_ptr<OpenCLDevice>> GetDevices(
+	vector<unique_ptr<OpenCLDevice>> GetDevices(
 			const vector<OpenCLDeviceInfo>& deviceInfos);
+
+	unique_ptr<OpenCLDevice> GetDevices(
+			const OpenCLDeviceInfo& deviceInfo);
 };
 
 } /* namespace Helper */

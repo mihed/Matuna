@@ -24,7 +24,7 @@ namespace ATML
 				: runtime_error(message), message(message)
 			{};
 
-			~OpenCLCompilationException() throw() {}
+			virtual ~OpenCLCompilationException() throw() {}
 
 			virtual const char* what() const throw()
 			{
@@ -249,7 +249,7 @@ namespace ATML
 				constructedMessage = stringStream.str();
 			};
 
-			~OpenCLException() throw() {}
+			virtual ~OpenCLException() throw() {}
 
 			virtual const char* what() const throw()
 			{

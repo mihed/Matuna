@@ -15,8 +15,6 @@
 
 #include "OpenCLMemory.h"
 
-using namespace std;
-
 namespace ATML {
 namespace Helper {
 
