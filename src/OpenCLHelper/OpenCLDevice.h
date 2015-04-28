@@ -32,10 +32,8 @@ private:
 	unordered_map<string, tuple<cl_program, unordered_map<string, cl_kernel>>> programsAndKernels;
 
 public:
-	//Initialize the object with a standard single in-order command queue
 	OpenCLDevice(cl_context context, OpenCLDeviceInfo deviceInfo);
 
-	//Initiaize the object with a single command queue define in the properties
 	OpenCLDevice(cl_context context, OpenCLDeviceInfo deviceInfo, cl_command_queue_properties properties);
 
 	~OpenCLDevice();
@@ -45,12 +43,10 @@ public:
 	void ExecuteKernel(const OpenCLKernel* kernel, bool blocking = true);
 	void WaitForDeviceQueue();
 
-	//Creates empty memory on this device with the given size
 	unique_ptr<OpenCLMemory> CreateMemory(cl_mem_flags flags, size_t bytes);
-
-	//Creates memory on this device with the values defined in the buffer.
-	//The size of the buffer must be the same as the created memory
 	unique_ptr<OpenCLMemory> CreateMemory(cl_mem_flags flags, size_t bytes, void* buffer);
+
+//TODO: Add ReadMemory and Write Memory
 
 private:
 	bool ProgramAdded(string programName);

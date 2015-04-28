@@ -57,6 +57,18 @@ SCENARIO("Fetching device information", "[DeviceInfo]") {
 
 		REQUIRE(size1 == size2);
 	}
+	WHEN("Fetching without platform info")
+	{
+		THEN("Should be printable and working")
+		{
+			auto deviceInfos = deviceHandler.GetDeviceInfos();
+			auto size2 = deviceInfos.size();
+			REQUIRE(size1 == size2);
+			for(auto& info : deviceInfos)
+			printf(info.GetString().c_str());
+
+		}
+	}
 }
 }
 
