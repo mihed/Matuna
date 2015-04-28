@@ -16,7 +16,7 @@ using namespace std;
 namespace ATML {
 namespace Helper {
 
-class OpenCLPlatformInfo {
+class OpenCLPlatformInfo final{
 
 private:
 	cl_platform_id platformInfo;

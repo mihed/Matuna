@@ -9,13 +9,16 @@
 #define ATML_OPENCLHELPER_OPENCLDEVICEINFO_H_
 
 #include <vector>
+#include <string>
 #include <CL/cl.h>
 #include "OpenCLPlatformInfo.h"
+
+using namespace std;
 
 namespace ATML {
 namespace Helper {
 
-class OpenCLDeviceInfo {
+class OpenCLDeviceInfo final{
 
 private:
 	OpenCLPlatformInfo platformInfo;

@@ -10,21 +10,36 @@
 namespace ATML {
 namespace Helper {
 
-	//Initialize the object with a standard single in-order command queue
-	OpenCLDevice::OpenCLDevice(cl_context context, OpenCLDeviceInfo deviceInfo)
-	{
+//Initialize the object with a standard single in-order command queue
+OpenCLDevice::OpenCLDevice(cl_context context, OpenCLDeviceInfo deviceInfo) {
 
-	}
+}
 
-	//Initiaize the object with a single command queue define in the properties
-	OpenCLDevice::OpenCLDevice(cl_context context, OpenCLDeviceInfo deviceInfo, cl_command_queue_properties properties)
-	{
+//Initiaize the object with a single command queue define in the properties
+OpenCLDevice::OpenCLDevice(cl_context context, OpenCLDeviceInfo deviceInfo,
+		cl_command_queue_properties properties) {
 
-	}
-
+}
 
 OpenCLDevice::~OpenCLDevice() {
 	// TODO Auto-generated destructor stub
+}
+
+void OpenCLDevice::AddKernel(const OpenCLKernel& kernel)
+{
+
+}
+void OpenCLDevice::RemoveKernel(const OpenCLKernel& kernel)
+{
+
+}
+void OpenCLDevice::ExecuteKernel(const OpenCLKernel& kernel, bool blocking)
+{
+
+}
+void OpenCLDevice::WaitForDeviceQueue()
+{
+
 }
 
 } /* namespace Helper */
