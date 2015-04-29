@@ -48,6 +48,7 @@ SCENARIO("Fetching device information", "[DeviceInfo]") {
 	THEN("Manual fetching per platform should give the same answer")
 	{
 		size_t size2 = 0;
+		size1 = deviceHandler.GetDeviceInfos(platformInfos).size();
 		for(auto& platformInfo : platformInfos)
 		{
 			auto deviceInfos = deviceHandler.GetDeviceInfos(platformInfo);
@@ -62,6 +63,7 @@ SCENARIO("Fetching device information", "[DeviceInfo]") {
 	{
 		THEN("Should be printable and working")
 		{
+			size1 = deviceHandler.GetDeviceInfos(platformInfos).size();
 			auto deviceInfos = deviceHandler.GetDeviceInfos();
 			auto size2 = deviceInfos.size();
 			REQUIRE(size1 == size2);
