@@ -7,6 +7,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OpenCLHelper/OpenCLDeviceHandler.h"
+#include <stdio.h>
 
 using namespace ATML::Helper;
 
@@ -22,7 +23,7 @@ SCENARIO("Fetching device and platform information", "[PlatformInfo]") {
 	}
 	THEN("We should have a vector with a lot of information that is printable") {
 		for(auto& info : platformInfos)
-		printf(info.GetString().c_str());
+		cout << info.GetString().c_str() << endl;
 	}
 }
 }
@@ -42,7 +43,7 @@ SCENARIO("Fetching device information", "[DeviceInfo]") {
 		auto deviceInfos = deviceHandler.GetDeviceInfos(platformInfos);
 		size1 = deviceInfos.size();
 		for(auto& info : deviceInfos)
-		printf(info.GetString().c_str());
+		cout << info.GetString().c_str() << endl;
 	}
 	THEN("Manual fetching per platform should give the same answer")
 	{
@@ -52,7 +53,7 @@ SCENARIO("Fetching device information", "[DeviceInfo]") {
 			auto deviceInfos = deviceHandler.GetDeviceInfos(platformInfo);
 			size2 += deviceInfos.size();
 			for(auto& info : deviceInfos)
-			printf(info.GetString().c_str());
+			cout << info.GetString().c_str()<< endl;
 		}
 
 		REQUIRE(size1 == size2);
@@ -65,7 +66,7 @@ SCENARIO("Fetching device information", "[DeviceInfo]") {
 			auto size2 = deviceInfos.size();
 			REQUIRE(size1 == size2);
 			for(auto& info : deviceInfos)
-			printf(info.GetString().c_str());
+			cout << info.GetString().c_str() << endl;
 
 		}
 	}
