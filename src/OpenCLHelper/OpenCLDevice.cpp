@@ -206,12 +206,12 @@ void OpenCLDevice::ExecuteKernel(const OpenCLKernel* kernel, bool blocking) {
 
 	for (auto& memoryArgument : memoryArguments)
 	{
-		auto& memory = get<1>(memoryArgument);
+		auto memory = get<1>(memoryArgument);
 		if (memory->owningDevice != this)
 			throw invalid_argument("The memory doesnt correspond to this device");
 		CheckOpenCLError(
 				clSetKernelArg(kernelToExecute, get<0>(memoryArgument),
-						sizeof(cl_mem), memory->memory),
+						sizeof(cl_mem), &memory->memory),
 				"Could not set the kernel argument");
 	}
 	for (auto& otherArgument : otherArguments)
@@ -254,6 +254,7 @@ void OpenCLDevice::ExecuteKernel(const OpenCLKernel* kernel, bool blocking) {
 		clFinish(queue);
 
 }
+
 void OpenCLDevice::WaitForDeviceQueue() {
 	clFinish(queue);
 }
@@ -290,6 +291,32 @@ unique_ptr<OpenCLMemory> OpenCLDevice::CreateMemory(cl_mem_flags flags, size_t b
 	cl_mem memory = clCreateBuffer(context, flags, bytes, buffer, &error);
 	CheckOpenCLError(error, "Could not create the OpenCL memory");
 	return unique_ptr<OpenCLMemory>(new OpenCLMemory(memory, this, flags));
+}
+
+void OpenCLDevice::WriteMemory(OpenCLMemory* memory, size_t bytes, void* buffer, bool blockingCall)
+{
+	//We need to verify that this memory is fixed to this device
+	//TODO: In the future, it's enough with context sharing
+	if (memory->owningDevice != this)
+		throw invalid_argument("The OpenCLMemory is not tied to the device");
+
+	if (blockingCall)
+		CheckOpenCLError(clEnqueueWriteBuffer(queue, memory->memory, CL_TRUE, 0, bytes, buffer, 0, NULL, NULL), "Could not write the buffer to the device");
+	else
+		CheckOpenCLError(clEnqueueWriteBuffer(queue, memory->memory, CL_FALSE, 0, bytes, buffer, 0, NULL, NULL), "Could not write the buffer to the device");
+}
+
+void OpenCLDevice::ReadMemory(OpenCLMemory* memory, size_t bytes, void* buffer, bool blockingCall)
+{
+	//We need to verify that this memory is fixed to this device
+	//TODO: In the future, it's enough with context sharing
+	if (memory->owningDevice != this)
+		throw invalid_argument("The OpenCLMemory is not tied to the device");
+
+	if (blockingCall)
+		CheckOpenCLError(clEnqueueReadBuffer(queue, memory->memory, CL_TRUE, 0, bytes, buffer, 0, NULL, NULL), "Could not write the buffer to the device");
+	else
+		CheckOpenCLError(clEnqueueReadBuffer(queue, memory->memory, CL_FALSE, 0, bytes, buffer, 0, NULL, NULL), "Could not write the buffer to the device");
 }
 
 } /* namespace Helper */

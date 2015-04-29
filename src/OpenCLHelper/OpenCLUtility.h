@@ -45,7 +45,7 @@ namespace ATML
 			OpenCLException(int errorCode, const string& message)
 				: runtime_error(message), message(message), errorCode(errorCode)
 			{
-				switch (errorCode)
+				switch (abs(errorCode))
 				{
 				case 0:
 					errorString = "CL_SUCCESS";

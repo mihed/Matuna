@@ -46,7 +46,8 @@ public:
 	unique_ptr<OpenCLMemory> CreateMemory(cl_mem_flags flags, size_t bytes);
 	unique_ptr<OpenCLMemory> CreateMemory(cl_mem_flags flags, size_t bytes, void* buffer);
 
-//TODO: Add ReadMemory and Write Memory
+	void WriteMemory(OpenCLMemory* memory, size_t bytes, void* buffer, bool blockingCall = true);
+	void ReadMemory(OpenCLMemory* memory, size_t bytes, void* buffer, bool blockingCall = true);
 
 private:
 	bool ProgramAdded(string programName);
