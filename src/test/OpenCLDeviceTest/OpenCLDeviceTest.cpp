@@ -13,21 +13,20 @@
 using namespace ATML::Helper;
 
 SCENARIO("Fetching the OpenCLDevices from the OpenCLDeviceHandler", "[OpenCLDevice][OpenCLDeviceHandler]") {
-	OpenCLDeviceHandler handler;
 	INFO("Getting the device information");
-	auto deviceInfos = handler.GetDeviceInfos();
+	auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos();
 	INFO("Getting the platform information");
-	auto platformInfos = handler.GetPlatformInfos();
+	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
 
 	GIVEN("All of the devices"){
-		auto allDevices = handler.GetDevices();
+		auto allDevices = OpenCLDeviceHandler::GetDevices();
 
 		if (allDevices.size() == 0)
 			WARN("Could not retreive any devices, make sure you have an OCL capable system");
 
 		WHEN("Fetching devices with all platform informations")
 		{
-			auto platformInfoDevices = handler.GetDevices(platformInfos);
+			auto platformInfoDevices = OpenCLDeviceHandler::GetDevices(platformInfos);
 			THEN("The amount of devices must be equal")
 			{
 				REQUIRE(allDevices.size() == platformInfoDevices.size());
@@ -38,7 +37,7 @@ SCENARIO("Fetching the OpenCLDevices from the OpenCLDeviceHandler", "[OpenCLDevi
 			size_t size2 = 0;
 			for (auto& platformInfo : platformInfos)
 			{
-				auto devices = handler.GetDevices(platformInfo);
+				auto devices = OpenCLDeviceHandler::GetDevices(platformInfo);
 				size2 += devices.size();
 			}
 			THEN("Make sure that the count is correct")
@@ -52,7 +51,7 @@ SCENARIO("Fetching the OpenCLDevices from the OpenCLDeviceHandler", "[OpenCLDevi
 			for (auto& deviceInfo : deviceInfos)
 			{
 				size2++;
-				auto device = handler.GetDevices(deviceInfo);
+				auto device = OpenCLDeviceHandler::GetDevices(deviceInfo);
 			}
 			THEN("Make sure that thec count is correct")
 			{
@@ -61,7 +60,7 @@ SCENARIO("Fetching the OpenCLDevices from the OpenCLDeviceHandler", "[OpenCLDevi
 		}
 		WHEN("Fetching devices with all device infos")
 		{
-			auto deviceInfoDevices = handler.GetDevices(deviceInfos);
+			auto deviceInfoDevices = OpenCLDeviceHandler::GetDevices(deviceInfos);
 			THEN("The amount of devices must be equal")
 			{
 				REQUIRE(allDevices.size() == deviceInfoDevices.size());
@@ -72,9 +71,8 @@ SCENARIO("Fetching the OpenCLDevices from the OpenCLDeviceHandler", "[OpenCLDevi
 
 SCENARIO("Acquiring memory, writing memory, reading memory", "[OpenCLMemory][OpenCLDevice][OpenCLDeviceHandler]")
 {
-	OpenCLDeviceHandler handler;
 	INFO("Getting all devices")
-		auto devices = handler.GetDevices();
+		auto devices = OpenCLDeviceHandler::GetDevices();
 
 	if (devices.size() == 0)
 		WARN("No OCL devices found, make sure your system supports OpenCL.");
@@ -112,9 +110,8 @@ SCENARIO("Acquiring memory, writing memory, reading memory", "[OpenCLMemory][Ope
 
 SCENARIO("Making sure that we get exception when using memory from different devices", "[OpenCLMemory][OpenCLDevice][OpenCLDeviceHandler]")
 {
-	OpenCLDeviceHandler handler;
 	INFO("Getting all devices");
-	auto devices = handler.GetDevices();
+	auto devices = OpenCLDeviceHandler::GetDevices();
 
 	if (devices.size() == 0)
 		WARN("No OCL devices found, make sure your system supports OpenCL.");
@@ -135,9 +132,8 @@ SCENARIO("Making sure that we get exception when using memory from different dev
 
 SCENARIO("Adding removing kernels from OCL devices", "[OpenCLDevice][OpenCLDeviceHandler][OpenCLKernel]")
 {
-	OpenCLDeviceHandler handler;
 	INFO("Getting all devices");
-	auto devices = handler.GetDevices();
+	auto devices = OpenCLDeviceHandler::GetDevices();
 
 	if (devices.size() == 0)
 		WARN("No OCL devices found, make sure your system supports OpenCL.");
@@ -194,9 +190,8 @@ SCENARIO("Adding removing kernels from OCL devices", "[OpenCLDevice][OpenCLDevic
 
 SCENARIO("Executing an OCL kernel", "[OpenCLDevice][OpenCLDeviceHandler][OpenCLKernel][OpenCLMemory]")
 {
-	OpenCLDeviceHandler handler;
 	INFO("Getting all devices");
-	auto devices = handler.GetDevices();
+	auto devices = OpenCLDeviceHandler::GetDevices();
 
 	if (devices.size() == 0)
 		WARN("No OCL devices found, make sure your system supports OpenCL.");

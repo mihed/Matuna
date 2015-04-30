@@ -19,55 +19,102 @@
 using namespace std;
 
 namespace ATML {
-namespace Helper {
+	namespace Helper {
 
-class OpenCLDeviceHandler final{
+		/**
+		*@brief This class may be seen as a static factory class that creates objects necessary in order to create OpenCLDevice.
+		*/
+		class OpenCLDeviceHandler final{
 
-private:
-	OpenCLPlatformInfo GetPlatformInfo(cl_platform_id platformID);
-	OpenCLDeviceInfo GetDeviceInfo(const OpenCLPlatformInfo& platformInfo,
-			cl_device_id deviceID);
+		private:
+			static OpenCLPlatformInfo GetPlatformInfo(cl_platform_id platformID);
+			static OpenCLDeviceInfo GetDeviceInfo(const OpenCLPlatformInfo& platformInfo,
+				cl_device_id deviceID);
 
-public:
-	OpenCLDeviceHandler();
-	~OpenCLDeviceHandler();
+		public:
+			/**
+			*@brief Returns a vector that contains information about all the available platforms on the system.
+			*@return A vector of OpenCLPlatformInfo
+			*/
+			static vector<OpenCLPlatformInfo> GetPlatformInfos();
 
-	//Returns information about all the currently installed OpenCL platforms.
-	vector<OpenCLPlatformInfo> GetPlatformInfos();
+			/**
+			*@brief Returns a vector that contains information about all the available devices on the system.
+			*@return A vector of OpenCLDeviceInfo
+			*/
+			static vector<OpenCLDeviceInfo> GetDeviceInfos();
 
-	//Returns information about all OpenCL devices inside all the OpenCL platforms
-	vector<OpenCLDeviceInfo> GetDeviceInfos();
+			/**
+			*@brief Returns a vector that contains information about all the available platforms on the system.
+			*@param platformInfo A OpenCLPlatformInfo
+			*@return A vector of OpenCLDeviceInfo
+			*/
+			static vector<OpenCLDeviceInfo> GetDeviceInfos(
+				const OpenCLPlatformInfo& platformInfo);
 
-	//Returns information about all OpenCL devices present inside the platforms given
-	//as input argument.
-	vector<OpenCLDeviceInfo> GetDeviceInfos(
-			const OpenCLPlatformInfo& platformInfos);
+			/**
+			*@brief Returns a vector that contains information about the devices given in the platforms.
+			*@param platformInfos A vector of OpenCLPlatformInfo
+			*@return A vector of OpenCLDeviceInfo
+			*/
+			static vector<OpenCLDeviceInfo> GetDeviceInfos(
+				const vector<OpenCLPlatformInfo>& platformInfos);
 
-	//Returns information about all OpenCL devices present inside the platforms given
-	//as input argument.
-	vector<OpenCLDeviceInfo> GetDeviceInfos(
-			const vector<OpenCLPlatformInfo>& platformInfos);
+			/**
+			*@brief Returns a vector of OpenCLDevice that are found in the given OpenCLPlatformInfo.
+			*
+			*The returned devices follows the RAII pattern. When they are deleted so are all their resources.
+			*
+			*@param platformInfo OpenCLPlatformInfo
+			*@return A vector of OpenCLDevice
+			*/
+			static vector<unique_ptr<OpenCLDevice>> GetDevices(
+				const OpenCLPlatformInfo& platformInfo);
 
-	//Returns all the devices given in the specified platform information
-	vector<unique_ptr<OpenCLDevice>> GetDevices(
-			const OpenCLPlatformInfo& platformInfo);
+			/**
+			*@brief Returns a vector of OpenCLDevice that are found in the vector of OpenCLPlatformInfo.
+			*
+			*The returned devices follows the RAII pattern. When they are deleted so are all their resources.
+			*
+			*@param A vector of OpenCLPlatformInfo 
+			*@return A vector of OpenCLDevice
+			*/
+			static vector<unique_ptr<OpenCLDevice>> GetDevices(
+				const vector<OpenCLPlatformInfo>& platformInfos);
 
-	//Returns all the devices given in the specified platform information
-	vector<unique_ptr<OpenCLDevice>> GetDevices(
-			const vector<OpenCLPlatformInfo>& platformInfos);
+			/**
+			*@brief Returns a vector of all OpenCLDevice that are found on the system.
+			*
+			*The returned devices follows the RAII pattern. When they are deleted so are all their resources.
+			*
+			*@return A vector of OpenCLDevice
+			*/
+			static vector<unique_ptr<OpenCLDevice>> GetDevices();
 
-	//Returns all of the present devices
-	vector<unique_ptr<OpenCLDevice>> GetDevices();
+			/**
+			*@brief Returns a vector of all OpenCLDevice that are given in the vector of OpenCLDeviceInfo
+			*
+			*The returned devices follows the RAII pattern. When they are deleted so are all their resources.
+			*
+			*@param A vector of OpenCLDeviceInfo
+			*@return A vector of OpenCLDevice
+			*/
+			static vector<unique_ptr<OpenCLDevice>> GetDevices(
+				const vector<OpenCLDeviceInfo>& deviceInfos);
 
-	//Returns the devices given by the device info
-	vector<unique_ptr<OpenCLDevice>> GetDevices(
-			const vector<OpenCLDeviceInfo>& deviceInfos);
+			/**
+			*@brief Returns a single OpenCLDevice from the given OpenCLDeviceInfo
+			*
+			*The returned device follows the RAII pattern. When it's deleted so are all its resources.
+			*
+			*@param A OpenCLDeviceInfo
+			*@return A OpenCLDevice
+			*/
+			static unique_ptr<OpenCLDevice> GetDevices(
+				const OpenCLDeviceInfo& deviceInfo);
+		};
 
-	unique_ptr<OpenCLDevice> GetDevices(
-			const OpenCLDeviceInfo& deviceInfo);
-};
-
-} /* namespace Helper */
+	} /* namespace Helper */
 } /* namespace ATML */
 
 #endif /* ATML_OPENCLHELPER_OPENCLDEVICEHANDLER_H_ */

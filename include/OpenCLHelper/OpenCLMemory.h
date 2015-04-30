@@ -11,35 +11,45 @@
 #include <CL/cl.h>
 
 namespace ATML {
-namespace Helper {
+	namespace Helper {
 
-//Forward declarations to avoid circular includes
-class OpenCLDevice;
+		class OpenCLDevice;
 
-//This class
-class OpenCLMemory
-	final
-	{
-		friend class OpenCLDevice;
+		/**
+		*@brief This class wrapps a native OpenCL memory pointer. Follows the RAII pattern, meaning that when the destructor is called the OCL memory is released.
+		*
+		*In this version of the library. The memory object is bound to the OpenCLDevice.
+		*It must be used in conjunction to the OpenCLDevice that created the memory object.
+		*In future version we can expect memory objects to be bound to the platform (context) instead.
+		*/
+		class OpenCLMemory final
+		{
+			friend class OpenCLDevice;
 
-	public:
-		const cl_mem_flags readWriteFlag;
+		private:
+			const cl_mem memory;
+			const cl_mem_flags readWriteFlag;
 
-	private:
-		const cl_mem memory;
+			//TODO: In the future, this should be replaced by the context since we can, in some cases, share memory between devices
+			const OpenCLDevice* const owningDevice;
+		public:
 
-		//Purpose of this pointer is only to make sure that the correct memory is given to the correct device
-		//It doesn't take any ownership and is completely insensitive to the deletion of the owning device. (SAFE USE)
+			/**
+			*@brief Instantiate the OpenCLMemory. Normally called inside OpenCLDevice::CreateMemory
+			*
+			*The normal usage of this function is throug the OpenCLDevice.
+			*/
+			OpenCLMemory(cl_mem memory, const OpenCLDevice* const owningDevice, cl_mem_flags readWriteFlag);
+			~OpenCLMemory();
 
-		//TODO: In the future, this could be replaced by the context since we can share memory between devices
-		const OpenCLDevice* const owningDevice;
-	public:
-		OpenCLMemory(cl_mem memory, const OpenCLDevice* const owningDevice,
-				cl_mem_flags readWriteFlag);
-		~OpenCLMemory();
-	};
+			/**
+			*@brief The accessor of the memory: read, write or read-write.
+			*@return The OpenCL memory accessor flag of this memor.
+			*/
+			cl_mem_flags ReadWriteFlag() const { return readWriteFlag; };
+		};
 
 	} /* namespace Helper */
-	} /* namespace ATML */
+} /* namespace ATML */
 
 #endif /* OPENCLHELPER_OPENCLMEMORY_H_ */

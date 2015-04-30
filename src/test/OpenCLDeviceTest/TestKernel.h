@@ -19,6 +19,9 @@ namespace Helper {
 class TestKernel: public OpenCLKernel {
 private:
 	vector<tuple<int, shared_ptr<OpenCLMemory>>> memoryArguments;
+	vector<tuple<int, size_t, void*>> otherArguments;
+	vector<size_t> globalWorkSize;
+	vector<size_t> localWorkSize;
 	size_t size;
 public:
 	TestKernel();
@@ -32,10 +35,10 @@ public:
 	virtual string ProgramName() const override;
 	virtual string ProgramCode() const override;
 	virtual string KernelName() const override;
-	virtual vector<tuple<int, shared_ptr<OpenCLMemory>>> GetMemoryArguments() const override;
-	virtual vector<tuple<int, size_t, void*>> GetOtherArguments() const override;
-	virtual vector<size_t> GlobalWorkSize() const override;
-	virtual vector<size_t> LocalWorkSize() const override;
+	virtual const vector<tuple<int, shared_ptr<OpenCLMemory>>>& GetMemoryArguments() const override;
+	virtual const vector<tuple<int, size_t, void*>>& GetOtherArguments() const override;
+	virtual const vector<size_t>& GlobalWorkSize() const override;
+	virtual const vector<size_t>& LocalWorkSize() const override;
 };
 
 } /* namespace Helper */

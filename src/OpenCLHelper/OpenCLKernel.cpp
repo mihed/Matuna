@@ -8,16 +8,16 @@
 #include "OpenCLKernel.h"
 
 namespace ATML {
-namespace Helper {
+	namespace Helper {
 
-OpenCLKernel::OpenCLKernel() {
+		OpenCLKernel::OpenCLKernel() {
 
 
-}
+		}
 
-OpenCLKernel::~OpenCLKernel() {
+		OpenCLKernel::~OpenCLKernel() {
 
-}
+		}
 
-} /* namespace Helper */
+	} /* namespace Helper */
 } /* namespace ATML */

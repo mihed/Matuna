@@ -12,9 +12,8 @@
 using namespace ATML::Helper;
 
 SCENARIO("Fetching device and platform information", "[PlatformInfo]") {
-	OpenCLDeviceHandler deviceHandler;
 	WHEN("Getting platform informations"){
-	auto platformInfos = deviceHandler.GetPlatformInfos();
+	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
 	if (platformInfos.size() == 0)
 	{
 		WARN("No platforms are detected. "
@@ -29,8 +28,7 @@ SCENARIO("Fetching device and platform information", "[PlatformInfo]") {
 }
 
 SCENARIO("Fetching device information", "[DeviceInfo]") {
-	OpenCLDeviceHandler deviceHandler;
-	auto platformInfos = deviceHandler.GetPlatformInfos();
+	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
 	if (platformInfos.size() == 0) {
 		WARN(
 				"No platforms are detected. "
@@ -40,7 +38,7 @@ SCENARIO("Fetching device information", "[DeviceInfo]") {
 	WHEN("Fetching the device info from the platform infos"){
 	size_t size1;
 	THEN("The device infos should be printable and working") {
-		auto deviceInfos = deviceHandler.GetDeviceInfos(platformInfos);
+		auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platformInfos);
 		size1 = deviceInfos.size();
 		for(auto& info : deviceInfos)
 		cout << info.GetString().c_str() << endl;
@@ -48,10 +46,10 @@ SCENARIO("Fetching device information", "[DeviceInfo]") {
 	THEN("Manual fetching per platform should give the same answer")
 	{
 		size_t size2 = 0;
-		size1 = deviceHandler.GetDeviceInfos(platformInfos).size();
+		size1 = OpenCLDeviceHandler::GetDeviceInfos(platformInfos).size();
 		for(auto& platformInfo : platformInfos)
 		{
-			auto deviceInfos = deviceHandler.GetDeviceInfos(platformInfo);
+			auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platformInfo);
 			size2 += deviceInfos.size();
 			for(auto& info : deviceInfos)
 			cout << info.GetString().c_str()<< endl;
@@ -63,8 +61,8 @@ SCENARIO("Fetching device information", "[DeviceInfo]") {
 	{
 		THEN("Should be printable and working")
 		{
-			size1 = deviceHandler.GetDeviceInfos(platformInfos).size();
-			auto deviceInfos = deviceHandler.GetDeviceInfos();
+			size1 = OpenCLDeviceHandler::GetDeviceInfos(platformInfos).size();
+			auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos();
 			auto size2 = deviceInfos.size();
 			REQUIRE(size1 == size2);
 			for(auto& info : deviceInfos)

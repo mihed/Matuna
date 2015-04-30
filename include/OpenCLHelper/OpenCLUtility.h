@@ -13,6 +13,9 @@ namespace ATML
 {
 	namespace Helper
 	{
+		/**
+		*@brief Exception that gets thrown when compilation on the OpenCLDevice fails. See OpenCLDevice::AddKernel.
+		*/
 		class OpenCLCompilationException : public runtime_error
 		{
 
@@ -32,6 +35,9 @@ namespace ATML
 			};
 		};
 
+		/**
+		*@brief Exception that is thrown by any OpenCL call that fails.
+		*/
 		class OpenCLException : public runtime_error
 		{
 
@@ -258,6 +264,9 @@ namespace ATML
 
 		};
 
+		/**
+		*@brief Helper function that automatically throws an OpenCLException if the error code indicates an error.
+		*/
 		inline void CheckOpenCLError(cl_int error, const char* message)
 		{
 			if (error != CL_SUCCESS)

@@ -9,20 +9,20 @@
 #include "OpenCLUtility.h"
 
 namespace ATML {
-namespace Helper {
+	namespace Helper {
 
-OpenCLMemory::OpenCLMemory(const cl_mem memory,
-		const OpenCLDevice* const owningDevice,
-		const cl_mem_flags readWriteFlag) :
-		memory(memory), owningDevice(owningDevice), readWriteFlag(readWriteFlag) {
+		OpenCLMemory::OpenCLMemory(const cl_mem memory,
+			const OpenCLDevice* const owningDevice,
+			const cl_mem_flags readWriteFlag) :
+			memory(memory), owningDevice(owningDevice), readWriteFlag(readWriteFlag) {
 
-}
+		}
 
-OpenCLMemory::~OpenCLMemory() {
-	if (memory)
-		CheckOpenCLError(clReleaseMemObject(memory),
+		OpenCLMemory::~OpenCLMemory() {
+			if (memory)
+				CheckOpenCLError(clReleaseMemObject(memory),
 				"Could not release the open cl memory object");
-}
+		}
 
-} /* namespace Helper */
+	} /* namespace Helper */
 } /* namespace ATML */

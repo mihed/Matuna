@@ -40,7 +40,8 @@ void TestKernel::SetOutput(shared_ptr<OpenCLMemory> output)
 
 void TestKernel::SetMemorySize(size_t size)
 {
-	this->size = size;
+	globalWorkSize.clear();
+	globalWorkSize.push_back(size);
 }
 
 string TestKernel::ProgramCode() const
@@ -61,26 +62,24 @@ string TestKernel::KernelName() const
 	return "Test";
 }
 
-vector<tuple<int, shared_ptr<OpenCLMemory>>> TestKernel::GetMemoryArguments() const
+const vector<tuple<int, shared_ptr<OpenCLMemory>>>& TestKernel::GetMemoryArguments() const
 {
 	return memoryArguments;
 }
 
-vector<tuple<int, size_t, void*>> TestKernel::GetOtherArguments() const
+const vector<tuple<int, size_t, void*>>& TestKernel::GetOtherArguments() const
 {
-	return vector<tuple<int, size_t, void*>>();
+	return otherArguments;
 }
 
-vector<size_t> TestKernel::GlobalWorkSize() const
+const vector<size_t>& TestKernel::GlobalWorkSize() const
 {
-	vector<size_t> result;
-	result.push_back(size);
-	return result;
+	return globalWorkSize;
 }
 
-vector<size_t> TestKernel::LocalWorkSize() const
+const vector<size_t>& TestKernel::LocalWorkSize() const
 {
-	return vector<size_t>();
+	return localWorkSize;
 }
 
 } /* namespace Helper */
