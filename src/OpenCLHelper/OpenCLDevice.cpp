@@ -195,8 +195,8 @@ namespace ATML {
 
 		void OpenCLDevice::ExecuteKernel(const OpenCLKernel* kernel, bool blocking)
 		{
-			auto& programName = kernel->ProgramName();
-			auto& kernelName = kernel->KernelName();
+			auto programName = kernel->ProgramName();
+			auto kernelName = kernel->KernelName();
 
 			if (!KernelAdded(programName, kernelName))
 				throw invalid_argument("The kernel was not added to the device");

@@ -211,6 +211,10 @@ SCENARIO("Executing an OCL kernel", "[OpenCLDevice][OpenCLDeviceHandler][OpenCLK
 		for (auto& device : devices)
 		{
 			TestKernel kernel;
+
+			INFO("Making sure that we get an exception without adding");
+			CHECK_THROWS(device->ExecuteKernel(&kernel));
+
 			INFO("Creating the necessary memory");
 			auto input1Memory = shared_ptr<OpenCLMemory>(move(device->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
 			auto input2Memory = shared_ptr<OpenCLMemory>(move(device->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
