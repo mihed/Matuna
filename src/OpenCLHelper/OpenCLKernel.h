@@ -24,6 +24,10 @@ namespace ATML {
 		*@brief This class serves as an abstract base for every OpenCLKernel that are to be executed on the OpenCLDevice.
 		*/
 		class OpenCLKernel {
+
+		protected:
+			static string GetTextFromPath(string path);
+
 		public:
 			OpenCLKernel();
 			virtual ~OpenCLKernel();

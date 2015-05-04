@@ -13,10 +13,10 @@
 #include <vector>
 #include <tuple>
 
-namespace ATML {
-namespace Helper {
+using namespace ATML::Helper;
 
-class TestKernel: public OpenCLKernel {
+class TestKernel: public OpenCLKernel
+{
 private:
 	vector<tuple<int, shared_ptr<OpenCLMemory>>> memoryArguments;
 	vector<tuple<int, size_t, void*>> otherArguments;
@@ -40,8 +40,5 @@ public:
 	virtual const vector<size_t>& GlobalWorkSize() const override;
 	virtual const vector<size_t>& LocalWorkSize() const override;
 };
-
-} /* namespace Helper */
-} /* namespace ATML */
 
 #endif /* ATML_TEST_OPENCLDEVICETEST_TESTKERNEL_H_ */

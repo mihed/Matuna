@@ -7,14 +7,13 @@
 
 #include "TestKernel.h"
 
-namespace ATML {
-namespace Helper {
-
-TestKernel::TestKernel() {
+TestKernel::TestKernel()
+{
 
 }
 
-TestKernel::~TestKernel() {
+TestKernel::~TestKernel()
+{
 
 }
 
@@ -46,7 +45,8 @@ void TestKernel::SetMemorySize(size_t size)
 
 string TestKernel::ProgramCode() const
 {
-	auto program = R"(__kernel void Test(const __global float* input1, const __global float* input2, __global float* output)
+	auto program =
+			R"(__kernel void Test(const __global float* input1, const __global float* input2, __global float* output)
 	{
 		const int index = get_global_id(0);
 		output[index] = input1[index] * input2[index];
@@ -82,5 +82,3 @@ const vector<size_t>& TestKernel::LocalWorkSize() const
 	return localWorkSize;
 }
 
-} /* namespace Helper */
-} /* namespace ATML */

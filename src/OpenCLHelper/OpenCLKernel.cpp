@@ -6,18 +6,32 @@
  */
 
 #include "OpenCLKernel.h"
+#include <iostream>
+#include <sstream>
+#include <fstream>
 
 namespace ATML {
-	namespace Helper {
+namespace Helper {
 
-		OpenCLKernel::OpenCLKernel() {
+OpenCLKernel::OpenCLKernel() {
 
+}
 
-		}
+OpenCLKernel::~OpenCLKernel() {
 
-		OpenCLKernel::~OpenCLKernel() {
+}
 
-		}
+string OpenCLKernel::GetTextFromPath(string path) {
+	ifstream file(path);
+	stringstream stringStream;
+	string temp;
+	while (getline(file, temp))
+		stringStream << temp << endl;
 
-	} /* namespace Helper */
+	file.close();
+
+	return stringStream.str();
+}
+
+} /* namespace Helper */
 } /* namespace ATML */
