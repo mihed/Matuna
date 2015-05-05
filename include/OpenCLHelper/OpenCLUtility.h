@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <CL/cl.h>
+#include <cmath>
 
 using namespace std;
 

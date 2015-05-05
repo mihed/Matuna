@@ -28,13 +28,22 @@ SET (APPLICATION_ID "${APPLICATION_VENDOR_ID}.${PROJECT_NAME}")
 INCLUDE(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+
 if(COMPILER_SUPPORTS_CXX11)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 elseif(COMPILER_SUPPORTS_CXX0X)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+    	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 else()
         message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
+
+#
+# We need to specifiy the standard lib if we compile for Android
+#
+
+IF(ANDROID)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++")
+ENDIF(ANDROID)
 
 #
 # Project Output Paths
@@ -96,6 +105,8 @@ IF(NOT ANDROID)
 	ELSE(DEFINED OpenCL_LIBRARIES)
 		MESSAGE(FATAL_ERROR "The OpenCL library directory could not be found")
 	ENDIF(DEFINED OpenCL_LIBRARIES)
+ELSE(NOT ANDROID)
+	SET(OpenCL_LIBRARY ${MAINFOLDER}/thirdparty/lib/Android/libOpenCL.so)
 ENDIF(NOT ANDROID)
 
 #
