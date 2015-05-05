@@ -14,7 +14,7 @@ namespace MachineLearning
 {
 enum ATMLErrorFunction
 {
-	ATMLCrossEntropy, ATMLMSE,
+	ATMLCrossEntropy, ATMLMeanSquareError,
 };
 
 } /* ATML */

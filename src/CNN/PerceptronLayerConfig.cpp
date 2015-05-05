@@ -12,7 +12,11 @@ namespace ATML
 namespace MachineLearning
 {
 
-PerceptronLayerConfig::PerceptronLayerConfig()
+PerceptronLayerConfig::PerceptronLayerConfig(
+		ATMLActivationFunction activationFunction,
+		ATMLConnectionType connectionType) :
+		activationFunction(activationFunction), connectionType(connectionType)
+
 {
 
 }

@@ -13,8 +13,9 @@ namespace ATML
 namespace MachineLearning
 {
 
-CNNConfig::CNNConfig(const LayerDataDescription& dataDescription) :
-		inputDataDescription(dataDescription)
+CNNConfig::CNNConfig(const LayerDataDescription& dataDescription,
+		ATMLPrecision precision) :
+		inputDataDescription(dataDescription), precision(precision)
 {
 	inputMemoryProposal.Height = dataDescription.Height;
 	inputMemoryProposal.Width = dataDescription.Width;
@@ -25,9 +26,9 @@ CNNConfig::CNNConfig(const LayerDataDescription& dataDescription) :
 }
 
 CNNConfig::CNNConfig(const LayerDataDescription& dataDescription,
-		const LayerMemoryDescription& memoryProposal) :
+		const LayerMemoryDescription& memoryProposal, ATMLPrecision precision) :
 		inputMemoryProposal(memoryProposal), inputDataDescription(
-				dataDescription)
+				dataDescription), precision(precision)
 {
 
 }

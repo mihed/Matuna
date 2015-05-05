@@ -12,7 +12,10 @@ namespace ATML
 namespace MachineLearning
 {
 
-ConvolutionLayerConfig::ConvolutionLayerConfig()
+ConvolutionLayerConfig::ConvolutionLayerConfig(
+		ATMLActivationFunction activationFunction,
+		ATMLConnectionType connectionType) :
+		activationFunction(activationFunction), connectionType(connectionType)
 {
 
 }

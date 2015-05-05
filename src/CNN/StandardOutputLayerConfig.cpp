@@ -12,15 +12,16 @@ namespace ATML
 namespace MachineLearning
 {
 
-StandardOutputLayerConfig::StandardOutputLayerConfig()
+StandardOutputLayerConfig::StandardOutputLayerConfig(
+		ATMLErrorFunction errorFunction) :
+		errorFunction(errorFunction)
 {
-	// TODO Auto-generated constructor stub
 
 }
 
 StandardOutputLayerConfig::~StandardOutputLayerConfig()
 {
-	// TODO Auto-generated destructor stub
+
 }
 
 void StandardOutputLayerConfig::Accept(ILayerConfigVisitor* visitor)

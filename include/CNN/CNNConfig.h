@@ -11,6 +11,7 @@
 #include "OutputLayerConfig.h"
 #include "ForwardBackPropLayerConfig.h"
 #include "LayerDescriptions.h"
+#include "ATMLPrecisionEnum.h"
 #include <vector>
 #include <memory>
 
@@ -33,15 +34,25 @@ private:
 	vector<unique_ptr<ForwardBackPropLayerConfig>> forwardBackConfigs;
 	unique_ptr<OutputLayerConfig> outputConfig;
 
+	ATMLPrecision precision;
+
 public:
-	CNNConfig(const LayerDataDescription& inputDataDescription);
 	CNNConfig(const LayerDataDescription& inputDataDescription,
-			const LayerMemoryDescription& inputMemoryProposal);
+			ATMLPrecision precision = ATMLSinglePrecision);
+	CNNConfig(const LayerDataDescription& inputDataDescription,
+			const LayerMemoryDescription& inputMemoryProposal,
+			ATMLPrecision precision = ATMLSinglePrecision);
 	~CNNConfig();
 
 	size_t LayerCount() const
 	{
 		return forwardBackConfigs.size();
+	}
+	;
+
+	ATMLPrecision Precision() const
+	{
+		return precision;
 	}
 	;
 

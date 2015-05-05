@@ -9,6 +9,7 @@
 #define ATML_CNN_STANDARDOUTPUTLAYERCONFIG_H_
 
 #include "OutputLayerConfig.h"
+#include "ATMLErrorFunctionEnum.h"
 
 namespace ATML
 {
@@ -17,9 +18,20 @@ namespace MachineLearning
 
 class StandardOutputLayerConfig: public OutputLayerConfig
 {
+
+private:
+	ATMLErrorFunction errorFunction;
+
 public:
-	StandardOutputLayerConfig();
+	StandardOutputLayerConfig(ATMLErrorFunction errorFunction =
+			ATMLMeanSquareError);
 	~StandardOutputLayerConfig();
+
+	ATMLErrorFunction ErrorFunction() const
+	{
+		return errorFunction;
+	}
+	;
 
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 };

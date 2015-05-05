@@ -15,7 +15,7 @@ namespace MachineLearning
 
 enum ATMLPrecision
 {
-	ATMLDouble, ATMLSingle,
+	ATMLDoublePrecision, ATMLSinglePrecision,
 };
 
 } /* ATML */
