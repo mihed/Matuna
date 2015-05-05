@@ -25,6 +25,7 @@ class ILayerConfigVisitor;
 
 class CNNConfig: public ILayerConfig
 {
+
 private:
 	LayerMemoryDescription inputMemoryProposal;
 	LayerDataDescription inputDataDescription;
@@ -46,7 +47,7 @@ public:
 
 	bool HasOutputLayer() const
 	{
-		if(outputConfig.get())
+		if (outputConfig.get())
 			return true;
 		else
 			return false;

@@ -1,23 +1,24 @@
 /*
- * OutputLayerConfig.cpp
+ * CNNOpenCL.cpp
  *
  *  Created on: May 5, 2015
  *      Author: Mikael
  */
 
-#include "OutputLayerConfig.h"
+#include "CNNOpenCL.h"
 
 namespace ATML
 {
 namespace MachineLearning
 {
 
-OutputLayerConfig::OutputLayerConfig()
+CNNOpenCL::CNNOpenCL(const CNNConfig& config) :
+		CNN(config)
 {
 
 }
 
-OutputLayerConfig::~OutputLayerConfig()
+CNNOpenCL::~CNNOpenCL()
 {
 
 }

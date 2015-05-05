@@ -10,11 +10,13 @@
 
 #include "CNNConfig.h"
 
-namespace ATML {
-namespace MachineLearning {
+namespace ATML
+{
+namespace MachineLearning
+{
 
-template<class T>
-class CNN {
+class CNN
+{
 public:
 	CNN(const CNNConfig& config);
 	~CNN();

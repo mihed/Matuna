@@ -12,17 +12,14 @@ namespace ATML
 namespace MachineLearning
 {
 
-template<class T>
-CNN<T>::CNN(const CNNConfig& config)
+CNN::CNN(const CNNConfig& config)
 {
-	// TODO Auto-generated constructor stub
 
 }
 
-template<class T>
-CNN<T>::~CNN()
+CNN::~CNN()
 {
-	// TODO Auto-generated destructor stub
+
 }
 
 } /* namespace MachineLearning */

@@ -14,13 +14,12 @@ namespace MachineLearning
 
 ConvolutionLayerConfig::ConvolutionLayerConfig()
 {
-	// TODO Auto-generated constructor stub
 
 }
 
 ConvolutionLayerConfig::~ConvolutionLayerConfig()
 {
-	// TODO Auto-generated destructor stub
+
 }
 
 void ConvolutionLayerConfig::Accept(ILayerConfigVisitor* visitor)

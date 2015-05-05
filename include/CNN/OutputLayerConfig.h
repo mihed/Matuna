@@ -20,6 +20,7 @@ class OutputLayerConfig: public ILayerConfig
 public:
 	OutputLayerConfig();
 	virtual ~OutputLayerConfig();
+
 };
 
 } /* namespace MachineLearning */

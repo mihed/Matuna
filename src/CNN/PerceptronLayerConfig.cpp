@@ -14,13 +14,12 @@ namespace MachineLearning
 
 PerceptronLayerConfig::PerceptronLayerConfig()
 {
-	// TODO Auto-generated constructor stub
 
 }
 
 PerceptronLayerConfig::~PerceptronLayerConfig()
 {
-	// TODO Auto-generated destructor stub
+
 }
 
 void PerceptronLayerConfig::Accept(ILayerConfigVisitor* visitor)
