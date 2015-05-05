@@ -13,8 +13,8 @@ using namespace std;
 
 OutputLayerTest::OutputLayerTest(
 		const LayerDataDescription& inputLayerDescription,
-		const OutputLayerConfigTest& config) :
-		OutputLayer(inputLayerDescription)
+		const OutputLayerConfig* config) :
+		OutputLayer(inputLayerDescription, config)
 {
 	unsigned seed = chrono::system_clock::now().time_since_epoch().count();
 	default_random_engine generator(seed);

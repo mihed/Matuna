@@ -8,12 +8,12 @@
 #ifndef ATML_CNN_ILAYERCONFIG_H_
 #define ATML_CNN_ILAYERCONFIG_H_
 
+#include "ILayerConfigVisitor.h"
+
 namespace ATML
 {
 namespace MachineLearning
 {
-
-class ILayerConfigVisitor;
 
 class ILayerConfig
 {

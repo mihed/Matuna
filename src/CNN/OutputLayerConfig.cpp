@@ -1,26 +1,24 @@
 /*
- * CNN.cpp
+ * OutputLayerConfig.cpp
  *
- *  Created on: May 2, 2015
+ *  Created on: May 5, 2015
  *      Author: Mikael
  */
 
-#include "CNN.h"
+#include "OutputLayerConfig.h"
 
 namespace ATML
 {
 namespace MachineLearning
 {
 
-template<class T>
-CNN<T>::CNN(const CNNConfig& config)
+OutputLayerConfig::OutputLayerConfig()
 {
 	// TODO Auto-generated constructor stub
 
 }
 
-template<class T>
-CNN<T>::~CNN()
+OutputLayerConfig::~OutputLayerConfig()
 {
 	// TODO Auto-generated destructor stub
 }

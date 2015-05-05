@@ -11,12 +11,15 @@
 #include "CNN/ILayerConfig.h"
 #include "CNN/ILayerConfigVisitor.h"
 #include "CNN/InterlockHelper.h"
+#include "CNN/ForwardBackPropLayerConfig.h"
+#include "CNN/OutputLayerConfig.h"
+#include "CNN/PerceptronLayerConfig.h"
+#include "CNN/ConvolutionLayerConfig.h"
+#include "CNN/StandardOutputLayerConfig.h"
 
-#include "ForthBackPropLayerConfigTest.h"
 #include "ForthBackPropLayerTest.h"
-#include "OutputLayerConfigTest.h"
 #include "OutputLayerTest.h"
-#include "FactoryVisitorTest.h"
+#include "CNNFactoryVisitorTest.h"
 
 #include <memory>
 #include <chrono>
@@ -168,17 +171,17 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 
 		for (int i = 0; i < count; i++)
 		{
-			auto fbConfig = new ForthBackPropLayerConfigTest();
-			unique_ptr<ILayerConfig> config1(fbConfig);
+			unique_ptr<ForwardBackPropLayerConfig> config1(new PerceptronLayerConfig());
 			cnnConfig.AddToBack(move(config1));
+			unique_ptr<ForwardBackPropLayerConfig> config2(new ConvolutionLayerConfig());
+			cnnConfig.AddToBack(move(config2));
 		}
 
-		auto outputConfig = new OutputLayerConfigTest();
-		unique_ptr<ILayerConfig> oConfig(outputConfig);
-		cnnConfig.AddToBack(move(oConfig));
+		unique_ptr<OutputLayerConfig> oConfig(new StandardOutputLayerConfig());
+		cnnConfig.SetOutputConfig(move(oConfig));
 
 		INFO("Visiting the factory");
-		FactoryVisitorTest factory;
+		CNNFactoryVisitorTest factory;
 		cnnConfig.Accept(&factory);
 
 		WHEN("Fetching all the layers from the factory")
@@ -188,8 +191,8 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 			{
 				for (int i = 0; i < count - 1; i++)
 				{
-					auto layer1 = dynamic_cast<ForthBackPropLayerTest*>(layers[i].get());
-					auto layer2 = dynamic_cast<ForthBackPropLayerTest*>(layers[i + 1].get());
+					auto layer1 = layers[i].get();
+					auto layer2 = layers[i + 1].get();
 					INFO("Making sure that the pointer is valid");
 					CHECK(layer1);
 					CHECK(layer2);
@@ -232,8 +235,9 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 				}
 
 				INFO("Checking the output layer");
-				auto lastLayer = dynamic_cast<ForthBackPropLayerTest*>(layers[layers.size() - 2].get());
-				auto outputLayer = dynamic_cast<OutputLayerTest*>(layers[layers.size() - 1].get());
+				auto lastLayer = layers[layers.size() - 1].get();
+				auto outputLayerPointer = factory.GetOutputLayer();
+				auto outputLayer = outputLayerPointer.get();
 
 				CHECK(lastLayer);
 				CHECK(outputLayer);

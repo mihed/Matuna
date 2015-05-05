@@ -1,21 +1,30 @@
 /*
- * FactoryVisitorTest.cpp
+ * CNNFactoryVisitor.cpp
  *
- *  Created on: May 3, 2015
+ *  Created on: May 5, 2015
  *      Author: Mikael
  */
 
-#include "FactoryVisitorTest.h"
-#include "CNN/CNNConfig.h"
-#include "CNN/InterlockHelper.h"
-
-#include "OutputLayerConfigTest.h"
-#include "OutputLayerTest.h"
-#include "ForthBackPropLayerConfigTest.h"
-#include "ForthBackPropLayerTest.h"
+#include "CNNFactoryVisitor.h"
+#include "InterlockHelper.h"
 #include <stdexcept>
 
-void FactoryVisitorTest::InterlockLayer(BackPropLayer* layer)
+namespace ATML
+{
+namespace MachineLearning
+{
+
+CNNFactoryVisitor::CNNFactoryVisitor()
+{
+
+}
+
+CNNFactoryVisitor::~CNNFactoryVisitor()
+{
+
+}
+
+void CNNFactoryVisitor::InterlockLayer(BackPropLayer* layer)
 {
 	if (!InterlockHelper::IsCompatible(layer->InForwardPropDataDescription(),
 			layer->InForwardPropMemoryProposal()))
@@ -59,13 +68,7 @@ void FactoryVisitorTest::InterlockLayer(BackPropLayer* layer)
 	//Finally we need to perform interlocking on the previous layer's output units
 	if (layers.size() != 0)
 	{
-		auto& previousLayer = layers[layers.size() - 1];
-		auto forwardPropLayer =
-				dynamic_cast<ForwardBackPropLayer*>(previousLayer.get());
-
-		if (!forwardPropLayer)
-			throw runtime_error(
-					"Invalid configuration. There's a back-prop only layer that is not located in the back");
+		auto& forwardPropLayer = layers[layers.size() - 1];
 
 		if (!InterlockHelper::IsCompatible(
 				forwardPropLayer->OutForwardPropDataDescription(),
@@ -115,7 +118,7 @@ void FactoryVisitorTest::InterlockLayer(BackPropLayer* layer)
 	}
 }
 
-void FactoryVisitorTest::InterlockLayer(ForwardBackPropLayer* layer)
+void CNNFactoryVisitor::InterlockLayer(ForwardBackPropLayer* layer)
 {
 	InterlockLayer(dynamic_cast<BackPropLayer*>(layer));
 
@@ -124,58 +127,9 @@ void FactoryVisitorTest::InterlockLayer(ForwardBackPropLayer* layer)
 	inputDataDescription = layer->OutForwardPropDataDescription();
 }
 
-FactoryVisitorTest::FactoryVisitorTest()
+vector<unique_ptr<ForwardBackPropLayer>> CNNFactoryVisitor::GetLayers()
 {
-
-}
-
-FactoryVisitorTest::~FactoryVisitorTest()
-{
-
-}
-
-void FactoryVisitorTest::Visit(const CNNConfig* const config)
-{
-	auto inputData = config->InputDataDescription();
-	auto inputMemory = config->InputMemoryProposal();
-	if (!InterlockHelper::IsCompatible(inputData, inputMemory))
-		throw runtime_error("Invalid cnn config memory and data description");
-
-	forwardInputProposal = inputMemory;
-	backOutputProposal = inputMemory;
-	inputDataDescription = inputData;
-}
-
-void FactoryVisitorTest::Visit(const OutputLayerConfigTest* const config)
-{
-	unique_ptr<OutputLayerTest> layer(
-			new OutputLayerTest(inputDataDescription, *config));
-
-	InterlockLayer(layer.get());
-
-	//Since this is an output layer, this will define the targets.
-	//We could potentially have some value in the config if we want to do something about this.
-	layer->InterlockBackPropInput(layer->InBackPropMemoryProposal());
-
-	if (!layer->Interlocked())
-		throw runtime_error("The output layer is not interlocked");
-
-	layers.push_back(move(layer));
-}
-
-void FactoryVisitorTest::Visit(const ForthBackPropLayerConfigTest* const config)
-{
-	unique_ptr<ForthBackPropLayerTest> layer(
-			new ForthBackPropLayerTest(inputDataDescription, *config));
-
-	InterlockLayer(dynamic_cast<ForwardBackPropLayer*>(layer.get()));
-
-	layers.push_back(move(layer));
-}
-
-vector<unique_ptr<BackPropLayer>> FactoryVisitorTest::GetLayers()
-{
-	vector<unique_ptr<BackPropLayer>> result;
+	vector<unique_ptr<ForwardBackPropLayer>> result;
 
 	for (auto& layer : layers)
 		result.push_back(move(layer));
@@ -185,3 +139,10 @@ vector<unique_ptr<BackPropLayer>> FactoryVisitorTest::GetLayers()
 	return result;
 }
 
+unique_ptr<OutputLayer> CNNFactoryVisitor::GetOutputLayer()
+{
+	return move(outputLayer);
+}
+
+} /* namespace MachineLearning */
+} /* namespace ATML */

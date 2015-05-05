@@ -13,8 +13,8 @@ using namespace std;
 
 ForthBackPropLayerTest::ForthBackPropLayerTest(
 		const LayerDataDescription& inputLayerDescription,
-		const ForthBackPropLayerConfigTest& config) :
-		ForwardBackPropLayer(inputLayerDescription)
+		const ForwardBackPropLayerConfig* config) :
+		ForwardBackPropLayer(inputLayerDescription, config)
 {
 	unsigned seed = chrono::system_clock::now().time_since_epoch().count();
 	default_random_engine generator(seed);

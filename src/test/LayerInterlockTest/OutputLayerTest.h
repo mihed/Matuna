@@ -9,7 +9,6 @@
 #define ATML_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_
 
 #include "CNN/OutputLayer.h"
-#include "OutputLayerConfigTest.h"
 
 using namespace ATML::MachineLearning;
 
@@ -17,7 +16,7 @@ class OutputLayerTest: public OutputLayer
 {
 public:
 	OutputLayerTest(const LayerDataDescription& inputLayerDescription,
-			const OutputLayerConfigTest& config);
+			const OutputLayerConfig* config);
 	~OutputLayerTest();
 };
 

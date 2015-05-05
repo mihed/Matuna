@@ -9,6 +9,7 @@
 #define ATML_CNN_FORTHBACKPROPLAYER_H_
 
 #include "BackPropLayer.h"
+#include "ForwardBackPropLayerConfig.h"
 
 namespace ATML
 {
@@ -27,7 +28,8 @@ protected:
 	LayerMemoryDescription outForwardPropMemoryProposal; //Must be set inside constructor for derived classes
 
 public:
-	ForwardBackPropLayer(const LayerDataDescription& inputLayerDescription);
+	ForwardBackPropLayer(const LayerDataDescription& inputLayerDescription,
+			const ForwardBackPropLayerConfig* config);
 	virtual ~ForwardBackPropLayer();
 
 	void InterlockForwardPropOutput(

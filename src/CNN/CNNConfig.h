@@ -8,7 +8,8 @@
 #ifndef ATML_CNN_CNNCONFIG_H_
 #define ATML_CNN_CNNCONFIG_H_
 
-#include "ILayerConfig.h"
+#include "OutputLayerConfig.h"
+#include "ForwardBackPropLayerConfig.h"
 #include "LayerDescriptions.h"
 #include <vector>
 #include <memory>
@@ -22,13 +23,14 @@ namespace MachineLearning
 
 class ILayerConfigVisitor;
 
-class CNNConfig: ILayerConfig
+class CNNConfig: public ILayerConfig
 {
 private:
 	LayerMemoryDescription inputMemoryProposal;
 	LayerDataDescription inputDataDescription;
 
-	vector<unique_ptr<ILayerConfig>> configs;
+	vector<unique_ptr<ForwardBackPropLayerConfig>> forwardBackConfigs;
+	unique_ptr<OutputLayerConfig> outputConfig;
 
 public:
 	CNNConfig(const LayerDataDescription& inputDataDescription);
@@ -36,15 +38,26 @@ public:
 			const LayerMemoryDescription& inputMemoryProposal);
 	~CNNConfig();
 
-	size_t LayerCount()
+	size_t LayerCount() const
 	{
-		return configs.size();
+		return forwardBackConfigs.size();
 	}
 	;
 
-	void AddToBack(unique_ptr<ILayerConfig> config);
-	void AddToFront(unique_ptr<ILayerConfig> config);
-	void InsertAt(unique_ptr<ILayerConfig> config, size_t index);
+	bool HasOutputLayer() const
+	{
+		if(outputConfig.get())
+			return true;
+		else
+			return false;
+	}
+	;
+
+	void SetOutputConfig(unique_ptr<OutputLayerConfig> config);
+	void RemoveOutputConfig();
+	void AddToBack(unique_ptr<ForwardBackPropLayerConfig> config);
+	void AddToFront(unique_ptr<ForwardBackPropLayerConfig> config);
+	void InsertAt(unique_ptr<ForwardBackPropLayerConfig> config, size_t index);
 	void RemoveAt(size_t index);
 
 	virtual void Accept(ILayerConfigVisitor* visitor) override;

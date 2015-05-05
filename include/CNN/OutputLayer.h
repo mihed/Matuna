@@ -10,6 +10,7 @@
 
 #include "BackPropLayer.h"
 #include "LayerDescriptions.h"
+#include "OutputLayerConfig.h"
 
 namespace ATML
 {
@@ -19,7 +20,8 @@ namespace MachineLearning
 class OutputLayer: public BackPropLayer
 {
 public:
-	OutputLayer(const LayerDataDescription& inputLayerDescription);
+	OutputLayer(const LayerDataDescription& inputLayerDescription,
+			const OutputLayerConfig* outputLayerConfig);
 	virtual ~OutputLayer();
 };
 

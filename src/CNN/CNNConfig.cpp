@@ -37,32 +37,46 @@ CNNConfig::~CNNConfig()
 
 }
 
-void CNNConfig::AddToBack(unique_ptr<ILayerConfig> config)
+void CNNConfig::SetOutputConfig(unique_ptr<OutputLayerConfig> config)
 {
-	configs.push_back(move(config));
+	outputConfig = move(config);
 }
 
-void CNNConfig::AddToFront(unique_ptr<ILayerConfig> config)
+void CNNConfig::RemoveOutputConfig()
 {
-	configs.insert(configs.begin(), move(config));
+	outputConfig.reset(nullptr);
 }
 
-void CNNConfig::InsertAt(unique_ptr<ILayerConfig> config, size_t index)
+void CNNConfig::AddToBack(unique_ptr<ForwardBackPropLayerConfig> config)
 {
-	configs.insert(configs.begin() + index, move(config));
+	forwardBackConfigs.push_back(move(config));
+}
+
+void CNNConfig::AddToFront(unique_ptr<ForwardBackPropLayerConfig> config)
+{
+	forwardBackConfigs.insert(forwardBackConfigs.begin(), move(config));
+}
+
+void CNNConfig::InsertAt(unique_ptr<ForwardBackPropLayerConfig> config,
+		size_t index)
+{
+	forwardBackConfigs.insert(forwardBackConfigs.begin() + index, move(config));
 }
 
 void CNNConfig::RemoveAt(size_t index)
 {
-
+	forwardBackConfigs.erase(forwardBackConfigs.begin() + index);
 }
 
 void CNNConfig::Accept(ILayerConfigVisitor* visitor)
 {
 	visitor->Visit(this);
 
-	for (auto& config : configs)
+	for (auto& config : forwardBackConfigs)
 		config->Accept(visitor);
+
+	if (outputConfig.get())
+		outputConfig->Accept(visitor);
 }
 
 } /* namespace MachineLearning */

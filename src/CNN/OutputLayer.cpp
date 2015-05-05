@@ -15,7 +15,8 @@ namespace ATML
 namespace MachineLearning
 {
 
-OutputLayer::OutputLayer(const LayerDataDescription& inputLayerDescription) :
+OutputLayer::OutputLayer(const LayerDataDescription& inputLayerDescription,
+		const OutputLayerConfig* outputLayerConfig) :
 		BackPropLayer(inputLayerDescription)
 {
 
