@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <sstream>
 #include <string>
+#include <stdlib.h>
 #include <CL/cl.h>
-#include <cmath>
 
 using namespace std;
 
