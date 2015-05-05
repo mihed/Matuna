@@ -96,15 +96,15 @@ __kernel void ForwardPerceptronKernel(
     int columnIndex = 0;
     int tempZIndex = 0;
     int tempYIndex = 0;
-    for (int unit = 0; unit < INPUT_UNITS; unit++)
+    for (int unit = INPUT_UNITS_OFFSET; unit < INPUT_UNITS; unit++)
     {
-        tempZIndex = (unit + INPUT_UNITS_OFFSET) * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
-        for (int row = 0; row < INPUT_HEIGHT; row++)
+        tempZIndex = unit * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
+        for (int row = INPUT_HEIGHT_OFFSET; row < INPUT_HEIGHT; row++)
         {
-            tempYIndex = (row + INPUT_HEIGHT_OFFSET) * INPUT_MEMORY_WIDTH + tempZIndex;
-            for(int column = 0; column < INPUT_WIDTH; column++)
+            tempYIndex = row * INPUT_MEMORY_WIDTH + tempZIndex;
+            for(int column = INPUT_WIDTH_OFFSET; column < INPUT_WIDTH; column++)
             {
-               sum += input[tempYIndex + column + INPUT_WIDTH_OFFSET] * weights[rowIndex + columnIndex];
+               sum += input[tempYIndex + column] * weights[rowIndex + columnIndex];
 				columnIndex++;
             }
         }
