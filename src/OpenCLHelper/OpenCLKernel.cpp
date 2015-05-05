@@ -10,18 +10,25 @@
 #include <sstream>
 #include <fstream>
 
-namespace ATML {
-namespace Helper {
+namespace ATML
+{
+namespace Helper
+{
 
-OpenCLKernel::OpenCLKernel() {
+int OpenCLKernel::instanceCounter = 0;
+
+OpenCLKernel::OpenCLKernel()
+{
+	instanceCounter++;
+}
+
+OpenCLKernel::~OpenCLKernel()
+{
 
 }
 
-OpenCLKernel::~OpenCLKernel() {
-
-}
-
-string OpenCLKernel::GetTextFromPath(string path) {
+string OpenCLKernel::GetTextFromPath(string path)
+{
 	ifstream file(path);
 	stringstream stringStream;
 	string temp;
