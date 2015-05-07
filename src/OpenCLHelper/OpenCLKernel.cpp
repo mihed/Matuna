@@ -20,24 +20,28 @@ int OpenCLKernel::instanceCounter = 0;
 OpenCLKernel::OpenCLKernel()
 {
 	instanceCounter++;
+	kernel = nullptr;
+	context = nullptr;
+	kernelSet = false;
+	argumentsSet = false;
 }
 
 OpenCLKernel::~OpenCLKernel()
 {
-
+	if (kernel)
+		clReleaseKernel(kernel);
 }
 
-string OpenCLKernel::GetTextFromPath(string path)
+void OpenCLKernel::SetOCLKernel(cl_kernel kernel)
 {
-	ifstream file(path);
-	stringstream stringStream;
-	string temp;
-	while (getline(file, temp))
-		stringStream << temp << endl;
+	this->kernel = kernel;
+	kernelSet = true;
+}
 
-	file.close();
-
-	return stringStream.str();
+//This function is called by the OpenCLContext when created
+void OpenCLKernel::SetContext(const OpenCLContext* const context)
+{
+	this->context = context;
 }
 
 } /* namespace Helper */

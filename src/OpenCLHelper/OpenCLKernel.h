@@ -8,12 +8,9 @@
 #ifndef ATML_OPENCLHELPER_OPENCLKERNEL_H_
 #define ATML_OPENCLHELPER_OPENCLKERNEL_H_
 
+#include <CL/cl.h>
 #include <string>
 #include <vector>
-#include <memory>
-#include <tuple>
-
-#include "OpenCLMemory.h"
 
 using namespace std;
 
@@ -22,20 +19,65 @@ namespace ATML
 namespace Helper
 {
 
+class OpenCLContext;
+
 /**
  *@brief This class serves as an abstract base for every OpenCLKernel that are to be executed on the OpenCLDevice.
  */
 class OpenCLKernel
 {
+	friend class OpenCLContext;
+
+private:
+	bool kernelSet;
+	cl_kernel kernel;
+	const OpenCLContext* context;
 
 protected:
-	static string GetTextFromPath(string path);
-
 	static int instanceCounter;
+	bool argumentsSet;
+
+private:
+	//This function is called by the OpenCLContext when created
+	void SetOCLKernel(cl_kernel kernel);
+
+	//This function is called by the OpenCLContext when created
+	void SetContext(const OpenCLContext* const context);
 
 public:
 	OpenCLKernel();
 	virtual ~OpenCLKernel();
+
+	bool KernelSet() const
+	{
+		return kernelSet;
+	}
+
+	bool ArgumentsSet() const
+	{
+		return argumentsSet;
+	}
+	;
+
+	bool ContextSet() const
+	{
+		return context ? true : false;
+	}
+	;
+
+	const OpenCLContext* const GetContext() const
+	{
+		return context;
+	}
+	;
+
+	cl_kernel GetKernel() const
+	{
+		return kernel;
+	}
+	;
+
+	virtual void SetArguments() = 0;
 
 	/**
 	 *@brief The name of the program that has the implementation of this kernel
@@ -47,41 +89,10 @@ public:
 	virtual string ProgramName() const = 0;
 
 	/**
-	 *@brief The actual code that has this kernel
-	 *
-	 *@return a string containing the entire program code.
-	 */
-	virtual string ProgramCode() const = 0;
-
-	/**
 	 *@brief The name of the kernel that this OpenCLKernel represents
 	 *@return a string containing the kernel name.
 	 */
 	virtual string KernelName() const = 0;
-
-	/**
-	 *@brief Gets the kernel arguments that has a OpenCL buffer (memory) associated to it.
-	 *
-	 *The first index of the tuple repesents the argument index. The second index of tuple represent the value
-	 *that is to be passed to the argument at the argument index. As indicated in the call. The OpenCLMemory is
-	 *partially owned by the kernel and should not be retained longer than necessary in order to perform the native call.
-	 *
-	 *@return a constant reference to the memory arguments.
-	 *@warning the reference is ONLY valid as long as the OpenCLKernel is alive.
-	 */
-	virtual const vector<tuple<int, shared_ptr<OpenCLMemory>>>&GetMemoryArguments() const = 0;
-
-	/**
-	 *@brief Gets the kernel arguments that has an arbitrary value.
-	 *
-	 *The first index of the tuple represents the argument index. The secon index of tuple represents the size of the argument.
-	 *The third index of the tuple is a pointer to the memory where the argument is stored.
-	 *The must be stored inside the OpenCLKernel object and is valid as long as the OpenCLKernel is valid.
-	 *
-	 *@return a constant reference to arguments.
-	 *@warning the reference is ONLY valid as long as the OpenCLKernel is alive.
-	 */
-	virtual const vector<tuple<int, size_t, void*>>& GetOtherArguments() const = 0;
 
 	/**
 	 *@brief Gets the global work size of the OpenCLKernel

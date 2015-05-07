@@ -292,36 +292,6 @@ namespace ATML {
 			return result;
 		}
 
-		vector<OpenCLDeviceInfo> OpenCLDeviceHandler::GetDeviceInfos() {
-			vector<OpenCLDeviceInfo> result;
-
-			cl_uint platformCount;
-			CheckOpenCLError(clGetPlatformIDs(0, NULL, &platformCount),
-				"Could not get the number of platforms");
-
-			vector<cl_platform_id> platforms;
-			platforms.resize(platformCount);
-			CheckOpenCLError(clGetPlatformIDs(platformCount, platforms.data(), NULL),
-				"Could not retrive the platforms");
-
-			for (auto platform : platforms) {
-				cl_uint deviceCount;
-				CheckOpenCLError(
-					clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 0, NULL,
-					&deviceCount), "Could not fetch the device count");
-
-				vector<cl_device_id> devices;
-				devices.resize(deviceCount);
-				CheckOpenCLError(
-					clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, deviceCount,
-					devices.data(), NULL), "Could not fetch the devices");
-				for (auto device : devices)
-					result.push_back(GetDeviceInfo(GetPlatformInfo(platform), device));
-			}
-
-			return result;
-		}
-
 		vector<OpenCLDeviceInfo> OpenCLDeviceHandler::GetDeviceInfos(
 			const OpenCLPlatformInfo& platformInfo) {
 			vector<OpenCLDeviceInfo> result;
@@ -343,162 +313,28 @@ namespace ATML {
 			return result;
 		}
 
-		vector<OpenCLDeviceInfo> OpenCLDeviceHandler::GetDeviceInfos(
-			const vector<OpenCLPlatformInfo>& platformInfos) {
-			vector<OpenCLDeviceInfo> result;
+		unique_ptr<OpenCLContext> OpenCLDeviceHandler::GetContext(
+			const OpenCLPlatformInfo& platformInfo, int queuesPerDevice,
+			cl_command_queue_properties queueType)
+		{
+			auto deviceInfos = GetDeviceInfos(platformInfo);
+			vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>> deviceConfigs;
 
-			for (auto& platform : platformInfos) {
-				cl_uint deviceCount;
-				CheckOpenCLError(
-					clGetDeviceIDs(platform.PlatformInfo(), CL_DEVICE_TYPE_ALL, 0,
-					NULL, &deviceCount), "Could not fetch the device count");
-
-				vector<cl_device_id> devices;
-				devices.resize(deviceCount);
-				CheckOpenCLError(
-					clGetDeviceIDs(platform.PlatformInfo(), CL_DEVICE_TYPE_ALL,
-					deviceCount, devices.data(), NULL),
-					"Could not fetch the devices");
-				for (auto device : devices)
-					result.push_back(GetDeviceInfo(platform, device));
+			for (auto& deviceInfo : deviceInfos)
+			{
+				OpenCLDeviceConfig deviceConfig;
+				for (int i = 0; i < queuesPerDevice; i++)
+					deviceConfig.AddCommandQueue(queueType);
+				deviceConfigs.push_back(make_tuple(deviceConfig, deviceInfo));
 			}
 
-			return result;
+			return unique_ptr<OpenCLContext>(new OpenCLContext(deviceConfigs));
 		}
 
-		vector<unique_ptr<OpenCLDevice>> OpenCLDeviceHandler::GetDevices(
-			const OpenCLPlatformInfo& platformInfo) {
-			vector<unique_ptr<OpenCLDevice>> result;
-
-			vector<OpenCLDeviceInfo> deviceInfos;
-
-			cl_uint deviceCount;
-			CheckOpenCLError(
-				clGetDeviceIDs(platformInfo.PlatformInfo(), CL_DEVICE_TYPE_ALL, 0,
-				NULL, &deviceCount), "Could not fetch the device count");
-
-			vector<cl_device_id> devices;
-			devices.resize(deviceCount);
-			CheckOpenCLError(
-				clGetDeviceIDs(platformInfo.PlatformInfo(), CL_DEVICE_TYPE_ALL,
-				deviceCount, devices.data(), NULL),
-				"Could not fetch the devices");
-			for (auto device : devices)
-				deviceInfos.push_back(GetDeviceInfo(platformInfo, device));
-
-			//TODO: We don't support multipe devices on the same context atm.
-			cl_int error;
-			for (auto& deviceInfo : deviceInfos) {
-				auto deviceID = deviceInfo.DeviceID();
-				auto context = clCreateContext(0, 1, &deviceID, NULL, NULL, &error);
-				CheckOpenCLError(error, "Could not create the context");
-				result.push_back(
-					unique_ptr<OpenCLDevice>(
-					new OpenCLDevice(context, deviceInfo)));
-			}
-
-			return result;
-		}
-
-		vector<unique_ptr<OpenCLDevice>> OpenCLDeviceHandler::GetDevices(
-			const vector<OpenCLPlatformInfo>& platformInfos) {
-			vector<unique_ptr<OpenCLDevice>> result;
-
-			vector<OpenCLDeviceInfo> deviceInfos;
-			for (auto& platformInfo : platformInfos) {
-				cl_uint deviceCount;
-				CheckOpenCLError(
-					clGetDeviceIDs(platformInfo.PlatformInfo(), CL_DEVICE_TYPE_ALL,
-					0, NULL, &deviceCount),
-					"Could not fetch the device count");
-
-				vector<cl_device_id> devices;
-				devices.resize(deviceCount);
-				CheckOpenCLError(
-					clGetDeviceIDs(platformInfo.PlatformInfo(), CL_DEVICE_TYPE_ALL,
-					deviceCount, devices.data(), NULL),
-					"Could not fetch the devices");
-				for (auto device : devices)
-					deviceInfos.push_back(GetDeviceInfo(platformInfo, device));
-			}
-
-			//TODO: We don't support multipe devices on the same context atm.
-			cl_int error;
-			for (auto& deviceInfo : deviceInfos) {
-				auto deviceID = deviceInfo.DeviceID();
-				auto context = clCreateContext(0, 1, &deviceID, NULL, NULL, &error);
-				CheckOpenCLError(error, "Could not create the context");
-				result.push_back(
-					unique_ptr<OpenCLDevice>(
-					new OpenCLDevice(context, deviceInfo)));
-			}
-
-			return result;
-		}
-
-		vector<unique_ptr<OpenCLDevice>> OpenCLDeviceHandler::GetDevices() {
-			vector<unique_ptr<OpenCLDevice>> result;
-
-			auto platformInfos = GetPlatformInfos();
-
-			vector<OpenCLDeviceInfo> deviceInfos;
-			for (auto& platformInfo : platformInfos) {
-				cl_uint deviceCount;
-				CheckOpenCLError(
-					clGetDeviceIDs(platformInfo.PlatformInfo(), CL_DEVICE_TYPE_ALL,
-					0, NULL, &deviceCount),
-					"Could not fetch the device count");
-
-				vector<cl_device_id> devices;
-				devices.resize(deviceCount);
-				CheckOpenCLError(
-					clGetDeviceIDs(platformInfo.PlatformInfo(), CL_DEVICE_TYPE_ALL,
-					deviceCount, devices.data(), NULL),
-					"Could not fetch the devices");
-				for (auto device : devices)
-					deviceInfos.push_back(GetDeviceInfo(platformInfo, device));
-			}
-
-			//TODO: We don't support multipe devices on the same context atm.
-			cl_int error;
-			for (auto& deviceInfo : deviceInfos) {
-				auto deviceID = deviceInfo.DeviceID();
-				auto context = clCreateContext(0, 1, &deviceID, NULL, NULL, &error);
-				CheckOpenCLError(error, "Could not create the context");
-				result.push_back(
-					unique_ptr<OpenCLDevice>(
-					new OpenCLDevice(context, deviceInfo)));
-			}
-
-			return result;
-		}
-
-		vector<unique_ptr<OpenCLDevice>> OpenCLDeviceHandler::GetDevices(
-			const vector<OpenCLDeviceInfo>& deviceInfos) {
-			vector<unique_ptr<OpenCLDevice>> result;
-
-			//TODO: We don't support multipe devices on the same context atm.
-			cl_int error;
-			for (auto& deviceInfo : deviceInfos) {
-				auto deviceID = deviceInfo.DeviceID();
-				auto context = clCreateContext(0, 1, &deviceID, NULL, NULL, &error);
-				CheckOpenCLError(error, "Could not create the context");
-				result.push_back(
-					unique_ptr<OpenCLDevice>(
-					new OpenCLDevice(context, deviceInfo)));
-			}
-
-			return result;
-		}
-
-		unique_ptr<OpenCLDevice> OpenCLDeviceHandler::GetDevices(
-			const OpenCLDeviceInfo& deviceInfo) {
-			auto deviceID = deviceInfo.DeviceID();
-			cl_int error;
-			auto context = clCreateContext(0, 1, &deviceID, NULL, NULL, &error);
-			CheckOpenCLError(error, "Could not create the context");
-
-			return unique_ptr<OpenCLDevice>(new OpenCLDevice(context, deviceInfo));
+		unique_ptr<OpenCLContext> OpenCLDeviceHandler::GetContext(
+			vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>> deviceConfigs)
+		{
+			return unique_ptr<OpenCLContext>(new OpenCLContext(deviceConfigs));
 		}
 
 	} /* namespace Helper */
