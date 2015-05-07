@@ -6,6 +6,7 @@
  */
 
 #include "OpenCLForwardBackPropLayer.h"
+#include <stdexcept>
 
 namespace ATML
 {

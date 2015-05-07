@@ -30,12 +30,12 @@ class OpenCLKernel
 
 private:
 	bool kernelSet;
-	cl_kernel kernel;
 	const OpenCLContext* context;
 
 protected:
 	static int instanceCounter;
 	bool argumentsSet;
+	cl_kernel kernel;
 
 private:
 	//This function is called by the OpenCLContext when created

@@ -15,7 +15,7 @@ namespace MachineLearning
 {
 
 ForwardPerceptronKernel::ForwardPerceptronKernel() :
-		OpenCLKernel()
+		OpenCLKernelProgram()
 {
 	stringstream stringStream;
 	//We are using unique kernels with macros. So the name will be unique for every kernel
@@ -35,22 +35,24 @@ string ForwardPerceptronKernel::ProgramName() const
 	return programName;
 }
 
-string ForwardPerceptronKernel::ProgramCode() const
+vector<string> ForwardPerceptronKernel::GetProgramCode() const
 {
-	return GetTextFromPath(Path::Combine("kernels", "ForwardPerceptronKernel.cl"));
+	vector<string> result;
+	result.push_back(
+			GetTextFromPath(
+					Path::Combine("kernels", "ForwardPerceptronKernel.cl")));
+	return result;
 }
 string ForwardPerceptronKernel::KernelName() const
 {
 	return kernelName;
 }
-const vector<tuple<int, shared_ptr<OpenCLMemory>>>& ForwardPerceptronKernel::GetMemoryArguments() const
+
+string ForwardPerceptronKernel::GetCompilerOptions() const
 {
-	return memoryArguments;
+	return string();
 }
-const vector<tuple<int, size_t, void*>>& ForwardPerceptronKernel::GetOtherArguments() const
-{
-	return otherArguments;
-}
+
 const vector<size_t>& ForwardPerceptronKernel::GlobalWorkSize() const
 {
 	return globalWorkSize;

@@ -6,6 +6,13 @@
  */
 
 #include "TestKernel.h"
+#include "OpenCLHelper/OpenCLUtility.h"
+
+const string TestKernel::programCode = R"(__kernel void Test(const __global float* input1, const __global float* input2, __global float* output)
+	{
+		const int index = get_global_id(0);
+		output[index] = input1[index] * input2[index];
+	})";
 
 TestKernel::TestKernel()
 {
@@ -43,33 +50,33 @@ void TestKernel::SetMemorySize(size_t size)
 	globalWorkSize.push_back(size);
 }
 
-string TestKernel::ProgramCode() const
+void TestKernel::SetArguments()
 {
-	auto program =
-			R"(__kernel void Test(const __global float* input1, const __global float* input2, __global float* output)
+	for (auto& memoryArgument : memoryArguments)
 	{
-		const int index = get_global_id(0);
-		output[index] = input1[index] * input2[index];
-	})";
+		auto index = get<0>(memoryArgument);
+		auto memory = get<1>(memoryArgument)->GetCLMemory();
+		CheckOpenCLError(clSetKernelArg(kernel, index, sizeof(cl_mem), &memory), "Could not set the kernel arguments");
+	}
 
-	string stringProgram(program);
+	argumentsSet = true;
+}
 
-	return stringProgram;
+vector<string> TestKernel::GetProgramCode() const
+{
+	vector<string> result;
+	result.push_back(programCode);
+	return result;
+}
+
+string TestKernel::GetCompilerOptions() const
+{
+	return string();
 }
 
 string TestKernel::KernelName() const
 {
 	return "Test";
-}
-
-const vector<tuple<int, shared_ptr<OpenCLMemory>>>& TestKernel::GetMemoryArguments() const
-{
-	return memoryArguments;
-}
-
-const vector<tuple<int, size_t, void*>>& TestKernel::GetOtherArguments() const
-{
-	return otherArguments;
 }
 
 const vector<size_t>& TestKernel::GlobalWorkSize() const

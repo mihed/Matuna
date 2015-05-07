@@ -28,7 +28,7 @@ OpenCLKernel::OpenCLKernel()
 
 OpenCLKernel::~OpenCLKernel()
 {
-	if (kernel)
+	if (kernelSet)
 		clReleaseKernel(kernel);
 }
 

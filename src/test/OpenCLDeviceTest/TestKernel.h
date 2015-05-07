@@ -8,21 +8,24 @@
 #ifndef ATML_TEST_OPENCLDEVICETEST_TESTKERNEL_H_
 #define ATML_TEST_OPENCLDEVICETEST_TESTKERNEL_H_
 
-#include <OpenCLHelper/OpenCLKernel.h>
+#include <CL/cl.h>
+#include <OpenCLHelper/OpenCLKernelProgram.h>
+#include <OpenCLHelper/OpenCLMemory.h>
 #include <memory>
 #include <vector>
 #include <tuple>
 
 using namespace ATML::Helper;
 
-class TestKernel: public OpenCLKernel
+class TestKernel : public OpenCLKernelProgram
 {
+public:
+	static const string programCode;
+
 private:
-	vector<tuple<int, shared_ptr<OpenCLMemory>>> memoryArguments;
-	vector<tuple<int, size_t, void*>> otherArguments;
+	vector<tuple<cl_uint, shared_ptr<OpenCLMemory>>> memoryArguments;
 	vector<size_t> globalWorkSize;
 	vector<size_t> localWorkSize;
-	size_t size;
 public:
 	TestKernel();
 	virtual ~TestKernel();
@@ -32,11 +35,12 @@ public:
 	void SetInput2(shared_ptr<OpenCLMemory> input2);
 	void SetOutput(shared_ptr<OpenCLMemory> output);
 
+	virtual void SetArguments() override;
+	virtual string GetCompilerOptions() const override;
+	virtual vector<string> GetProgramCode() const override;
+
 	virtual string ProgramName() const override;
-	virtual string ProgramCode() const override;
 	virtual string KernelName() const override;
-	virtual const vector<tuple<int, shared_ptr<OpenCLMemory>>>& GetMemoryArguments() const override;
-	virtual const vector<tuple<int, size_t, void*>>& GetOtherArguments() const override;
 	virtual const vector<size_t>& GlobalWorkSize() const override;
 	virtual const vector<size_t>& LocalWorkSize() const override;
 };

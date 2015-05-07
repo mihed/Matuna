@@ -12,190 +12,210 @@
 
 using namespace ATML::Helper;
 
-SCENARIO("Fetching the OpenCLDevices from the OpenCLDeviceHandler", "[OpenCLDevice][OpenCLDeviceHandler]")
-{
-	INFO("Getting the device information");
-	auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos();
-	INFO("Getting the platform information");
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
-
-	GIVEN("All of the devices"){
-	auto allDevices = OpenCLDeviceHandler::GetDevices();
-
-	if (allDevices.size() == 0)
-	WARN("Could not retreive any devices, make sure you have an OCL capable system");
-
-	WHEN("Fetching devices with all platform informations")
-	{
-		auto platformInfoDevices = OpenCLDeviceHandler::GetDevices(platformInfos);
-		THEN("The amount of devices must be equal")
-		{
-			REQUIRE(allDevices.size() == platformInfoDevices.size());
-		}
-	}
-	WHEN("Fetching devices with single platform infos")
-	{
-		size_t size2 = 0;
-		for (auto& platformInfo : platformInfos)
-		{
-			auto devices = OpenCLDeviceHandler::GetDevices(platformInfo);
-			size2 += devices.size();
-		}
-		THEN("Make sure that the count is correct")
-		{
-			REQUIRE(allDevices.size() == size2);
-		}
-	}
-	WHEN("Fetching devices with single device info")
-	{
-		size_t size2 = 0;
-		for (auto& deviceInfo : deviceInfos)
-		{
-			size2++;
-			auto device = OpenCLDeviceHandler::GetDevices(deviceInfo);
-		}
-		THEN("Make sure that thec count is correct")
-		{
-			REQUIRE(allDevices.size() == size2);
-		}
-	}
-	WHEN("Fetching devices with all device infos")
-	{
-		auto deviceInfoDevices = OpenCLDeviceHandler::GetDevices(deviceInfos);
-		THEN("The amount of devices must be equal")
-		{
-			REQUIRE(allDevices.size() == deviceInfoDevices.size());
-		}
-	}
-}
-}
-
 SCENARIO("Acquiring memory, writing memory, reading memory", "[OpenCLMemory][OpenCLDevice][OpenCLDeviceHandler]")
 {
-	INFO("Getting all devices")
-	auto devices = OpenCLDeviceHandler::GetDevices();
+	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	if (platformInfos.size() == 0)
+	{
+		WARN(
+			"No platforms are detected. "
+			"This is either because you are running "
+			"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
+	}
 
-	if (devices.size() == 0)
-		WARN("No OCL devices found, make sure your system supports OpenCL.");
+	INFO("Initializing buffers")
+		const size_t bufferSize = 10000;
+	unique_ptr<cl_float[]> inputBuffer(new cl_float[bufferSize]);
+	unique_ptr<cl_float[]> outputBuffer(new cl_float[bufferSize]);
+	auto rawInputBuffer = inputBuffer.get();
+	for (int i = 0; i < bufferSize; i++)
+		rawInputBuffer[i] = static_cast<int>(i);
+
+	GIVEN("All the contexts with all devices with a single device queue")
+	{
+		WHEN("Creating the memory with the context")
+		{
+			THEN("We should be able to read the memory from every device inside the context")
+			{
+				for (auto& platformInfo : platformInfos)
+				{
+					INFO("Creating the context");
+					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					INFO("Creating memory inside the context");
+					auto inputMemory = context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize);
+					for (auto device : context->GetDevices())
+					{
+						INFO("Writing memory");
+						device->WriteMemory(inputMemory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
+						auto rawOutputBuffer = outputBuffer.get();
+						INFO("Reading the memory from the device")
+							device->ReadMemory(inputMemory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
+						for (int i = 0; i < bufferSize; i++)
+							CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
+					}
+				}
+			}
+		}
+
+	}
+}
+
+
+SCENARIO("Making sure that we get exception when using memory from different contexts", "[OpenCLMemory][OpenCLDevice][OpenCLDeviceHandler]")
+{
+	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	if (platformInfos.size() == 0)
+	{
+		WARN(
+			"No platforms are detected. "
+			"This is either because you are running "
+			"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
+	}
+
+	int dummy = 100;
+	if (platformInfos.size() == 1)
+	{
+		WARN(
+			"Not enough OCL platforms on the system to perform memory exception test");
+	}
 	else
 	{
+		INFO("Creating all the available contexts");
+		vector<unique_ptr<OpenCLContext>> contexts;
+		for (auto& platformInfo : platformInfos)
+			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
 
-		INFO("Initializing buffers")
-		const size_t bufferSize = 10000;
-		unique_ptr<cl_float[]> inputBuffer(new cl_float[bufferSize]);
-		unique_ptr<cl_float[]> outputBuffer(new cl_float[bufferSize]);
-		auto rawInputBuffer = inputBuffer.get();
-		for (int i = 0; i < bufferSize; i++)
-			rawInputBuffer[i] = static_cast<int>(i);
-		GIVEN("All of the devices"){
-		for (auto& device : devices)
-		{
-			WHEN("Writing to OCL memory")
+		vector<vector<OpenCLDevice*>> devices;
+		for (auto& context : contexts)
+			devices.push_back(context->GetDevices());
+
+		WHEN("Creating memory on separate contexts"){
+			vector<unique_ptr<OpenCLMemory>> memories;
+			vector<cl_float> dummyBuffer;
+			dummyBuffer.resize(100);
+			for (auto& context : contexts)
+				memories.push_back(context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * dummyBuffer.size()));
+
+			auto count = memories.size();
+			CHECK(count >= 1);
+			CHECK(devices.size() == count);
+
+			THEN("We must have an exception when reading from devices in a different context")
 			{
-				auto inputMemory = device->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize);
-				CHECK(inputMemory.get());
-				device->WriteMemory(inputMemory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
-				THEN("The read memory must be equal")
+				for (int i = 1; i < count; i++)
 				{
-					auto rawOutputBuffer = outputBuffer.get();
-					device->ReadMemory(inputMemory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
-					for (int i = 0; i < bufferSize; i++)
-					CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
+					auto firstDevice = devices[i - 1][0];
+					auto secondDevice = devices[i][0];
+					auto& firstMemory = memories[i - 1];
+					auto& secondMemory = memories[i];
+
+					CHECK_THROWS(firstDevice->ReadMemory(secondMemory.get(), sizeof(cl_float) * dummyBuffer.size(), dummyBuffer.data()));
+					CHECK_THROWS(secondDevice->ReadMemory(firstMemory.get(), sizeof(cl_float) * dummyBuffer.size(), dummyBuffer.data()));
 				}
 			}
 		}
 	}
 }
-}
-
-SCENARIO("Making sure that we get exception when using memory from different devices", "[OpenCLMemory][OpenCLDevice][OpenCLDeviceHandler]")
+SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLContext][OpenCLKernel][OpenCLKernelProgram]")
 {
-	INFO("Getting all devices");
-	auto devices = OpenCLDeviceHandler::GetDevices();
-
-	if (devices.size() == 0)
-		WARN("No OCL devices found, make sure your system supports OpenCL.");
-	else if (devices.size() == 1)
+	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	if (platformInfos.size() == 0)
 	{
-		WARN("Not enought OCL devices on the system to perform this test");
+		WARN(
+			"No platforms are detected. "
+			"This is either because you are running "
+			"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
 	}
-	else
+	GIVEN("A OpenCLKernelProgram implementation")
 	{
-		auto& firstDevice = devices[0];
-		auto& secondDevice = devices[1];
-
-		auto firstMemory = firstDevice->CreateMemory(CL_MEM_READ_WRITE,
-				sizeof(cl_float) * 100);
-
-		CHECK_THROWS(
-				secondDevice->ReadMemory(firstMemory.get(),
-						sizeof(cl_float) * 100, 0));
-	}
-}
-
-SCENARIO("Adding removing kernels from OCL devices", "[OpenCLDevice][OpenCLDeviceHandler][OpenCLKernel]")
-{
-	INFO("Getting all devices");
-	auto devices = OpenCLDeviceHandler::GetDevices();
-
-	if (devices.size() == 0)
-		WARN("No OCL devices found, make sure your system supports OpenCL.");
-
-	TestKernel kernel;
-	GIVEN("OpenCLKernel and the devices"){
-	WHEN("Removing a kernel that was not added")
-	{
-		THEN("We must have an exception")
+		TestKernel kernel;
+		WHEN("Removing a program that has not been added")
 		{
-			INFO("Looping through all the devices");
-			for (auto& device : devices)
+			THEN("We must have an exception")
 			{
-				CHECK_THROWS(device->RemoveKernel(&kernel));
+				for (auto& platformInfo : platformInfos)
+				{
+					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					CHECK_THROWS(context->RemoveProgram(kernel.ProgramName()));
+				}
 			}
 		}
-	}
-	WHEN("Adding a kernel for the first time")
-	{
-		THEN("We can remove it safely")
+		WHEN("Removing a program that has been added")
 		{
-			INFO("Looping through all the devices");
-			for (auto& device : devices)
+			THEN("We must not have exception")
 			{
-				device->AddKernel(&kernel);
-				device->RemoveKernel(&kernel);
+				for (auto& platformInfo : platformInfos)
+				{
+					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					context->AddProgramFromSource(kernel.ProgramName(), kernel.GetCompilerOptions(), kernel.GetProgramCode(), context->GetDevices());
+					context->RemoveProgram(kernel.ProgramName());
+				}
 			}
 		}
-	}
-
-	WHEN("Adding multiple kernels")
-	{
-		INFO("Looping through all the devices");
-		for (auto& device : devices)
-		for (int i = 0; i < 10; i++)
-		device->AddKernel(&kernel);
-		THEN("We should be able to remove them without exception except for the last one")
+		WHEN("Removing a program that has been added by the create program kernel command")
 		{
-			INFO("Looping through all the devices");
-			for (auto& device : devices)
+			THEN("We must not have exception")
 			{
-				for (int i = 0; i < 10; i++)
-				device->RemoveKernel(&kernel);
-
-				INFO("Removing one too many")
-				CHECK_THROWS(device->RemoveKernel(&kernel));
+				for (auto& platformInfo : platformInfos)
+				{
+					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					auto testKernel = context->CreateOpenCLKernelProgram<TestKernel>(context->GetDevices());
+					INFO("Release the kernel before the program to be rigorous");
+					testKernel.reset();
+					context->RemoveProgram(kernel.ProgramName());
+				}
 			}
 		}
+		WHEN("Removing a program that has been added by the create kernel command")
+		{
+			THEN("We must have an exception")
+			{
+				for (auto& platformInfo : platformInfos)
+				{
+					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					CHECK_THROWS(context->CreateOpenCLKernel<TestKernel>());
+					CHECK_THROWS(context->RemoveProgram(kernel.ProgramName()));
+				}
+			}
+		}
+
+		/*WHEN("Adding a binary source file that we have previously added")
+		{
+		THEN("We must not have exception")
+		{
+		for (auto& platformInfo : platformInfos)
+		{
+		cout << platformInfo.GetString().c_str() << endl;
+
+		auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+		vector<OpenCLDevice*> oneDevice;
+		oneDevice.push_back(context->GetDevices()[0]);
+		auto testKernel = context->CreateOpenCLKernelProgram<TestKernel>(oneDevice);
+
+		INFO("Fetching the binary program");
+		auto binaries = context->GetBinaryProgram(testKernel->ProgramName());
+
+		INFO("Removing the old program so that we can re add with the binaries");
+		context->RemoveProgram(testKernel->ProgramName());
+
+		INFO("Adding a binary program");
+		context->AddProgramFromBinary(testKernel->ProgramName(), binaries, oneDevice);
+		}
+		}
+		}*/
 	}
-}
 }
 
 SCENARIO("Executing an OCL kernel", "[OpenCLDevice][OpenCLDeviceHandler][OpenCLKernel][OpenCLMemory]")
 {
-	INFO("Getting all devices");
-	auto devices = OpenCLDeviceHandler::GetDevices();
-
-	if (devices.size() == 0)
-		WARN("No OCL devices found, make sure your system supports OpenCL.");
+	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	if (platformInfos.size() == 0)
+	{
+		WARN(
+			"No platforms are detected. "
+			"This is either because you are running "
+			"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
+	}
 
 	INFO("Initializing the buffers");
 	const size_t bufferSize = 1000;
@@ -207,49 +227,67 @@ SCENARIO("Executing an OCL kernel", "[OpenCLDevice][OpenCLDeviceHandler][OpenCLK
 
 	auto epsilon = numeric_limits<float>::epsilon();
 
-	GIVEN("OpenCLKernel and the devices"){
-	for (auto& device : devices)
+
+	for (auto& platformInfo : platformInfos)
 	{
-		TestKernel kernel;
+		INFO("Creating the context");
+		auto context = OpenCLDeviceHandler::GetContext(platformInfo);
 
 		INFO("Making sure that we get an exception without adding");
-		CHECK_THROWS(device->ExecuteKernel(&kernel));
+		CHECK_THROWS(context->RemoveProgram(""));
 
 		INFO("Creating the necessary memory");
-		auto input1Memory = shared_ptr<OpenCLMemory>(move(device->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
-		auto input2Memory = shared_ptr<OpenCLMemory>(move(device->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
-		auto outputMemory = shared_ptr<OpenCLMemory>(move(device->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(cl_float) * bufferSize)));
+		shared_ptr<OpenCLMemory> input1Memory(move(context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
+		shared_ptr<OpenCLMemory> input2Memory(move(context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
+		shared_ptr<OpenCLMemory> outputMemory(move(context->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(cl_float) * bufferSize)));
 
-		INFO("Writing to the input memory");
-		device->WriteMemory(input1Memory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
-		device->WriteMemory(input2Memory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
+		auto kernel = context->CreateOpenCLKernelProgram<TestKernel>(context->GetDevices());
 
-		INFO("Making sure that the memory is correctly written");
-		auto rawOutputBuffer = outputBuffer.get();
-		device->ReadMemory(input1Memory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
-		for (int i = 0; i < bufferSize; i++)
-		CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
+		kernel->SetInput1(input1Memory);
+		kernel->SetInput2(input2Memory);
+		kernel->SetOutput(outputMemory);
+		kernel->SetMemorySize(bufferSize);
+		CHECK(kernel->KernelSet());
+		kernel->SetArguments();
+		CHECK(kernel->ArgumentsSet());
 
-		device->ReadMemory(input2Memory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
-		for (int i = 0; i < bufferSize; i++)
-		CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
-
-		kernel.SetInput1(input1Memory);
-		kernel.SetInput2(input2Memory);
-		kernel.SetOutput(outputMemory);
-		kernel.SetMemorySize(bufferSize);
-		device->AddKernel(&kernel);
-		device->ExecuteKernel(&kernel);
-
-		//Let us now read the output memory
-		device->ReadMemory(outputMemory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
-		auto rawOutputPointer = outputBuffer.get();
-		for (int i = 0; i < bufferSize; i++)
+		for (auto device : context->GetDevices())
 		{
-			auto calculatedResult = cl_float(i) * cl_float(i);
-			auto difference = abs(calculatedResult - rawOutputPointer[i]);
-			CHECK(difference <= epsilon);
+
+			INFO("Writing to the input memory");
+			device->WriteMemory(input1Memory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
+			device->WriteMemory(input2Memory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
+
+			INFO("Making sure that the memory is correctly written");
+			auto rawOutputBuffer = outputBuffer.get();
+			device->ReadMemory(input1Memory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
+			for (int i = 0; i < bufferSize; i++)
+				CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
+
+			device->ReadMemory(input2Memory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
+			for (int i = 0; i < bufferSize; i++)
+				CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
+
+			device->ExecuteKernel(kernel.get());
+
+			//Let us now read the output memory
+			device->ReadMemory(outputMemory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
+			auto rawOutputPointer = outputBuffer.get();
+			for (int i = 0; i < bufferSize; i++)
+			{
+				auto calculatedResult = cl_float(i) * cl_float(i);
+				auto difference = abs(calculatedResult - rawOutputPointer[i]);
+				CHECK(difference <= epsilon);
+			}
 		}
+
+		//Release the memories before
+		input1Memory.reset();
+		input2Memory.reset();
+		outputMemory.reset();
+
+		//Release the kernel before the context to be rigorous
+		kernel.reset();
+
 	}
-}
 }

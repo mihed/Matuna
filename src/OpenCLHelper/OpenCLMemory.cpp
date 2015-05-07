@@ -13,7 +13,7 @@ namespace ATML
 namespace Helper
 {
 
-OpenCLMemory::OpenCLMemory(const cl_mem memory,
+OpenCLMemory::OpenCLMemory(cl_mem memory,
 		const OpenCLContext* const owningContext,
 		const cl_mem_flags readWriteFlag, size_t byteSize) :
 		memory(memory), owningContext(owningContext), readWriteFlag(

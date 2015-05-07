@@ -25,10 +25,8 @@ class OpenCLContext;
  *In future version we can expect memory objects to be bound to the platform (context) instead.
  */
 class OpenCLMemory
-	final
-	{
-		friend class OpenCLDevice;
-
+final
+{
 	private:
 		const cl_mem memory;
 		const cl_mem_flags readWriteFlag;
@@ -58,6 +56,12 @@ class OpenCLMemory
 		const OpenCLContext* const OwningContext() const
 		{
 			return owningContext;
+		}
+		;
+
+		const cl_mem GetCLMemory() const
+		{
+			return memory;
 		}
 		;
 

@@ -33,6 +33,11 @@ public:
 	}
 	;
 
+	size_t CommandQueueCount() const
+	{
+		return properties.size();
+	}
+	;
 	vector<cl_command_queue_properties> GetCommandQueues() const
 	{
 		return properties;

@@ -8,7 +8,7 @@
 #ifndef ATML_CNNOPENCL_PERCEPTRONKERNEL_H_
 #define ATML_CNNOPENCL_PERCEPTRONKERNEL_H_
 
-#include "OpenCLHelper/OpenCLKernel.h"
+#include "OpenCLHelper/OpenCLKernelProgram.h"
 #include "OpenCLHelper/OpenCLMemory.h"
 #include <memory>
 #include <tuple>
@@ -23,11 +23,9 @@ namespace ATML
 namespace MachineLearning
 {
 
-class ForwardPerceptronKernel: public OpenCLKernel
+class ForwardPerceptronKernel: public OpenCLKernelProgram
 {
 private:
-	vector<tuple<int, shared_ptr<OpenCLMemory>>> memoryArguments;
-	vector<tuple<int, size_t, void*>> otherArguments;
 	vector<size_t> globalWorkSize;
 	vector<size_t> localWorkSize;
 
@@ -39,10 +37,10 @@ public:
 	~ForwardPerceptronKernel();
 
 	virtual string ProgramName() const override;
-	virtual string ProgramCode() const override;
+	virtual string GetCompilerOptions() override;
+	virtual vector<string> GetProgramCode() override;
 	virtual string KernelName() const override;
-	virtual const vector<tuple<int, shared_ptr<OpenCLMemory>>>&GetMemoryArguments() const override;
-	virtual const vector<tuple<int, size_t, void*>>& GetOtherArguments() const override;
+	virtual void SetArguments() override;
 	virtual const vector<size_t>& GlobalWorkSize() const override;
 	virtual const vector<size_t>& LocalWorkSize() const override;
 };
