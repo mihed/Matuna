@@ -22,25 +22,22 @@ namespace MachineLearning
 
 class CNN
 {
-protected:
+private:
 	vector<LayerDataDescription> inputDataDescriptions;
 	vector<LayerMemoryDescription> inputMemoryDescriptions;
-
+	bool inputInterlocked;
 public:
 	CNN(const CNNConfig& config);
 	virtual ~CNN();
 
+	void InterlockForwardPropInput(
+			const vector<LayerMemoryDescription>& inputDescriptions);
+
+	bool Interlocked() const;
+
 	vector<LayerDataDescription> InputDataDescriptions() const;
 	vector<LayerMemoryDescription> InputMemoryDescriptions() const;
 
-	//TODO: make this call safer by using templates
-	//virtual void FeedForward(const void* input, int formatIndex, void* output) = 0;
-	//virtual double CalculateError(const void* propagatedValue, int formatIndex,
-	//		const void* target) = 0;
-	//virtual void CalculateGradient(const void* input, int formatIndex,
-	//		void* output) = 0;
-	//virtual void GetParameters(void* parameters) = 0;
-	//virtual size_t GetParameterCount() = 0;
 };
 
 } /* namespace MachineLearning */
