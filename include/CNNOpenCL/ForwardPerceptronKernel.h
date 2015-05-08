@@ -37,8 +37,8 @@ public:
 	~ForwardPerceptronKernel();
 
 	virtual string ProgramName() const override;
-	virtual string GetCompilerOptions() override;
-	virtual vector<string> GetProgramCode() override;
+	virtual string GetCompilerOptions() const override;
+	virtual vector<string> GetProgramCode() const override;
 	virtual string KernelName() const override;
 	virtual void SetArguments() override;
 	virtual const vector<size_t>& GlobalWorkSize() const override;
