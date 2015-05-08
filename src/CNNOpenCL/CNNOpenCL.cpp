@@ -19,7 +19,7 @@ CNNOpenCL::CNNOpenCL(unique_ptr<OpenCLContext> context, CNNConfig config) :
 		CNN(config)
 {
 	this->context = move(context);
-	CNNOpenCLFactoryVisitor factory(this->context);
+	CNNOpenCLFactoryVisitor factory(this->context, this);
 	config.Accept(&factory);
 	auto createdLayers = factory.GetLayers();
 	auto createdOutputLayer = factory.GetOutputLayer();
@@ -70,7 +70,7 @@ template<class T>
 T CNNOpenCL::CalculateError(const T* propagatedValue, int formatIndex,
 		const T* target)
 {
-
+	return T();
 }
 
 template void CNNOpenCL::CalculateGradient<cl_float>(const cl_float* input,

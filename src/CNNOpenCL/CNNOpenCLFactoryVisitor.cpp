@@ -22,8 +22,8 @@ namespace MachineLearning
 {
 
 CNNOpenCLFactoryVisitor::CNNOpenCLFactoryVisitor(
-		shared_ptr<OpenCLContext> context) :
-		context(context)
+		shared_ptr<OpenCLContext> context, CNN* network) :
+		CNNFactoryVisitor(network), context(context)
 {
 
 }

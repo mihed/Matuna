@@ -15,7 +15,7 @@ using namespace ATML::MachineLearning;
 class CNNFactoryVisitorTest: public CNNFactoryVisitor
 {
 public:
-	CNNFactoryVisitorTest();
+	CNNFactoryVisitorTest(CNN* network);
 	~CNNFactoryVisitorTest();
 
 	virtual void Visit(const CNNConfig* const cnnConfig) override;

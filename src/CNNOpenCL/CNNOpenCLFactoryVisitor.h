@@ -20,12 +20,14 @@ namespace ATML
 namespace MachineLearning
 {
 
+class CNN;
+
 class CNNOpenCLFactoryVisitor: public CNNFactoryVisitor
 {
 private:
 	shared_ptr<OpenCLContext> context;
 public:
-	CNNOpenCLFactoryVisitor(shared_ptr<OpenCLContext> context);
+	CNNOpenCLFactoryVisitor(shared_ptr<OpenCLContext> context, CNN* network);
 	virtual ~CNNOpenCLFactoryVisitor();
 
 	virtual void Visit(const CNNConfig* const cnnConfig) override;

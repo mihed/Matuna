@@ -7,6 +7,7 @@
 
 #include "CNNFactoryVisitor.h"
 #include "InterlockHelper.h"
+#include "CNN.h"
 #include <stdexcept>
 #include <type_traits>
 
@@ -15,7 +16,8 @@ namespace ATML
 namespace MachineLearning
 {
 
-CNNFactoryVisitor::CNNFactoryVisitor()
+CNNFactoryVisitor::CNNFactoryVisitor(CNN* network) :
+		network(network)
 {
 
 }
@@ -116,6 +118,27 @@ void CNNFactoryVisitor::InterlockLayer(BackPropLayer* layer)
 		if (!forwardPropLayer->Interlocked())
 			throw runtime_error(
 					"The back-forward prop layer is not interlocked");
+	}
+	else //Interlock the CNN here
+	{
+		if (!InterlockHelper::IsCompatible(network->InputDataDescriptions(),
+				network->InputMemoryProposals()))
+			throw runtime_error(
+					"We have incompatible data with the memory proposal");
+
+		if (!InterlockHelper::DataEquals(network->InputDataDescriptions(),
+				layer->OutBackPropDataDescription()))
+			throw runtime_error(
+					"The previous left output description doesn't match the right input description");
+
+		auto compatibleInputMemory = InterlockHelper::CalculateCompatibleMemory(
+				network->InputMemoryProposals(),
+				layer->OutBackPropMemoryProposal());
+
+		network->InterlockForwardPropInput(compatibleInputMemory);
+
+		if (!network->Interlocked())
+			throw runtime_error("The network is not interlocked");
 	}
 }
 

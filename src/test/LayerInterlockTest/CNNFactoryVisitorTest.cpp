@@ -14,7 +14,8 @@
 #include "ForthBackPropLayerTest.h"
 #include "OutputLayerTest.h"
 
-CNNFactoryVisitorTest::CNNFactoryVisitorTest()
+CNNFactoryVisitorTest::CNNFactoryVisitorTest(CNN* network)
+	: CNNFactoryVisitor(network)
 {
 
 }

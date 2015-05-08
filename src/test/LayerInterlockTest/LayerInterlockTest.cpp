@@ -16,6 +16,7 @@
 #include "CNN/PerceptronLayerConfig.h"
 #include "CNN/ConvolutionLayerConfig.h"
 #include "CNN/StandardOutputLayerConfig.h"
+#include "CNN/CNN.h"
 
 #include "ForthBackPropLayerTest.h"
 #include "OutputLayerTest.h"
@@ -200,7 +201,8 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 		cnnConfig.SetOutputConfig(move(oConfig));
 
 		INFO("Visiting the factory");
-		CNNFactoryVisitorTest factory;
+		CNN networkDummy(cnnConfig);
+		CNNFactoryVisitorTest factory(&networkDummy);
 		cnnConfig.Accept(&factory);
 
 		WHEN("Fetching all the layers from the factory")

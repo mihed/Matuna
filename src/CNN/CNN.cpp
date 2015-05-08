@@ -16,7 +16,11 @@ namespace MachineLearning
 CNN::CNN(const CNNConfig& config)
 {
 	inputDataDescriptions = config.InputDataDescription();
+	inputMemoryProposals = config.InputMemoryProposal();
 	inputInterlocked = false;
+
+	//It is completely forbidding to call CNNFactoryVisitor here.
+	//However, it will work in any base classes since this constructor is instantiated first.
 }
 
 CNN::~CNN()
@@ -47,6 +51,11 @@ vector<LayerDataDescription> CNN::InputDataDescriptions() const
 vector<LayerMemoryDescription> CNN::InputMemoryDescriptions() const
 {
 	return inputMemoryDescriptions;
+}
+
+vector<LayerMemoryDescription> CNN::InputMemoryProposals() const
+{
+	return inputMemoryProposals;
 }
 
 } /* namespace MachineLearning */

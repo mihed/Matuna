@@ -25,6 +25,7 @@ class CNN
 private:
 	vector<LayerDataDescription> inputDataDescriptions;
 	vector<LayerMemoryDescription> inputMemoryDescriptions;
+	vector<LayerMemoryDescription> inputMemoryProposals;
 	bool inputInterlocked;
 public:
 	CNN(const CNNConfig& config);
@@ -37,6 +38,7 @@ public:
 
 	vector<LayerDataDescription> InputDataDescriptions() const;
 	vector<LayerMemoryDescription> InputMemoryDescriptions() const;
+	vector<LayerMemoryDescription> InputMemoryProposals() const;
 
 };
 

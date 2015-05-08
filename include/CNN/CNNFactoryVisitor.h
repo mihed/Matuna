@@ -21,9 +21,13 @@ namespace ATML
 namespace MachineLearning
 {
 
+class CNN;
+
 class CNNFactoryVisitor: public ILayerConfigVisitor
 {
 protected:
+	CNN* network;
+
 	vector<unique_ptr<ForwardBackPropLayer>> layers;
 	unique_ptr<OutputLayer> outputLayer;
 
@@ -35,7 +39,7 @@ protected:
 	void InterlockLayer(BackPropLayer* layer);
 
 public:
-	CNNFactoryVisitor();
+	CNNFactoryVisitor(CNN* network);
 	virtual ~CNNFactoryVisitor();
 
 	vector<unique_ptr<ForwardBackPropLayer>> GetLayers();
