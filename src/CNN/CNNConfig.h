@@ -41,21 +41,9 @@ public:
 
 	~CNNConfig();
 
-	size_t LayerCount() const
-	{
-		return forwardBackConfigs.size();
-	}
-	;
+	size_t LayerCount() const;
 
-	bool HasOutputLayer() const
-	{
-		if (outputConfig.get())
-			return true;
-		else
-			return false;
-	}
-	;
-
+	bool HasOutputLayer() const;
 	void SetOutputConfig(unique_ptr<OutputLayerConfig> config);
 	void RemoveOutputConfig();
 	void AddToBack(unique_ptr<ForwardBackPropLayerConfig> config);
@@ -65,17 +53,8 @@ public:
 
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 
-	vector<LayerMemoryDescription> InputMemoryProposal() const
-	{
-		return inputMemoryProposals;
-	}
-	;
-
-	vector<LayerDataDescription> InputDataDescription() const
-	{
-		return inputDataDescriptions;
-	}
-	;
+	vector<LayerMemoryDescription> InputMemoryProposal() const;
+	vector<LayerDataDescription> InputDataDescription() const;
 };
 
 } /* namespace MachineLearning */

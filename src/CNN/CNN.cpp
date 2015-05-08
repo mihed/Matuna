@@ -22,5 +22,15 @@ CNN::~CNN()
 
 }
 
+vector<LayerDataDescription> CNN::InputDataDescriptions() const
+{
+	return inputDataDescriptions;
+}
+
+vector<LayerMemoryDescription> CNN::InputMemoryDescriptions() const
+{
+	return inputMemoryDescriptions;
+}
+
 } /* namespace MachineLearning */
 } /* namespace ATML */

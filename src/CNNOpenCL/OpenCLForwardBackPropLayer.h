@@ -26,13 +26,13 @@ protected:
 	shared_ptr<OpenCLContext> context;
 
 public:
-	OpenCLForwardBackPropLayer(
-			shared_ptr<OpenCLContext> context,
+	OpenCLForwardBackPropLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
 			const ForwardBackPropLayerConfig* config);
-	~OpenCLForwardBackPropLayer();
+	virtual ~OpenCLForwardBackPropLayer();
 
-	virtual void EnqueueForwardPropagation(shared_ptr<OpenCLMemory> previousInput,
+	virtual void EnqueueForwardPropagation(
+			shared_ptr<OpenCLMemory> previousInput,
 			shared_ptr<OpenCLMemory> output) = 0;
 
 	virtual void EnqueueBackPropagation(shared_ptr<OpenCLMemory> previousInput,

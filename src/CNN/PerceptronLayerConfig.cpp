@@ -26,6 +26,16 @@ PerceptronLayerConfig::~PerceptronLayerConfig()
 
 }
 
+ATMLActivationFunction PerceptronLayerConfig::ActivationFunction() const
+{
+	return activationFunction;
+}
+
+ATMLConnectionType PerceptronLayerConfig::ConnectionType() const
+{
+	return connectionType;
+}
+
 void PerceptronLayerConfig::Accept(ILayerConfigVisitor* visitor)
 {
 	visitor->Visit(this);

@@ -28,33 +28,19 @@ protected:
 	vector<LayerMemoryDescription> outForwardPropMemoryProposals; //Must be set inside constructor for derived classes
 
 public:
-	ForwardBackPropLayer(const vector<LayerDataDescription>& inputLayerDescriptions,
+	ForwardBackPropLayer(
+			const vector<LayerDataDescription>& inputLayerDescriptions,
 			const ForwardBackPropLayerConfig* config);
 	virtual ~ForwardBackPropLayer();
 
 	void InterlockForwardPropOutput(
 			const vector<LayerMemoryDescription>& outputDescriptions);
 
-	virtual bool Interlocked() const override
-	{
-		return outputInterlocked
-				&& BackPropLayer::Interlocked();
-	}
-	;
+	virtual bool Interlocked() const override;
 
 	vector<LayerMemoryDescription> OutForwardPropMemoryDescription() const;
-
-	vector<LayerDataDescription> OutForwardPropDataDescription() const
-	{
-		return outForwardPropDataDescriptions;
-	}
-	;
-
-	vector<LayerMemoryDescription> OutForwardPropMemoryProposal() const
-	{
-		return outForwardPropMemoryProposals;
-	}
-	;
+	vector<LayerDataDescription> OutForwardPropDataDescription() const;
+	vector<LayerMemoryDescription> OutForwardPropMemoryProposal() const;
 };
 
 } /* namespace MachineLearning */

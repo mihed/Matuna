@@ -25,7 +25,7 @@ public:
 	PerceptronLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
 			const PerceptronLayerConfig* config);
-	~PerceptronLayer();
+	virtual ~PerceptronLayer();
 
 	virtual void EnqueueForwardPropagation(
 			shared_ptr<OpenCLMemory> previousInput,

@@ -27,12 +27,7 @@ public:
 			ATMLMeanSquareError);
 	~StandardOutputLayerConfig();
 
-	ATMLErrorFunction ErrorFunction() const
-	{
-		return errorFunction;
-	}
-	;
-
+	ATMLErrorFunction ErrorFunction() const;
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 };
 

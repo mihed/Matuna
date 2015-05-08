@@ -30,16 +30,8 @@ public:
 	CNN(const CNNConfig& config);
 	virtual ~CNN();
 
-	vector<LayerDataDescription> InputDataDescriptions() const
-	{
-		return inputDataDescriptions;
-	}
-	;
-	vector<LayerMemoryDescription> InputMemoryDescriptions() const
-	{
-		return inputMemoryDescriptions;
-	}
-	;
+	vector<LayerDataDescription> InputDataDescriptions() const;
+	vector<LayerMemoryDescription> InputMemoryDescriptions() const;
 
 	//TODO: make this call safer by using templates
 	//virtual void FeedForward(const void* input, int formatIndex, void* output) = 0;

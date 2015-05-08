@@ -26,7 +26,7 @@ private:
 	shared_ptr<OpenCLContext> context;
 public:
 	CNNOpenCLFactoryVisitor(shared_ptr<OpenCLContext> context);
-	~CNNOpenCLFactoryVisitor();
+	virtual ~CNNOpenCLFactoryVisitor();
 
 	virtual void Visit(const CNNConfig* const cnnConfig) override;
 	virtual void Visit(const PerceptronLayerConfig* const perceptronConfig)

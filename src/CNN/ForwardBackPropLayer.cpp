@@ -29,12 +29,28 @@ ForwardBackPropLayer::~ForwardBackPropLayer()
 
 }
 
+bool ForwardBackPropLayer::Interlocked() const
+{
+	return outputInterlocked && BackPropLayer::Interlocked();
+}
+;
+
 vector<LayerMemoryDescription> ForwardBackPropLayer::OutForwardPropMemoryDescription() const
 {
 	if (!outputInterlocked)
 		throw runtime_error("The forward-prop out layer is not interlocked");
 
 	return outForwardPropMemoryDescriptions;
+}
+
+vector<LayerDataDescription> ForwardBackPropLayer::OutForwardPropDataDescription() const
+{
+	return outForwardPropDataDescriptions;
+}
+
+vector<LayerMemoryDescription> ForwardBackPropLayer::OutForwardPropMemoryProposal() const
+{
+	return outForwardPropMemoryProposals;
 }
 
 void ForwardBackPropLayer::InterlockForwardPropOutput(

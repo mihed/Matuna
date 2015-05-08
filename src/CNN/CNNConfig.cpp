@@ -42,6 +42,20 @@ CNNConfig::~CNNConfig()
 
 }
 
+size_t CNNConfig::LayerCount() const
+{
+	return forwardBackConfigs.size();
+}
+;
+
+bool CNNConfig::HasOutputLayer() const
+{
+	if (outputConfig.get())
+		return true;
+	else
+		return false;
+}
+
 void CNNConfig::SetOutputConfig(unique_ptr<OutputLayerConfig> config)
 {
 	outputConfig = move(config);
@@ -71,6 +85,16 @@ void CNNConfig::InsertAt(unique_ptr<ForwardBackPropLayerConfig> config,
 void CNNConfig::RemoveAt(size_t index)
 {
 	forwardBackConfigs.erase(forwardBackConfigs.begin() + index);
+}
+
+vector<LayerMemoryDescription> CNNConfig::InputMemoryProposal() const
+{
+	return inputMemoryProposals;
+}
+
+vector<LayerDataDescription> CNNConfig::InputDataDescription() const
+{
+	return inputDataDescriptions;
 }
 
 void CNNConfig::Accept(ILayerConfigVisitor* visitor)

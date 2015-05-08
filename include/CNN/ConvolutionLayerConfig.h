@@ -27,21 +27,12 @@ public:
 	ConvolutionLayerConfig(ATMLActivationFunction activationFunction =
 			ATMLSigmoidActivation, ATMLConnectionType connectionType =
 			ATMLFullConnection);
-	~ConvolutionLayerConfig();
+	virtual ~ConvolutionLayerConfig();
 
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 
-	ATMLActivationFunction ActivationFunction() const
-	{
-		return activationFunction;
-	}
-	;
-
-	ATMLConnectionType ConnectionType() const
-	{
-		return connectionType;
-	}
-	;
+	ATMLActivationFunction ActivationFunction() const;
+	ATMLConnectionType ConnectionType() const;
 };
 
 } /* namespace MachineLearning */

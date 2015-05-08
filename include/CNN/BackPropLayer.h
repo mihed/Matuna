@@ -49,55 +49,22 @@ public:
 
 	void InterlockForwardPropInput(
 			const vector<LayerMemoryDescription>& inputDescriptions);
-	void InterlockBackPropInput(const vector<LayerMemoryDescription>& inputDescriptions);
+	void InterlockBackPropInput(
+			const vector<LayerMemoryDescription>& inputDescriptions);
 	void InterlockBackPropOutput(
 			const vector<LayerMemoryDescription>& outputDescriptions);
 
-	virtual bool Interlocked() const
-	{
-		return inputInterlocked && outputInterlocked && forwardInputInterlocked;
-	}
-	;
+	virtual bool Interlocked() const;
 
 	vector<LayerMemoryDescription> InForwardPropMemoryDescription() const;
 	vector<LayerMemoryDescription> InBackPropMemoryDescription() const;
 	vector<LayerMemoryDescription> OutBackPropMemoryDescription() const;
-
-	vector<LayerMemoryDescription> InForwardPropMemoryProposal() const
-	{
-		return inForwardPropMemoryProposals;
-	}
-	;
-
-	vector<LayerDataDescription> InForwardPropDataDescription() const
-	{
-		return inForwardPropDataDescriptions;
-	}
-	;
-
-	vector<LayerDataDescription> InBackPropDataDescription() const
-	{
-		return inBackPropDataDescriptions;
-	}
-	;
-
-	vector<LayerDataDescription> OutBackPropDataDescription() const
-	{
-		return inForwardPropDataDescriptions; //Must be equal by definition
-	}
-	;
-
-	vector<LayerMemoryDescription> InBackPropMemoryProposal() const
-	{
-		return inBackPropMemoryProposals;
-	}
-	;
-
-	vector<LayerMemoryDescription> OutBackPropMemoryProposal() const
-	{
-		return outBackPropMemoryProposals;
-	}
-	;
+	vector<LayerMemoryDescription> InForwardPropMemoryProposal() const;
+	vector<LayerDataDescription> InForwardPropDataDescription() const;
+	vector<LayerDataDescription> InBackPropDataDescription() const;
+	vector<LayerDataDescription> OutBackPropDataDescription() const;
+	vector<LayerMemoryDescription> InBackPropMemoryProposal() const;
+	vector<LayerMemoryDescription> OutBackPropMemoryProposal() const;
 };
 } /* namespace MachineLearning */
 } /* namespace ATML */

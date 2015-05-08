@@ -25,7 +25,7 @@ public:
 	ConvolutionLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
 			const ConvolutionLayerConfig* config);
-	~ConvolutionLayer();
+	virtual ~ConvolutionLayer();
 
 	virtual void EnqueueForwardPropagation(
 			shared_ptr<OpenCLMemory> previousInput,

@@ -24,6 +24,11 @@ StandardOutputLayerConfig::~StandardOutputLayerConfig()
 
 }
 
+ATMLErrorFunction StandardOutputLayerConfig::ErrorFunction() const
+{
+	return errorFunction;
+}
+
 void StandardOutputLayerConfig::Accept(ILayerConfigVisitor* visitor)
 {
 	visitor->Visit(this);

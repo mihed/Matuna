@@ -29,18 +29,8 @@ public:
 			ATMLFullConnection);
 	~PerceptronLayerConfig();
 
-	ATMLActivationFunction ActivationFunction() const
-	{
-		return activationFunction;
-	}
-	;
-
-	ATMLConnectionType ConnectionType() const
-	{
-		return connectionType;
-	}
-	;
-
+	ATMLActivationFunction ActivationFunction() const;
+	ATMLConnectionType ConnectionType() const;
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 };
 

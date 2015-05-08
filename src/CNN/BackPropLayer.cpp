@@ -16,7 +16,8 @@ namespace ATML
 namespace MachineLearning
 {
 
-BackPropLayer::BackPropLayer(const vector<LayerDataDescription>& inputLayerDescriptions) :
+BackPropLayer::BackPropLayer(
+		const vector<LayerDataDescription>& inputLayerDescriptions) :
 		inForwardPropDataDescriptions(inputLayerDescriptions)
 {
 	inputInterlocked = false;
@@ -27,6 +28,11 @@ BackPropLayer::BackPropLayer(const vector<LayerDataDescription>& inputLayerDescr
 BackPropLayer::~BackPropLayer()
 {
 
+}
+
+bool BackPropLayer::Interlocked() const
+{
+	return inputInterlocked && outputInterlocked && forwardInputInterlocked;
 }
 
 vector<LayerMemoryDescription> BackPropLayer::InForwardPropMemoryDescription() const
@@ -52,7 +58,6 @@ vector<LayerMemoryDescription> BackPropLayer::OutBackPropMemoryDescription() con
 
 	return outBackPropMemoryDescriptions;
 }
-;
 
 void BackPropLayer::InterlockForwardPropInput(
 		const vector<LayerMemoryDescription>& inputDescriptions)
@@ -97,6 +102,36 @@ void BackPropLayer::InterlockBackPropOutput(
 
 	outBackPropMemoryDescriptions = outputDescriptions;
 	outputInterlocked = true;
+}
+
+vector<LayerMemoryDescription> BackPropLayer::InForwardPropMemoryProposal() const
+{
+	return inForwardPropMemoryProposals;
+}
+
+vector<LayerDataDescription> BackPropLayer::InForwardPropDataDescription() const
+{
+	return inForwardPropDataDescriptions;
+}
+
+vector<LayerDataDescription> BackPropLayer::InBackPropDataDescription() const
+{
+	return inBackPropDataDescriptions;
+}
+
+vector<LayerDataDescription> BackPropLayer::OutBackPropDataDescription() const
+{
+	return inForwardPropDataDescriptions; //Must be equal by definition
+}
+
+vector<LayerMemoryDescription> BackPropLayer::InBackPropMemoryProposal() const
+{
+	return inBackPropMemoryProposals;
+}
+
+vector<LayerMemoryDescription> BackPropLayer::OutBackPropMemoryProposal() const
+{
+	return outBackPropMemoryProposals;
 }
 
 } /* namespace MachineLearning */
