@@ -9,6 +9,11 @@
 #define ATML_CNNOPENCL_CNNOPENCLFACTORYVISITOR_H_
 
 #include "CNN/CNNFactoryVisitor.h"
+#include "OpenCLHelper/OpenCLContext.h"
+
+#include <memory>
+
+using namespace ATML::Helper;
 
 namespace ATML
 {
@@ -17,8 +22,10 @@ namespace MachineLearning
 
 class CNNOpenCLFactoryVisitor: public CNNFactoryVisitor
 {
+private:
+	shared_ptr<OpenCLContext> context;
 public:
-	CNNOpenCLFactoryVisitor();
+	CNNOpenCLFactoryVisitor(shared_ptr<OpenCLContext> context);
 	~CNNOpenCLFactoryVisitor();
 
 	virtual void Visit(const CNNConfig* const cnnConfig) override;

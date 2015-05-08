@@ -13,22 +13,26 @@ namespace ATML
 namespace MachineLearning
 {
 
-CNNConfig::CNNConfig(const LayerDataDescription& dataDescription,
-		ATMLPrecision precision) :
-		inputDataDescription(dataDescription), precision(precision)
+CNNConfig::CNNConfig(const vector<LayerDataDescription>& dataDescriptions) :
+		inputDataDescriptions(dataDescriptions)
 {
-	inputMemoryProposal.Height = dataDescription.Height;
-	inputMemoryProposal.Width = dataDescription.Width;
-	inputMemoryProposal.Units = dataDescription.Units;
-	inputMemoryProposal.WidthOffset = 0;
-	inputMemoryProposal.HeightOffset = 0;
-	inputMemoryProposal.UnitOffset = 0;
+	for (auto& dataDescription : dataDescriptions)
+	{
+		LayerMemoryDescription inputMemoryProposal;
+		inputMemoryProposal.Height = dataDescription.Height;
+		inputMemoryProposal.Width = dataDescription.Width;
+		inputMemoryProposal.Units = dataDescription.Units;
+		inputMemoryProposal.WidthOffset = 0;
+		inputMemoryProposal.HeightOffset = 0;
+		inputMemoryProposal.UnitOffset = 0;
+		inputMemoryProposals.push_back(inputMemoryProposal);
+	}
 }
 
-CNNConfig::CNNConfig(const LayerDataDescription& dataDescription,
-		const LayerMemoryDescription& memoryProposal, ATMLPrecision precision) :
-		inputMemoryProposal(memoryProposal), inputDataDescription(
-				dataDescription), precision(precision)
+CNNConfig::CNNConfig(const vector<LayerDataDescription>& dataDescription,
+		const vector<LayerMemoryDescription>& memoryProposal) :
+		inputMemoryProposals(memoryProposal), inputDataDescriptions(
+				dataDescription)
 {
 
 }

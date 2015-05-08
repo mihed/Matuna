@@ -17,9 +17,9 @@ namespace MachineLearning
 {
 
 ForwardBackPropLayer::ForwardBackPropLayer(
-		const LayerDataDescription& inputLayerDescription,
+		const vector<LayerDataDescription>& inputLayerDescriptions,
 		const ForwardBackPropLayerConfig* config) :
-		BackPropLayer(inputLayerDescription)
+		BackPropLayer(inputLayerDescriptions)
 {
 	outputInterlocked = false;
 }
@@ -29,27 +29,27 @@ ForwardBackPropLayer::~ForwardBackPropLayer()
 
 }
 
-LayerMemoryDescription ForwardBackPropLayer::OutForwardPropMemoryDescription() const
+vector<LayerMemoryDescription> ForwardBackPropLayer::OutForwardPropMemoryDescription() const
 {
 	if (!outputInterlocked)
 		throw runtime_error("The forward-prop out layer is not interlocked");
 
-	return outForwardPropMemoryDescription;
+	return outForwardPropMemoryDescriptions;
 }
 
 void ForwardBackPropLayer::InterlockForwardPropOutput(
-		const LayerMemoryDescription& outputDescription)
+		const vector<LayerMemoryDescription>& outputDescriptions)
 {
 	if (outputInterlocked)
 		throw runtime_error(
 				"The forward-prop out layer is already interlocked");
 
-	if (!InterlockHelper::IsCompatible(outForwardPropMemoryProposal,
-			outputDescription))
+	if (!InterlockHelper::IsCompatible(outForwardPropMemoryProposals,
+			outputDescriptions))
 		throw runtime_error(
 				"The out forward memory description is incompatible");
 
-	outForwardPropMemoryDescription = outputDescription;
+	outForwardPropMemoryDescriptions = outputDescriptions;
 	outputInterlocked = true;
 }
 

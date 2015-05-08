@@ -16,8 +16,8 @@ namespace ATML
 namespace MachineLearning
 {
 
-BackPropLayer::BackPropLayer(const LayerDataDescription& inputLayerDescription) :
-		inForwardPropDataDescription(inputLayerDescription)
+BackPropLayer::BackPropLayer(const vector<LayerDataDescription>& inputLayerDescriptions) :
+		inForwardPropDataDescriptions(inputLayerDescriptions)
 {
 	inputInterlocked = false;
 	outputInterlocked = false;
@@ -29,73 +29,73 @@ BackPropLayer::~BackPropLayer()
 
 }
 
-LayerMemoryDescription BackPropLayer::InForwardPropMemoryDescription() const
+vector<LayerMemoryDescription> BackPropLayer::InForwardPropMemoryDescription() const
 {
 	if (!forwardInputInterlocked)
 		throw runtime_error("The forward-prop in layer is not interlocked");
 
-	return inForwardPropMemoryDescription;
+	return inForwardPropMemoryDescriptions;
 }
 
-void BackPropLayer::InterlockForwardPropInput(
-		const LayerMemoryDescription& inputDescription)
-{
-	if (forwardInputInterlocked)
-		throw runtime_error("The forward-prop in is already interlocked");
-
-	if (!InterlockHelper::IsCompatible(inForwardPropMemoryProposal,
-			inputDescription))
-		throw runtime_error(
-				"The in forward memory description is incompatible");
-
-	inForwardPropMemoryDescription = inputDescription;
-	forwardInputInterlocked = true;
-}
-
-LayerMemoryDescription BackPropLayer::InBackPropMemoryDescription() const
+vector<LayerMemoryDescription> BackPropLayer::InBackPropMemoryDescription() const
 {
 	if (!inputInterlocked)
 		throw runtime_error("The back-prop in layer is not interlocked");
 
-	return inBackPropMemoryDescription;
+	return inBackPropMemoryDescriptions;
 }
 
-LayerMemoryDescription BackPropLayer::OutBackPropMemoryDescription() const
+vector<LayerMemoryDescription> BackPropLayer::OutBackPropMemoryDescription() const
 {
 	if (!outputInterlocked)
 		throw runtime_error("The back-prop out layer is not interlocked");
 
-	return outBackPropMemoryDescription;
+	return outBackPropMemoryDescriptions;
 }
 ;
 
+void BackPropLayer::InterlockForwardPropInput(
+		const vector<LayerMemoryDescription>& inputDescriptions)
+{
+	if (forwardInputInterlocked)
+		throw runtime_error("The forward-prop in is already interlocked");
+
+	if (!InterlockHelper::IsCompatible(inForwardPropMemoryProposals,
+			inputDescriptions))
+		throw runtime_error(
+				"The in forward memory description is incompatible");
+
+	inForwardPropMemoryDescriptions = inputDescriptions;
+	forwardInputInterlocked = true;
+}
+
 void BackPropLayer::InterlockBackPropInput(
-		const LayerMemoryDescription& inputDescription)
+		const vector<LayerMemoryDescription>& inputDescriptions)
 {
 	if (inputInterlocked)
 		throw runtime_error("The layer is already interlocked");
 
-	if (!InterlockHelper::IsCompatible(inBackPropMemoryProposal,
-			inputDescription))
+	if (!InterlockHelper::IsCompatible(inBackPropMemoryProposals,
+			inputDescriptions))
 		throw runtime_error(
 				"The in backward memory description is incompatible");
 
-	inBackPropMemoryDescription = inputDescription;
+	inBackPropMemoryDescriptions = inputDescriptions;
 	inputInterlocked = true;
 }
 
 void BackPropLayer::InterlockBackPropOutput(
-		const LayerMemoryDescription& outputDescription)
+		const vector<LayerMemoryDescription>& outputDescriptions)
 {
 	if (outputInterlocked)
 		throw runtime_error("The layer is already interlocked");
 
-	if (!InterlockHelper::IsCompatible(outBackPropMemoryProposal,
-			outputDescription))
+	if (!InterlockHelper::IsCompatible(outBackPropMemoryProposals,
+			outputDescriptions))
 		throw runtime_error(
 				"The out backward memory description is incompatible");
 
-	outBackPropMemoryDescription = outputDescription;
+	outBackPropMemoryDescriptions = outputDescriptions;
 	outputInterlocked = true;
 }
 

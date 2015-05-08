@@ -8,15 +8,16 @@
 #ifndef ATML_CNN_INTERLOCKHELPER_H_
 #define ATML_CNN_INTERLOCKHELPER_H_
 
+#include <vector>
+
+using namespace std;
+
 namespace ATML
 {
 namespace MachineLearning
 {
 
 //Forward declarations
-class ForwardBackPropLayer;
-class OutputLayer;
-class CNNConfig;
 class LayerMemoryDescription;
 class LayerDataDescription;
 
@@ -27,21 +28,35 @@ public:
 			const LayerMemoryDescription& right,
 			const LayerMemoryDescription& left);
 
+	static vector<LayerMemoryDescription> CalculateCompatibleMemory(
+			const vector<LayerMemoryDescription>& right,
+			const vector<LayerMemoryDescription>& left);
+
 	static bool IsCompatible(const LayerMemoryDescription& right,
 			const LayerMemoryDescription& left);
+
+	static bool IsCompatible(const vector<LayerMemoryDescription>& right,
+			const vector<LayerMemoryDescription>& left);
+
 	static bool IsCompatible(const LayerDataDescription& data,
 			const LayerMemoryDescription& memory);
 
-	static void Interlock(ForwardBackPropLayer* left, OutputLayer* right);
-	static void Interlock(ForwardBackPropLayer* left,
-			ForwardBackPropLayer* right);
-	static void Interlock(const CNNConfig& inputConfig,
-			ForwardBackPropLayer* firstLayer);
+	static bool IsCompatible(const vector<LayerDataDescription>& data,
+			const vector<LayerMemoryDescription>& memory);
+
 
 	static bool MemoryEquals(const LayerMemoryDescription& right,
 			const LayerMemoryDescription& left);
+
+	static bool MemoryEquals(const vector<LayerMemoryDescription>& right,
+			const vector<LayerMemoryDescription>& left);
+
+
 	static bool DataEquals(const LayerDataDescription& right,
 			const LayerDataDescription& left);
+
+	static bool DataEquals(const vector<LayerDataDescription>& right,
+			const vector<LayerDataDescription>& left);
 
 };
 

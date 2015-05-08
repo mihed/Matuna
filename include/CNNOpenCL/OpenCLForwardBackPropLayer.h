@@ -9,7 +9,7 @@
 #define ATML_CNNOPENCL_OPENCLFORWARDBACKPROPLAYER_H_
 
 #include "CNN/ForwardBackPropLayer.h"
-#include "OpenCLHelper/OpenCLDevice.h"
+#include "OpenCLHelper/OpenCLContext.h"
 #include "OpenCLHelper/OpenCLMemory.h"
 #include <memory>
 
@@ -22,9 +22,13 @@ namespace MachineLearning
 
 class OpenCLForwardBackPropLayer: public ForwardBackPropLayer
 {
+protected:
+	shared_ptr<OpenCLContext> context;
+
 public:
 	OpenCLForwardBackPropLayer(
-			const LayerDataDescription& inputLayerDescription,
+			shared_ptr<OpenCLContext> context,
+			const vector<LayerDataDescription>& inputLayerDescriptions,
 			const ForwardBackPropLayerConfig* config);
 	~OpenCLForwardBackPropLayer();
 

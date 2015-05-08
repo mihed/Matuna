@@ -12,10 +12,10 @@ namespace ATML
 namespace MachineLearning
 {
 
-CNNOpenCL::CNNOpenCL(const CNNConfig& config) :
+CNNOpenCL::CNNOpenCL(unique_ptr<OpenCLContext> context, const CNNConfig& config) :
 		CNN(config)
 {
-
+	this->context = move(context);
 }
 
 CNNOpenCL::~CNNOpenCL()

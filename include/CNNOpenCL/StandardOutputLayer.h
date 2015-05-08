@@ -21,10 +21,14 @@ namespace ATML
 namespace MachineLearning
 {
 
-class StandardOutputLayer: public OutputLayer
+class StandardOutputLayer final: public OutputLayer
 {
+private:
+	shared_ptr<OpenCLContext> context;
+
 public:
-	StandardOutputLayer(const LayerDataDescription& inputLayerDescription,
+	StandardOutputLayer(shared_ptr<OpenCLContext> context,
+			const vector<LayerDataDescription>& inputLayerDescriptions,
 			const OutputLayerConfig* outputLayerConfig);
 	~StandardOutputLayer();
 

@@ -11,7 +11,6 @@
 #include "OutputLayerConfig.h"
 #include "ForwardBackPropLayerConfig.h"
 #include "LayerDescriptions.h"
-#include "ATMLPrecisionEnum.h"
 #include <vector>
 #include <memory>
 
@@ -28,31 +27,23 @@ class CNNConfig: public ILayerConfig
 {
 
 private:
-	LayerMemoryDescription inputMemoryProposal;
-	LayerDataDescription inputDataDescription;
+	vector<LayerMemoryDescription> inputMemoryProposals;
+	vector<LayerDataDescription> inputDataDescriptions;
 
 	vector<unique_ptr<ForwardBackPropLayerConfig>> forwardBackConfigs;
 	unique_ptr<OutputLayerConfig> outputConfig;
 
-	ATMLPrecision precision;
-
 public:
-	CNNConfig(const LayerDataDescription& inputDataDescription,
-			ATMLPrecision precision = ATMLSinglePrecision);
-	CNNConfig(const LayerDataDescription& inputDataDescription,
-			const LayerMemoryDescription& inputMemoryProposal,
-			ATMLPrecision precision = ATMLSinglePrecision);
+	CNNConfig(const vector<LayerDataDescription>& inputDataDescriptions);
+
+	CNNConfig(const vector<LayerDataDescription>& inputDataDescriptions,
+			const vector<LayerMemoryDescription>& inputMemoryProposals);
+
 	~CNNConfig();
 
 	size_t LayerCount() const
 	{
 		return forwardBackConfigs.size();
-	}
-	;
-
-	ATMLPrecision Precision() const
-	{
-		return precision;
 	}
 	;
 
@@ -74,15 +65,15 @@ public:
 
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 
-	LayerMemoryDescription InputMemoryProposal() const
+	vector<LayerMemoryDescription> InputMemoryProposal() const
 	{
-		return inputMemoryProposal;
+		return inputMemoryProposals;
 	}
 	;
 
-	LayerDataDescription InputDataDescription() const
+	vector<LayerDataDescription> InputDataDescription() const
 	{
-		return inputDataDescription;
+		return inputDataDescriptions;
 	}
 	;
 };

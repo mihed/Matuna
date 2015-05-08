@@ -12,10 +12,10 @@ namespace ATML
 namespace MachineLearning
 {
 
-ConvolutionLayer::ConvolutionLayer(
-		const LayerDataDescription& inputLayerDescription,
+ConvolutionLayer::ConvolutionLayer(shared_ptr<OpenCLContext> context,
+		const vector<LayerDataDescription>& inputLayerDescriptions,
 		const ConvolutionLayerConfig* config) :
-		OpenCLForwardBackPropLayer(inputLayerDescription, config)
+		OpenCLForwardBackPropLayer(context, inputLayerDescriptions, config)
 {
 
 }

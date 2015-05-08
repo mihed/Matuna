@@ -21,19 +21,19 @@ class ForwardBackPropLayer: public BackPropLayer
 private:
 	bool outputInterlocked;
 
-	LayerMemoryDescription outForwardPropMemoryDescription;
+	vector<LayerMemoryDescription> outForwardPropMemoryDescriptions;
 
 protected:
-	LayerDataDescription outForwardPropDataDescription; //Must be set equal to inBackPropDataDescription
-	LayerMemoryDescription outForwardPropMemoryProposal; //Must be set inside constructor for derived classes
+	vector<LayerDataDescription> outForwardPropDataDescriptions; //Must be set equal to inBackPropDataDescription
+	vector<LayerMemoryDescription> outForwardPropMemoryProposals; //Must be set inside constructor for derived classes
 
 public:
-	ForwardBackPropLayer(const LayerDataDescription& inputLayerDescription,
+	ForwardBackPropLayer(const vector<LayerDataDescription>& inputLayerDescriptions,
 			const ForwardBackPropLayerConfig* config);
 	virtual ~ForwardBackPropLayer();
 
 	void InterlockForwardPropOutput(
-			const LayerMemoryDescription& outputDescription);
+			const vector<LayerMemoryDescription>& outputDescriptions);
 
 	virtual bool Interlocked() const override
 	{
@@ -42,16 +42,17 @@ public:
 	}
 	;
 
-	LayerMemoryDescription OutForwardPropMemoryDescription() const;
+	vector<LayerMemoryDescription> OutForwardPropMemoryDescription() const;
 
-	LayerDataDescription OutForwardPropDataDescription() const
+	vector<LayerDataDescription> OutForwardPropDataDescription() const
 	{
-		return outForwardPropDataDescription;
+		return outForwardPropDataDescriptions;
 	}
 	;
-	LayerMemoryDescription OutForwardPropMemoryProposal() const
+
+	vector<LayerMemoryDescription> OutForwardPropMemoryProposal() const
 	{
-		return outForwardPropMemoryProposal;
+		return outForwardPropMemoryProposals;
 	}
 	;
 };

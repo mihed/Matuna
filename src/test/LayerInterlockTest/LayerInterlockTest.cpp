@@ -44,6 +44,15 @@ void CheckUnitDescription(const LayerDataDescription& left,
 	CHECK(left.Units >= 0);
 }
 
+void CheckUnitDescription(const vector<LayerDataDescription>& left,
+	const vector<LayerDataDescription>& right)
+{
+	auto count = left.size();
+	CHECK(count == right.size());
+	for (int i = 0; i < count; i++)
+		CheckUnitDescription(left[i], right[i]);
+}
+
 void CheckMemoryDescription(const LayerMemoryDescription& left,
 	const LayerMemoryDescription& right)
 {
@@ -68,6 +77,15 @@ void CheckMemoryDescription(const LayerMemoryDescription& left,
 	CHECK(right.WidthOffset >= 0);
 	CHECK(right.UnitOffset >= 0);
 
+}
+
+void CheckMemoryDescription(const vector<LayerMemoryDescription>& left,
+	const vector<LayerMemoryDescription>& right)
+{
+	auto count = left.size();
+	CHECK(count == right.size());
+	for (int i = 0; i < count; i++)
+		CheckMemoryDescription(left[i], right[i]);
 }
 
 SCENARIO("Creating compatible memory with the interlock helper", "[InterlockHelper]")
@@ -166,8 +184,9 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 		inputDescription.Height = dimensionGenerator(generator);
 		inputDescription.Width = dimensionGenerator(generator);
 		inputDescription.Units = unitGenerator(generator);
-
-		CNNConfig cnnConfig(inputDescription);
+		vector<LayerDataDescription> inputDescriptions;
+		inputDescriptions.push_back(inputDescription);
+		CNNConfig cnnConfig(inputDescriptions);
 
 		for (int i = 0; i < count; i++)
 		{
@@ -202,14 +221,16 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 					CHECK(layer2->Interlocked());
 
 					INFO("Making sure that we get an exception if we try to interlock");
-					CHECK_THROWS(layer1->InterlockBackPropInput(LayerMemoryDescription()));
-					CHECK_THROWS(layer1->InterlockBackPropOutput(LayerMemoryDescription()));
-					CHECK_THROWS(layer1->InterlockForwardPropInput(LayerMemoryDescription()));
-					CHECK_THROWS(layer1->InterlockForwardPropOutput(LayerMemoryDescription()));
-					CHECK_THROWS(layer2->InterlockBackPropInput(LayerMemoryDescription()));
-					CHECK_THROWS(layer2->InterlockBackPropOutput(LayerMemoryDescription()));
-					CHECK_THROWS(layer2->InterlockForwardPropInput(LayerMemoryDescription()));
-					CHECK_THROWS(layer2->InterlockForwardPropOutput(LayerMemoryDescription()));
+					vector<LayerMemoryDescription> dummyTest;
+					dummyTest.push_back(LayerMemoryDescription());
+					CHECK_THROWS(layer1->InterlockBackPropInput(dummyTest));
+					CHECK_THROWS(layer1->InterlockBackPropOutput(dummyTest));
+					CHECK_THROWS(layer1->InterlockForwardPropInput(dummyTest));
+					CHECK_THROWS(layer1->InterlockForwardPropOutput(dummyTest));
+					CHECK_THROWS(layer2->InterlockBackPropInput(dummyTest));
+					CHECK_THROWS(layer2->InterlockBackPropOutput(dummyTest));
+					CHECK_THROWS(layer2->InterlockForwardPropInput(dummyTest));
+					CHECK_THROWS(layer2->InterlockForwardPropOutput(dummyTest));
 
 					CheckMemoryDescription(layer1->InBackPropMemoryDescription(), layer2->OutBackPropMemoryDescription());
 					CheckMemoryDescription(layer1->OutForwardPropMemoryDescription(), layer2->InForwardPropMemoryDescription());
@@ -242,9 +263,11 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 				CHECK(lastLayer);
 				CHECK(outputLayer);
 				CHECK(outputLayer->Interlocked());
-				CHECK_THROWS(outputLayer->InterlockBackPropInput(LayerMemoryDescription()));
-				CHECK_THROWS(outputLayer->InterlockBackPropOutput(LayerMemoryDescription()));
-				CHECK_THROWS(outputLayer->InterlockForwardPropInput(LayerMemoryDescription()));
+				vector<LayerMemoryDescription> anotherDummy;
+				anotherDummy.push_back(LayerMemoryDescription());
+				CHECK_THROWS(outputLayer->InterlockBackPropInput(anotherDummy));
+				CHECK_THROWS(outputLayer->InterlockBackPropOutput(anotherDummy));
+				CHECK_THROWS(outputLayer->InterlockForwardPropInput(anotherDummy));
 				CheckMemoryDescription(lastLayer->InBackPropMemoryDescription(), outputLayer->OutBackPropMemoryDescription());
 				CheckMemoryDescription(lastLayer->OutForwardPropMemoryDescription(), outputLayer->InForwardPropMemoryDescription());
 				CheckUnitDescription(lastLayer->InBackPropDataDescription(), outputLayer->OutBackPropDataDescription());

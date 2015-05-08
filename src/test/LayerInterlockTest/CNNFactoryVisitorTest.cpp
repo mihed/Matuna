@@ -31,16 +31,16 @@ void CNNFactoryVisitorTest::Visit(const CNNConfig* const cnnConfig)
 	if (!InterlockHelper::IsCompatible(inputData, inputMemory))
 		throw runtime_error("Invalid cnn config memory and data description");
 
-	forwardInputProposal = inputMemory;
-	backOutputProposal = inputMemory;
-	inputDataDescription = inputData;
+	forwardInputProposals = inputMemory;
+	backOutputProposals = inputMemory;
+	inputDataDescriptions = inputData;
 }
 
 void CNNFactoryVisitorTest::Visit(
 		const PerceptronLayerConfig* const perceptronConfig)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new ForthBackPropLayerTest(inputDataDescription, perceptronConfig));
+			new ForthBackPropLayerTest(inputDataDescriptions, perceptronConfig));
 
 	InterlockLayer(layer.get());
 
@@ -51,7 +51,7 @@ void CNNFactoryVisitorTest::Visit(
 		const ConvolutionLayerConfig* const convolutionConfig)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new ForthBackPropLayerTest(inputDataDescription,
+			new ForthBackPropLayerTest(inputDataDescriptions,
 					convolutionConfig));
 
 	InterlockLayer(layer.get());
@@ -63,7 +63,7 @@ void CNNFactoryVisitorTest::Visit(
 		const StandardOutputLayerConfig* const convolutionConfig)
 {
 	unique_ptr<OutputLayer> layer(
-			new OutputLayerTest(inputDataDescription, convolutionConfig));
+			new OutputLayerTest(inputDataDescriptions, convolutionConfig));
 
 	InterlockLayer(layer.get());
 

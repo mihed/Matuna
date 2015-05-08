@@ -10,6 +10,12 @@
 
 #include "CNN/CNNConfig.h"
 #include "CNN/CNN.h"
+#include "OpenCLHelper/OpenCLContext.h"
+
+#include <memory>
+
+using namespace std;
+using namespace ATML::Helper;
 
 namespace ATML
 {
@@ -18,8 +24,10 @@ namespace MachineLearning
 
 class CNNOpenCL: public CNN
 {
+private:
+	shared_ptr<OpenCLContext> context;
 public:
-	CNNOpenCL(const CNNConfig& config);
+	CNNOpenCL(unique_ptr<OpenCLContext> context, const CNNConfig& config);
 	~CNNOpenCL();
 };
 

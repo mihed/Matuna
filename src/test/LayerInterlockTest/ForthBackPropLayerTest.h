@@ -15,7 +15,7 @@ using namespace ATML::MachineLearning;
 class ForthBackPropLayerTest: public ForwardBackPropLayer
 {
 public:
-	ForthBackPropLayerTest(const LayerDataDescription& inputLayerDescription,
+	ForthBackPropLayerTest(const vector<LayerDataDescription>& inputLayerDescriptions,
 			const ForwardBackPropLayerConfig* config);
 	~ForthBackPropLayerTest();
 };

@@ -12,9 +12,9 @@
 using namespace std;
 
 OutputLayerTest::OutputLayerTest(
-		const LayerDataDescription& inputLayerDescription,
+		const vector<LayerDataDescription>& inputLayerDescriptions,
 		const OutputLayerConfig* config) :
-		OutputLayer(inputLayerDescription, config)
+		OutputLayer(inputLayerDescriptions, config)
 {
 	unsigned seed = chrono::system_clock::now().time_since_epoch().count();
 	default_random_engine generator(seed);
@@ -22,13 +22,20 @@ OutputLayerTest::OutputLayerTest(
 	uniform_int_distribution<int> paddingGenerator(1, 40);
 	uniform_int_distribution<int> dimensionGenerator(1, 10000);
 
+	LayerDataDescription inBackPropDataDescription;
+
 	//The layers is entirely responsible for calculating how the output from this module looks like.
 	//(This also defines the input of back prop module, which is the same of course - by definition!)
 	inBackPropDataDescription.Height = dimensionGenerator(generator);
 	inBackPropDataDescription.Width = dimensionGenerator(generator);
 	inBackPropDataDescription.Units = unitGenerator(generator);
 
+	inBackPropDataDescriptions.push_back(inBackPropDataDescription);
+
 	//Setting the inBackProp proposal. This is actually the target memory!
+
+	LayerMemoryDescription inBackPropMemoryProposal;
+
 	inBackPropMemoryProposal.HeightOffset = paddingGenerator(generator);
 	inBackPropMemoryProposal.Height = inBackPropDataDescription.Height
 			+ inBackPropMemoryProposal.HeightOffset
@@ -43,8 +50,18 @@ OutputLayerTest::OutputLayerTest(
 	inBackPropMemoryProposal.Units = inBackPropDataDescription.Units
 			+ inBackPropMemoryProposal.UnitOffset + paddingGenerator(generator);
 
+	inBackPropMemoryProposals.push_back(inBackPropMemoryProposal);
+
 	//Setting the inForwardProp proposal
-	auto forwardInDataDescription = InForwardPropDataDescription();
+
+
+
+	auto forwardInDataDescriptions = InForwardPropDataDescription();
+
+	auto forwardInDataDescription = forwardInDataDescriptions[0];
+
+	LayerMemoryDescription inForwardPropMemoryProposal;
+
 	inForwardPropMemoryProposal.HeightOffset = paddingGenerator(generator);
 	inForwardPropMemoryProposal.Height = forwardInDataDescription.Height
 			+ inForwardPropMemoryProposal.HeightOffset
@@ -60,7 +77,12 @@ OutputLayerTest::OutputLayerTest(
 			+ inForwardPropMemoryProposal.UnitOffset
 			+ paddingGenerator(generator);
 
+	inForwardPropMemoryProposals.push_back(inForwardPropMemoryProposal);
+
 	//Setting the outBackProp proposal
+
+	LayerMemoryDescription outBackPropMemoryProposal;
+
 	outBackPropMemoryProposal.HeightOffset = paddingGenerator(generator);
 	outBackPropMemoryProposal.Height = forwardInDataDescription.Height
 			+ outBackPropMemoryProposal.HeightOffset
@@ -75,6 +97,8 @@ OutputLayerTest::OutputLayerTest(
 	outBackPropMemoryProposal.Units = forwardInDataDescription.Units
 			+ outBackPropMemoryProposal.UnitOffset
 			+ paddingGenerator(generator);
+
+	outBackPropMemoryProposals.push_back(outBackPropMemoryProposal);
 
 }
 

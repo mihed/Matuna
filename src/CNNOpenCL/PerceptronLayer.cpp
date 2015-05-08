@@ -12,10 +12,10 @@ namespace ATML
 namespace MachineLearning
 {
 
-PerceptronLayer::PerceptronLayer(
-		const LayerDataDescription& inputLayerDescription,
+PerceptronLayer::PerceptronLayer(shared_ptr<OpenCLContext> context,
+		const vector<LayerDataDescription>& inputLayerDescriptions,
 		const PerceptronLayerConfig* config) :
-		OpenCLForwardBackPropLayer(inputLayerDescription, config)
+		OpenCLForwardBackPropLayer(context, inputLayerDescriptions, config)
 {
 
 }

@@ -15,7 +15,7 @@ using namespace ATML::MachineLearning;
 class OutputLayerTest: public OutputLayer
 {
 public:
-	OutputLayerTest(const LayerDataDescription& inputLayerDescription,
+	OutputLayerTest(const vector<LayerDataDescription>& inputLayerDescriptions,
 			const OutputLayerConfig* config);
 	~OutputLayerTest();
 };

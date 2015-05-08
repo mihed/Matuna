@@ -10,6 +10,9 @@
 
 #include "Layer.h"
 #include "LayerDescriptions.h"
+#include <vector>
+
+using namespace std;
 
 namespace ATML
 {
@@ -23,32 +26,32 @@ private:
 	bool inputInterlocked;
 	bool outputInterlocked;
 
-	LayerDataDescription inForwardPropDataDescription;
+	vector<LayerDataDescription> inForwardPropDataDescriptions;
 
-	LayerMemoryDescription inBackPropMemoryDescription;
-	LayerMemoryDescription outBackPropMemoryDescription;
+	vector<LayerMemoryDescription> inBackPropMemoryDescriptions;
+	vector<LayerMemoryDescription> outBackPropMemoryDescriptions;
 
 	//Since a back prop layer requires input of a previous forward layer.
-	LayerMemoryDescription inForwardPropMemoryDescription;
+	vector<LayerMemoryDescription> inForwardPropMemoryDescriptions;
 
 protected:
-	LayerDataDescription inBackPropDataDescription; //Must be set inside constructor for derived classes
+	vector<LayerDataDescription> inBackPropDataDescriptions; //Must be set inside constructor for derived classes
 
-	LayerMemoryDescription inBackPropMemoryProposal; //Must be set inside constructor for derived classes
-	LayerMemoryDescription outBackPropMemoryProposal; //Must be set inside constructor for derived classes
+	vector<LayerMemoryDescription> inBackPropMemoryProposals; //Must be set inside constructor for derived classes
+	vector<LayerMemoryDescription> outBackPropMemoryProposals; //Must be set inside constructor for derived classes
 
 	//Since a back prop layer requires input of a previous forward layer.
-	LayerMemoryDescription inForwardPropMemoryProposal; //Must be set inside constructor for derived classes
+	vector<LayerMemoryDescription> inForwardPropMemoryProposals; //Must be set inside constructor for derived classes
 
 public:
-	BackPropLayer(const LayerDataDescription& inputLayerDescription);
+	BackPropLayer(const vector<LayerDataDescription>& inputLayerDescriptions);
 	virtual ~BackPropLayer();
 
 	void InterlockForwardPropInput(
-			const LayerMemoryDescription& inputDescription);
-	void InterlockBackPropInput(const LayerMemoryDescription& inputDescription);
+			const vector<LayerMemoryDescription>& inputDescriptions);
+	void InterlockBackPropInput(const vector<LayerMemoryDescription>& inputDescriptions);
 	void InterlockBackPropOutput(
-			const LayerMemoryDescription& outputDescription);
+			const vector<LayerMemoryDescription>& outputDescriptions);
 
 	virtual bool Interlocked() const
 	{
@@ -56,40 +59,43 @@ public:
 	}
 	;
 
-	LayerMemoryDescription InForwardPropMemoryDescription() const;
-	LayerMemoryDescription InBackPropMemoryDescription() const;
-	LayerMemoryDescription OutBackPropMemoryDescription() const;
+	vector<LayerMemoryDescription> InForwardPropMemoryDescription() const;
+	vector<LayerMemoryDescription> InBackPropMemoryDescription() const;
+	vector<LayerMemoryDescription> OutBackPropMemoryDescription() const;
 
-	LayerMemoryDescription InForwardPropMemoryProposal() const
+	vector<LayerMemoryDescription> InForwardPropMemoryProposal() const
 	{
-		return inForwardPropMemoryProposal;
-	}
-	;
-
-	LayerDataDescription InForwardPropDataDescription() const
-	{
-		return inForwardPropDataDescription;
+		return inForwardPropMemoryProposals;
 	}
 	;
 
-	LayerDataDescription InBackPropDataDescription() const
+	vector<LayerDataDescription> InForwardPropDataDescription() const
 	{
-		return inBackPropDataDescription;
+		return inForwardPropDataDescriptions;
 	}
 	;
-	LayerDataDescription OutBackPropDataDescription() const
+
+	vector<LayerDataDescription> InBackPropDataDescription() const
 	{
-		return inForwardPropDataDescription; //Must be equal by definition
+		return inBackPropDataDescriptions;
 	}
 	;
-	LayerMemoryDescription InBackPropMemoryProposal() const
+
+	vector<LayerDataDescription> OutBackPropDataDescription() const
 	{
-		return inBackPropMemoryProposal;
+		return inForwardPropDataDescriptions; //Must be equal by definition
 	}
 	;
-	LayerMemoryDescription OutBackPropMemoryProposal() const
+
+	vector<LayerMemoryDescription> InBackPropMemoryProposal() const
 	{
-		return outBackPropMemoryProposal;
+		return inBackPropMemoryProposals;
+	}
+	;
+
+	vector<LayerMemoryDescription> OutBackPropMemoryProposal() const
+	{
+		return outBackPropMemoryProposals;
 	}
 	;
 };

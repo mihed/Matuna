@@ -10,6 +10,9 @@
 
 #include "OpenCLForwardBackPropLayer.h"
 #include "CNN/PerceptronLayerConfig.h"
+#include "OpenCLHelper/OpenCLContext.h"
+
+using namespace ATML::Helper;
 
 namespace ATML
 {
@@ -19,7 +22,8 @@ namespace MachineLearning
 class PerceptronLayer: public OpenCLForwardBackPropLayer
 {
 public:
-	PerceptronLayer(const LayerDataDescription& inputLayerDescription,
+	PerceptronLayer(shared_ptr<OpenCLContext> context,
+			const vector<LayerDataDescription>& inputLayerDescriptions,
 			const PerceptronLayerConfig* config);
 	~PerceptronLayer();
 

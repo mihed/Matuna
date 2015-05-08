@@ -8,6 +8,7 @@
 #include "CNNFactoryVisitor.h"
 #include "InterlockHelper.h"
 #include <stdexcept>
+#include <type_traits>
 
 namespace ATML
 {
@@ -41,26 +42,26 @@ void CNNFactoryVisitor::InterlockLayer(BackPropLayer* layer)
 		throw runtime_error(
 				"We have incompatible data with the memory proposal");
 
-	if (!InterlockHelper::DataEquals(inputDataDescription,
+	if (!InterlockHelper::DataEquals(inputDataDescriptions,
 			layer->OutBackPropDataDescription()))
 		throw runtime_error("Invalid data description");
-	if (!InterlockHelper::DataEquals(inputDataDescription,
+	if (!InterlockHelper::DataEquals(inputDataDescriptions,
 			layer->InForwardPropDataDescription()))
 		throw runtime_error("Invalid data description");
 
 	if (!InterlockHelper::IsCompatible(layer->OutBackPropMemoryProposal(),
-			backOutputProposal))
+			backOutputProposals))
 		throw runtime_error("Invalid memory description");
 
 	if (!InterlockHelper::IsCompatible(layer->InForwardPropMemoryProposal(),
-			forwardInputProposal))
+			forwardInputProposals))
 		throw runtime_error("Invalid memory description");
 
 	auto backPropOutputMemory = InterlockHelper::CalculateCompatibleMemory(
-			layer->OutBackPropMemoryProposal(), backOutputProposal);
+			layer->OutBackPropMemoryProposal(), backOutputProposals);
 
 	auto forwardPropInput = InterlockHelper::CalculateCompatibleMemory(
-			layer->InForwardPropMemoryProposal(), forwardInputProposal);
+			layer->InForwardPropMemoryProposal(), forwardInputProposals);
 
 	layer->InterlockBackPropOutput(backPropOutputMemory);
 	layer->InterlockForwardPropInput(forwardPropInput);
@@ -120,11 +121,14 @@ void CNNFactoryVisitor::InterlockLayer(BackPropLayer* layer)
 
 void CNNFactoryVisitor::InterlockLayer(ForwardBackPropLayer* layer)
 {
+	static_assert(is_base_of<BackPropLayer, ForwardBackPropLayer>::value,
+			"ForwardBackPropLayer is not a sub class of BackPropLayer");
+
 	InterlockLayer(dynamic_cast<BackPropLayer*>(layer));
 
-	forwardInputProposal = layer->OutForwardPropMemoryProposal();
-	backOutputProposal = layer->InBackPropMemoryProposal();
-	inputDataDescription = layer->OutForwardPropDataDescription();
+	forwardInputProposals = layer->OutForwardPropMemoryProposal();
+	backOutputProposals = layer->InBackPropMemoryProposal();
+	inputDataDescriptions = layer->OutForwardPropDataDescription();
 }
 
 vector<unique_ptr<ForwardBackPropLayer>> CNNFactoryVisitor::GetLayers()

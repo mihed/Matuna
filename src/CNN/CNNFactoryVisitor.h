@@ -27,9 +27,9 @@ protected:
 	vector<unique_ptr<ForwardBackPropLayer>> layers;
 	unique_ptr<OutputLayer> outputLayer;
 
-	LayerDataDescription inputDataDescription;
-	LayerMemoryDescription forwardInputProposal;
-	LayerMemoryDescription backOutputProposal;
+	vector<LayerDataDescription> inputDataDescriptions;
+	vector<LayerMemoryDescription> forwardInputProposals;
+	vector<LayerMemoryDescription> backOutputProposals;
 
 	void InterlockLayer(ForwardBackPropLayer* layer);
 	void InterlockLayer(BackPropLayer* layer);

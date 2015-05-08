@@ -20,7 +20,7 @@ namespace MachineLearning
 class OutputLayer: public BackPropLayer
 {
 public:
-	OutputLayer(const LayerDataDescription& inputLayerDescription,
+	OutputLayer(const vector<LayerDataDescription>& inputLayerDescriptions,
 			const OutputLayerConfig* outputLayerConfig);
 	virtual ~OutputLayer();
 };

@@ -14,9 +14,10 @@ namespace MachineLearning
 {
 
 OpenCLForwardBackPropLayer::OpenCLForwardBackPropLayer(
-		const LayerDataDescription& inputLayerDescription,
+		shared_ptr<OpenCLContext> context,
+		const vector<LayerDataDescription>& inputLayerDescriptions,
 		const ForwardBackPropLayerConfig* config) :
-		ForwardBackPropLayer(inputLayerDescription, config)
+		ForwardBackPropLayer(inputLayerDescriptions, config), context(context)
 {
 
 }
