@@ -10,6 +10,10 @@
 
 #include "CNN/CNNConfig.h"
 #include "CNN/CNN.h"
+#include "CNN/TrainableCNN.h"
+#include "CNN/CNNTrainer.h"
+#include "CNN/IAlgorithmConfig.h"
+
 #include "OpenCLHelper/OpenCLContext.h"
 #include "OpenCLForwardBackPropLayer.h"
 #include "StandardOutputLayer.h"
@@ -24,7 +28,8 @@ namespace ATML
 namespace MachineLearning
 {
 
-class CNNOpenCL: public CNN
+template<class T>
+class CNNOpenCL final: public TrainableCNN<T>
 {
 private:
 	shared_ptr<OpenCLContext> context;
@@ -32,23 +37,24 @@ private:
 	unique_ptr<StandardOutputLayer> outputLayer;
 public:
 	//TODO: Add a vector of contexts
-	CNNOpenCL(unique_ptr<OpenCLContext> context, CNNConfig config);
-	~CNNOpenCL();
+	CNNOpenCL(unique_ptr<OpenCLContext> context, unique_ptr<CNNConfig> config);
+	virtual ~CNNOpenCL();
 
-	template<class T>
-	void FeedForward(const T* input, int formatIndex, T* output);
+	virtual void FeedForward(const T* input, int formatIndex, T* output)
+			override;
 
-	template<class T>
-	T CalculateError(const T* propagatedValue, int formatIndex,
-			const T* target);
+	virtual T CalculateError(const T* propagatedValue, int formatIndex,
+			const T* target) override;
 
-	template<class T>
-	void CalculateGradient(const T* input, int formatIndex, T* output);
+	virtual void CalculateGradient(const T* input, int formatIndex, T* output)
+			override;
 
-	template<class T>
-	void GetParameters(T* parameters);
+	virtual void GetParameters(T* parameters) override;
 
-	size_t GetParameterCount();
+	virtual size_t GetParameterCount() override;
+
+	virtual void TrainNetwork(unique_ptr<CNNTrainer<T>> trainer,
+			unique_ptr<IAlgorithmConfig> algorithm) override;
 };
 
 } /* namespace MachineLearning */

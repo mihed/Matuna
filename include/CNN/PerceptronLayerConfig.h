@@ -22,13 +22,15 @@ class PerceptronLayerConfig: public ForwardBackPropLayerConfig
 private:
 	ATMLActivationFunction activationFunction;
 	ATMLConnectionType connectionType;
+	int units;
 
 public:
-	PerceptronLayerConfig(ATMLActivationFunction activationFunction =
+	PerceptronLayerConfig(int units, ATMLActivationFunction activationFunction =
 			ATMLSigmoidActivation, ATMLConnectionType connectionType =
 			ATMLFullConnection);
 	~PerceptronLayerConfig();
 
+	int Units() const;
 	ATMLActivationFunction ActivationFunction() const;
 	ATMLConnectionType ConnectionType() const;
 	virtual void Accept(ILayerConfigVisitor* visitor) override;

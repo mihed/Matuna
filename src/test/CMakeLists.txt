@@ -1,3 +1,4 @@
 ADD_SUBDIRECTORY(OpenCLDeviceHandlerTest)
 ADD_SUBDIRECTORY(OpenCLDeviceTest)
 ADD_SUBDIRECTORY(LayerInterlockTest)
+ADD_SUBDIRECTORY(CNNOpenCLInitializationTest)

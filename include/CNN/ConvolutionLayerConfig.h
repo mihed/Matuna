@@ -14,28 +14,37 @@
 
 namespace ATML
 {
-namespace MachineLearning
-{
+	namespace MachineLearning
+	{
 
-class ConvolutionLayerConfig: public ForwardBackPropLayerConfig
-{
-private:
-	ATMLActivationFunction activationFunction;
-	ATMLConnectionType connectionType;
+		class ConvolutionLayerConfig : public ForwardBackPropLayerConfig
+		{
+		private:
+			ATMLActivationFunction activationFunction;
+			ATMLConnectionType connectionType;
+			int filterCount;
+			int filterWidth;
+			int filterHeight;
 
-public:
-	ConvolutionLayerConfig(ATMLActivationFunction activationFunction =
-			ATMLSigmoidActivation, ATMLConnectionType connectionType =
-			ATMLFullConnection);
-	virtual ~ConvolutionLayerConfig();
+		public:
+			ConvolutionLayerConfig(int filterCount,
+				int filterWidth,
+				int filterHeight,
+				ATMLActivationFunction activationFunction =
+				ATMLSigmoidActivation, ATMLConnectionType connectionType =
+				ATMLFullConnection);
+			virtual ~ConvolutionLayerConfig();
 
-	virtual void Accept(ILayerConfigVisitor* visitor) override;
+			virtual void Accept(ILayerConfigVisitor* visitor) override;
 
-	ATMLActivationFunction ActivationFunction() const;
-	ATMLConnectionType ConnectionType() const;
-};
+			int FilterCount() const;
+			int FilterHeight() const;
+			int FilterWidth() const;
+			ATMLActivationFunction ActivationFunction() const;
+			ATMLConnectionType ConnectionType() const;
+		};
 
-} /* namespace MachineLearning */
+	} /* namespace MachineLearning */
 } /* namespace ATML */
 
 #endif /* ATML_CNN_CONVOLUTIONLAYERCONFIG_H_ */

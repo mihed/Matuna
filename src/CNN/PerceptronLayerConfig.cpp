@@ -9,37 +9,42 @@
 
 namespace ATML
 {
-namespace MachineLearning
-{
+	namespace MachineLearning
+	{
 
-PerceptronLayerConfig::PerceptronLayerConfig(
-		ATMLActivationFunction activationFunction,
-		ATMLConnectionType connectionType) :
-		activationFunction(activationFunction), connectionType(connectionType)
+		PerceptronLayerConfig::PerceptronLayerConfig(int units,
+			ATMLActivationFunction activationFunction,
+			ATMLConnectionType connectionType) :
+			units(units), activationFunction(activationFunction), connectionType(connectionType)
 
-{
+		{
 
-}
+		}
 
-PerceptronLayerConfig::~PerceptronLayerConfig()
-{
+		PerceptronLayerConfig::~PerceptronLayerConfig()
+		{
 
-}
+		}
 
-ATMLActivationFunction PerceptronLayerConfig::ActivationFunction() const
-{
-	return activationFunction;
-}
+		int PerceptronLayerConfig::Units() const
+		{
+			return units;
+		}
 
-ATMLConnectionType PerceptronLayerConfig::ConnectionType() const
-{
-	return connectionType;
-}
+		ATMLActivationFunction PerceptronLayerConfig::ActivationFunction() const
+		{
+			return activationFunction;
+		}
 
-void PerceptronLayerConfig::Accept(ILayerConfigVisitor* visitor)
-{
-	visitor->Visit(this);
-}
+		ATMLConnectionType PerceptronLayerConfig::ConnectionType() const
+		{
+			return connectionType;
+		}
 
-} /* namespace MachineLearning */
+		void PerceptronLayerConfig::Accept(ILayerConfigVisitor* visitor)
+		{
+			visitor->Visit(this);
+		}
+
+	} /* namespace MachineLearning */
 } /* namespace ATML */

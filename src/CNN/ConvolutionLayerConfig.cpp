@@ -9,36 +9,54 @@
 
 namespace ATML
 {
-namespace MachineLearning
-{
+	namespace MachineLearning
+	{
 
-ConvolutionLayerConfig::ConvolutionLayerConfig(
-		ATMLActivationFunction activationFunction,
-		ATMLConnectionType connectionType) :
-		activationFunction(activationFunction), connectionType(connectionType)
-{
+		ConvolutionLayerConfig::ConvolutionLayerConfig(int filterCount,
+			int filterWidth,
+			int filterHeight,
+			ATMLActivationFunction activationFunction,
+			ATMLConnectionType connectionType) :
+			filterCount(filterCount), filterWidth(filterWidth), filterHeight(filterHeight),
+			activationFunction(activationFunction), connectionType(connectionType)
+		{
 
-}
+		}
 
-ConvolutionLayerConfig::~ConvolutionLayerConfig()
-{
+		ConvolutionLayerConfig::~ConvolutionLayerConfig()
+		{
 
-}
+		}
 
-ATMLActivationFunction ConvolutionLayerConfig::ActivationFunction() const
-{
-	return activationFunction;
-}
+		int ConvolutionLayerConfig::FilterCount() const
+		{
+			return filterCount;
+		}
 
-ATMLConnectionType ConvolutionLayerConfig::ConnectionType() const
-{
-	return connectionType;
-}
+		int ConvolutionLayerConfig::FilterHeight() const
+		{
+			return filterHeight;
+		}
 
-void ConvolutionLayerConfig::Accept(ILayerConfigVisitor* visitor)
-{
-	visitor->Visit(this);
-}
+		int ConvolutionLayerConfig::FilterWidth() const
+		{
+			return filterWidth;
+		}
 
-} /* namespace MachineLearning */
+		ATMLActivationFunction ConvolutionLayerConfig::ActivationFunction() const
+		{
+			return activationFunction;
+		}
+
+		ATMLConnectionType ConvolutionLayerConfig::ConnectionType() const
+		{
+			return connectionType;
+		}
+
+		void ConvolutionLayerConfig::Accept(ILayerConfigVisitor* visitor)
+		{
+			visitor->Visit(this);
+		}
+
+	} /* namespace MachineLearning */
 } /* namespace ATML */

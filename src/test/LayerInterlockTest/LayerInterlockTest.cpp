@@ -191,9 +191,9 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 
 		for (int i = 0; i < count; i++)
 		{
-			unique_ptr<ForwardBackPropLayerConfig> config1(new PerceptronLayerConfig());
+			unique_ptr<ForwardBackPropLayerConfig> config1(new PerceptronLayerConfig(10));
 			cnnConfig.AddToBack(move(config1));
-			unique_ptr<ForwardBackPropLayerConfig> config2(new ConvolutionLayerConfig());
+			unique_ptr<ForwardBackPropLayerConfig> config2(new ConvolutionLayerConfig(1, 1, 1));
 			cnnConfig.AddToBack(move(config2));
 		}
 

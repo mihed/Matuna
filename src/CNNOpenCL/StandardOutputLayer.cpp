@@ -17,7 +17,22 @@ StandardOutputLayer::StandardOutputLayer(shared_ptr<OpenCLContext> context,
 		const OutputLayerConfig* outputLayerConfig) :
 		OutputLayer(inputLayerDescriptions, outputLayerConfig), context(context)
 {
+	//The targets must have the same data descriptions as the inputs
+	inBackPropDataDescriptions = inputLayerDescriptions;
 
+	for (auto& inputDescription : inputLayerDescriptions)
+	{
+		LayerMemoryDescription inBackPropMemProp;
+		inBackPropMemProp.Height = inputDescription.Height;
+		inBackPropMemProp.Width = inputDescription.Width;
+		inBackPropMemProp.Units = inputDescription.Units;
+		inBackPropMemProp.UnitOffset = 0;
+		inBackPropMemProp.WidthOffset = 0;
+		inBackPropMemProp.HeightOffset = 0;
+		inBackPropMemoryProposals.push_back(inBackPropMemProp);
+		outBackPropMemoryProposals.push_back(inBackPropMemProp);
+		inForwardPropMemoryProposals.push_back(inBackPropMemProp);
+	}
 }
 
 StandardOutputLayer::~StandardOutputLayer()
