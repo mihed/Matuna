@@ -23,7 +23,7 @@ CNNOpenCL<T>::CNNOpenCL(unique_ptr<OpenCLContext> context,
 		TrainableCNN<T>(*config)
 {
 	this->context = move(context);
-	CNNOpenCLFactoryVisitor factory(this->context, this);
+	CNNOpenCLFactoryVisitor<T> factory(this->context, this);
 	config->Accept(&factory);
 	auto createdLayers = factory.GetLayers();
 	auto createdOutputLayer = factory.GetOutputLayer();
@@ -31,15 +31,15 @@ CNNOpenCL<T>::CNNOpenCL(unique_ptr<OpenCLContext> context,
 	//Transfer ownership to this class
 	for (auto& layer : createdLayers)
 	{
-		auto temp = dynamic_cast<OpenCLForwardBackPropLayer*>(layer.get());
+		auto temp = dynamic_cast<OpenCLForwardBackPropLayer<T>*>(layer.get());
 		if (!temp)
 			throw runtime_error("The factory does not yield correct layers");
-		layers.push_back(unique_ptr<OpenCLForwardBackPropLayer>(temp));
+		layers.push_back(unique_ptr<OpenCLForwardBackPropLayer<T>>(temp));
 		layer.release();
 	}
 
-	auto temp2 = dynamic_cast<StandardOutputLayer*>(createdOutputLayer.get());
-	outputLayer = unique_ptr<StandardOutputLayer>(temp2);
+	auto temp2 = dynamic_cast<StandardOutputLayer<T>*>(createdOutputLayer.get());
+	outputLayer = unique_ptr<StandardOutputLayer<T>>(temp2);
 	if (!temp2)
 		throw runtime_error("The factory does not yield correct layers");
 	createdOutputLayer.release();

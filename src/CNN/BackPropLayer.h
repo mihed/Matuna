@@ -56,6 +56,8 @@ public:
 
 	virtual bool Interlocked() const;
 
+	virtual void InterlockFinalized() = 0;
+
 	vector<LayerMemoryDescription> InForwardPropMemoryDescription() const;
 	vector<LayerMemoryDescription> InBackPropMemoryDescription() const;
 	vector<LayerMemoryDescription> OutBackPropMemoryDescription() const;

@@ -14,18 +14,22 @@ namespace ATML
 namespace MachineLearning
 {
 
-ForwardPerceptronKernel::ForwardPerceptronKernel() :
-		OpenCLKernelProgram()
+ForwardPerceptronKernel::ForwardPerceptronKernel()
 {
 	stringstream stringStream;
-	//We are using unique kernels with macros. So the name will be unique for every kernel
-	stringStream << "PerceptronProgram";
+
+	stringStream << "ForwardPerceptronProgram";
 	stringStream << instanceCounter;
 	programName = stringStream.str();
 	kernelName = "ForwardPerceptronKernel";
 }
 
 ForwardPerceptronKernel::~ForwardPerceptronKernel()
+{
+
+}
+
+void ForwardPerceptronKernel::SetArguments()
 {
 
 }

@@ -18,6 +18,8 @@ public:
 	ForthBackPropLayerTest(const vector<LayerDataDescription>& inputLayerDescriptions,
 			const ForwardBackPropLayerConfig* config);
 	~ForthBackPropLayerTest();
+
+	virtual void InterlockFinalized() override;
 };
 
 #endif /* ATML_TEST_LAYERINTERLOCKTEST_FORTHBACKPROPLAYERTEST_H_ */

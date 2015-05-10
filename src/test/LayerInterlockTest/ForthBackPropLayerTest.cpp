@@ -12,7 +12,7 @@
 using namespace std;
 
 ForthBackPropLayerTest::ForthBackPropLayerTest(
-	const vector<LayerDataDescription>& inputLayerDescriptions,
+		const vector<LayerDataDescription>& inputLayerDescriptions,
 		const ForwardBackPropLayerConfig* config) :
 		ForwardBackPropLayer(inputLayerDescriptions, config)
 {
@@ -43,9 +43,10 @@ ForthBackPropLayerTest::ForthBackPropLayerTest(
 	LayerMemoryDescription outForwardPropMemoryProposal;
 
 	outForwardPropMemoryProposal.HeightOffset = paddingGenerator(generator);
-	outForwardPropMemoryProposal.Height = outForwardPropDataDescriptions[0].Height
-			+ outForwardPropMemoryProposal.HeightOffset
-			+ paddingGenerator(generator);
+	outForwardPropMemoryProposal.Height =
+			outForwardPropDataDescriptions[0].Height
+					+ outForwardPropMemoryProposal.HeightOffset
+					+ paddingGenerator(generator);
 
 	outForwardPropMemoryProposal.WidthOffset = paddingGenerator(generator);
 	outForwardPropMemoryProposal.Width = outForwardPropDataDescriptions[0].Width
@@ -121,6 +122,11 @@ ForthBackPropLayerTest::ForthBackPropLayerTest(
 			+ paddingGenerator(generator);
 
 	outBackPropMemoryProposals.push_back(outBackPropMemoryProposal);
+
+}
+
+void ForthBackPropLayerTest::InterlockFinalized()
+{
 
 }
 

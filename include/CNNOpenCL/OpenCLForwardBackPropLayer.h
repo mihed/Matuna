@@ -20,6 +20,7 @@ namespace ATML
 namespace MachineLearning
 {
 
+template<class T>
 class OpenCLForwardBackPropLayer: public ForwardBackPropLayer
 {
 protected:

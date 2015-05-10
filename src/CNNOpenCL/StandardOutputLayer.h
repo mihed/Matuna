@@ -21,6 +21,7 @@ namespace ATML
 namespace MachineLearning
 {
 
+template<class T>
 class StandardOutputLayer final: public OutputLayer
 {
 private:
@@ -31,6 +32,8 @@ public:
 			const vector<LayerDataDescription>& inputLayerDescriptions,
 			const OutputLayerConfig* outputLayerConfig);
 	~StandardOutputLayer();
+
+	virtual void InterlockFinalized() override;
 
 	void EnqueueBackPropagation(shared_ptr<OpenCLMemory> previousInput,
 			shared_ptr<OpenCLMemory> target,

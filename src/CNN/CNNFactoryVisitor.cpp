@@ -118,6 +118,9 @@ void CNNFactoryVisitor::InterlockLayer(BackPropLayer* layer)
 		if (!forwardPropLayer->Interlocked())
 			throw runtime_error(
 					"The back-forward prop layer is not interlocked");
+
+		//Need to call this to indicate to the layer that the interlock has been finalized
+		forwardPropLayer->InterlockFinalized();
 	}
 	else //Interlock the CNN here
 	{

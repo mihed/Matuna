@@ -6,32 +6,46 @@
  */
 
 #include "ConvolutionLayer.h"
+#include <CL/cl.h>
 
 namespace ATML
 {
 namespace MachineLearning
 {
 
-ConvolutionLayer::ConvolutionLayer(shared_ptr<OpenCLContext> context,
+template class ConvolutionLayer<cl_float> ;
+template class ConvolutionLayer<cl_double> ;
+
+template<class T>
+ConvolutionLayer<T>::ConvolutionLayer(shared_ptr<OpenCLContext> context,
 		const vector<LayerDataDescription>& inputLayerDescriptions,
 		const ConvolutionLayerConfig* config) :
-		OpenCLForwardBackPropLayer(context, inputLayerDescriptions, config)
+		OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions, config)
 {
 
 }
 
-ConvolutionLayer::~ConvolutionLayer()
+template<class T>
+ConvolutionLayer<T>::~ConvolutionLayer()
 {
 
 }
 
-void ConvolutionLayer::EnqueueForwardPropagation(
+template<class T>
+void ConvolutionLayer<T>::InterlockFinalized()
+{
+
+}
+
+template<class T>
+void ConvolutionLayer<T>::EnqueueForwardPropagation(
 		shared_ptr<OpenCLMemory> previousInput, shared_ptr<OpenCLMemory> output)
 {
 
 }
 
-void ConvolutionLayer::EnqueueBackPropagation(
+template<class T>
+void ConvolutionLayer<T>::EnqueueBackPropagation(
 		shared_ptr<OpenCLMemory> previousInput, shared_ptr<OpenCLMemory> delta,
 		shared_ptr<OpenCLMemory> deltaOutput)
 {

@@ -18,6 +18,8 @@ public:
 	OutputLayerTest(const vector<LayerDataDescription>& inputLayerDescriptions,
 			const OutputLayerConfig* config);
 	~OutputLayerTest();
+
+	virtual void InterlockFinalized() override;
 };
 
 #endif /* ATML_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_ */

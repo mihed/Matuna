@@ -21,19 +21,25 @@ namespace ATML
 namespace MachineLearning
 {
 
-CNNOpenCLFactoryVisitor::CNNOpenCLFactoryVisitor(
+template class CNNOpenCLFactoryVisitor<cl_float> ;
+template class CNNOpenCLFactoryVisitor<cl_double> ;
+
+template<class T>
+CNNOpenCLFactoryVisitor<T>::CNNOpenCLFactoryVisitor(
 		shared_ptr<OpenCLContext> context, CNN* network) :
 		CNNFactoryVisitor(network), context(context)
 {
 
 }
 
-CNNOpenCLFactoryVisitor::~CNNOpenCLFactoryVisitor()
+template<class T>
+CNNOpenCLFactoryVisitor<T>::~CNNOpenCLFactoryVisitor()
 {
 
 }
 
-void CNNOpenCLFactoryVisitor::Visit(const CNNConfig* const cnnConfig)
+template<class T>
+void CNNOpenCLFactoryVisitor<T>::Visit(const CNNConfig* const cnnConfig)
 {
 	auto inputData = cnnConfig->InputDataDescription();
 	auto inputMemory = cnnConfig->InputMemoryProposal();
@@ -45,11 +51,12 @@ void CNNOpenCLFactoryVisitor::Visit(const CNNConfig* const cnnConfig)
 	inputDataDescriptions = inputData;
 }
 
-void CNNOpenCLFactoryVisitor::Visit(
+template<class T>
+void CNNOpenCLFactoryVisitor<T>::Visit(
 		const PerceptronLayerConfig* const perceptronConfig)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new PerceptronLayer(context, inputDataDescriptions,
+			new PerceptronLayer<T>(context, inputDataDescriptions,
 					perceptronConfig));
 
 	//The forwardInputProposal, backOutputProposal and inputDataDescription are set here.
@@ -58,11 +65,12 @@ void CNNOpenCLFactoryVisitor::Visit(
 	layers.push_back(move(layer));
 }
 
-void CNNOpenCLFactoryVisitor::Visit(
+template<class T>
+void CNNOpenCLFactoryVisitor<T>::Visit(
 		const ConvolutionLayerConfig* const convolutionConfig)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new ConvolutionLayer(context, inputDataDescriptions,
+			new ConvolutionLayer<T>(context, inputDataDescriptions,
 					convolutionConfig));
 
 	//The forwardInputProposal, backOutputProposal and inputDataDescription are set here.
@@ -70,12 +78,12 @@ void CNNOpenCLFactoryVisitor::Visit(
 
 	layers.push_back(move(layer));
 }
-
-void CNNOpenCLFactoryVisitor::Visit(
+template<class T>
+void CNNOpenCLFactoryVisitor<T>::Visit(
 		const StandardOutputLayerConfig* const outputConfig)
 {
 	unique_ptr<OutputLayer> layer(
-			new StandardOutputLayer(context, inputDataDescriptions,
+			new StandardOutputLayer<T>(context, inputDataDescriptions,
 					outputConfig));
 
 	InterlockLayer(layer.get());
@@ -86,6 +94,8 @@ void CNNOpenCLFactoryVisitor::Visit(
 
 	if (!layer->Interlocked())
 		throw runtime_error("The output layer is not interlocked");
+
+	layer->InterlockFinalized();
 
 	outputLayer = move(layer);
 }

@@ -33,8 +33,8 @@ class CNNOpenCL final: public TrainableCNN<T>
 {
 private:
 	shared_ptr<OpenCLContext> context;
-	vector<unique_ptr<OpenCLForwardBackPropLayer>> layers;
-	unique_ptr<StandardOutputLayer> outputLayer;
+	vector<unique_ptr<OpenCLForwardBackPropLayer<T>>> layers;
+	unique_ptr<StandardOutputLayer<T>> outputLayer;
 public:
 	//TODO: Add a vector of contexts
 	CNNOpenCL(unique_ptr<OpenCLContext> context, unique_ptr<CNNConfig> config);

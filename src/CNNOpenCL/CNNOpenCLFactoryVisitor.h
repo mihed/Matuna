@@ -22,6 +22,7 @@ namespace MachineLearning
 
 class CNN;
 
+template<class T>
 class CNNOpenCLFactoryVisitor: public CNNFactoryVisitor
 {
 private:

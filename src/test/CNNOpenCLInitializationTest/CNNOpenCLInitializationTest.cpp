@@ -42,7 +42,7 @@ SCENARIO("Creating a CNNOpenCL network", "[CNNOpenCL][OpenCLContext]")
 	LayerDataDescription desc1;
 	desc1.Height = 1;
 	desc1.Width = 1;
-	desc1.Units = 1000;
+	desc1.Units = 100;
 	dataDescriptions.push_back(desc1);
 
 	LayerDataDescription desc2;

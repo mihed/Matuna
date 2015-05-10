@@ -19,13 +19,16 @@ namespace ATML
 namespace MachineLearning
 {
 
-class ConvolutionLayer: public OpenCLForwardBackPropLayer
+template<class T>
+class ConvolutionLayer: public OpenCLForwardBackPropLayer<T>
 {
 public:
 	ConvolutionLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
 			const ConvolutionLayerConfig* config);
 	virtual ~ConvolutionLayer();
+
+	virtual void InterlockFinalized() override;
 
 	virtual void EnqueueForwardPropagation(
 			shared_ptr<OpenCLMemory> previousInput,
