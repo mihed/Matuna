@@ -50,18 +50,6 @@ void TestKernel::SetMemorySize(size_t size)
 	globalWorkSize.push_back(size);
 }
 
-void TestKernel::SetArguments()
-{
-	for (auto& memoryArgument : memoryArguments)
-	{
-		auto index = get<0>(memoryArgument);
-		auto memory = get<1>(memoryArgument)->GetCLMemory();
-		CheckOpenCLError(clSetKernelArg(kernel, index, sizeof(cl_mem), &memory), "Could not set the kernel arguments");
-	}
-
-	argumentsSet = true;
-}
-
 vector<string> TestKernel::GetProgramCode() const
 {
 	vector<string> result;

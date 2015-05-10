@@ -24,7 +24,8 @@ private:
 
 public:
 	StandardOutputLayerConfig(ATMLErrorFunction errorFunction =
-			ATMLMeanSquareError);
+			ATMLMeanSquareError, bool useRelaxedMath = false,
+			ATMLComputationPrecision computationPrecision = ATMLNormalPrecision);
 	~StandardOutputLayerConfig();
 
 	ATMLErrorFunction ErrorFunction() const;

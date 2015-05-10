@@ -12,8 +12,8 @@ namespace ATML
 namespace MachineLearning
 {
 
-template class StandardOutputLayer<cl_float>;
-template class StandardOutputLayer<cl_double>;
+template class StandardOutputLayer<cl_float> ;
+template class StandardOutputLayer<cl_double> ;
 
 template<class T>
 StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
@@ -52,9 +52,9 @@ void StandardOutputLayer<T>::InterlockFinalized()
 }
 
 template<class T>
-void StandardOutputLayer<T>::EnqueueBackPropagation(
-		shared_ptr<OpenCLMemory> previousInput, shared_ptr<OpenCLMemory> target,
-		shared_ptr<OpenCLMemory> deltaOutput)
+void StandardOutputLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
+		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* delta,
+		OpenCLMemory* deltaOutput, bool blocking)
 {
 
 }

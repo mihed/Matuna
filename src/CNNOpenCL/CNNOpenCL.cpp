@@ -23,6 +23,27 @@ CNNOpenCL<T>::CNNOpenCL(unique_ptr<OpenCLContext> context,
 		TrainableCNN<T>(*config)
 {
 	this->context = move(context);
+
+	for (auto device : this->context->GetDevices())
+	{
+		auto deviceInfo = device->DeviceInfo();
+		if (is_same<cl_double, T>::value)
+		{
+			if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+				throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+		}
+		else if (is_same<cl_float, T>::value)
+		{
+			if (deviceInfo.PreferredFloatVectorWidth() == 0)
+				throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+		}
+		else
+			throw runtime_error(
+					"The template argument does not match the supported arguments");
+	}
+
 	CNNOpenCLFactoryVisitor<T> factory(this->context, this);
 	config->Accept(&factory);
 	auto createdLayers = factory.GetLayers();

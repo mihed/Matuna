@@ -32,13 +32,13 @@ public:
 			const ForwardBackPropLayerConfig* config);
 	virtual ~OpenCLForwardBackPropLayer();
 
-	virtual void EnqueueForwardPropagation(
-			shared_ptr<OpenCLMemory> previousInput,
-			shared_ptr<OpenCLMemory> output) = 0;
+	virtual void EnqueueForwardPropagation(OpenCLDevice* device, int queueIndex,
+			OpenCLMemory* previousInput, OpenCLMemory* output, bool blocking =
+					true) = 0;
 
-	virtual void EnqueueBackPropagation(shared_ptr<OpenCLMemory> previousInput,
-			shared_ptr<OpenCLMemory> delta,
-			shared_ptr<OpenCLMemory> deltaOutput) = 0;
+	virtual void EnqueueBackPropagation(OpenCLDevice* device, int queueIndex,
+			OpenCLMemory* previousInput, OpenCLMemory* delta,
+			OpenCLMemory* deltaOutput, bool blocking = true) = 0;
 };
 
 } /* namespace MachineLearning */

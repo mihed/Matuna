@@ -13,8 +13,10 @@ namespace MachineLearning
 {
 
 StandardOutputLayerConfig::StandardOutputLayerConfig(
-		ATMLErrorFunction errorFunction) :
-		errorFunction(errorFunction)
+		ATMLErrorFunction errorFunction, bool useRelaxedMath,
+		ATMLComputationPrecision computationPrecision) :
+		OutputLayerConfig(useRelaxedMath, computationPrecision), errorFunction(
+				errorFunction)
 {
 
 }

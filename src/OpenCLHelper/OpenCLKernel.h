@@ -52,11 +52,6 @@ public:
 	{
 		return kernelSet;
 	}
-
-	bool ArgumentsSet() const
-	{
-		return argumentsSet;
-	}
 	;
 
 	bool ContextSet() const
@@ -76,8 +71,6 @@ public:
 		return kernel;
 	}
 	;
-
-	virtual void SetArguments() = 0;
 
 	/**
 	 *@brief The name of the program that has the implementation of this kernel

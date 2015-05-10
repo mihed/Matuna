@@ -20,13 +20,12 @@ namespace Helper
 
 OpenCLKernelProgram::OpenCLKernelProgram()
 {
-	// TODO Auto-generated constructor stub
 
 }
 
 OpenCLKernelProgram::~OpenCLKernelProgram()
 {
-	// TODO Auto-generated destructor stub
+
 }
 
 string OpenCLKernelProgram::GetTextFromPath(const string& path)

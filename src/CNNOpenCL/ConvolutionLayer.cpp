@@ -38,16 +38,16 @@ void ConvolutionLayer<T>::InterlockFinalized()
 }
 
 template<class T>
-void ConvolutionLayer<T>::EnqueueForwardPropagation(
-		shared_ptr<OpenCLMemory> previousInput, shared_ptr<OpenCLMemory> output)
+void ConvolutionLayer<T>::EnqueueForwardPropagation(OpenCLDevice* device, int queueIndex,
+		OpenCLMemory* previousInput, OpenCLMemory* output, bool blocking)
 {
 
 }
 
 template<class T>
-void ConvolutionLayer<T>::EnqueueBackPropagation(
-		shared_ptr<OpenCLMemory> previousInput, shared_ptr<OpenCLMemory> delta,
-		shared_ptr<OpenCLMemory> deltaOutput)
+void ConvolutionLayer<T>::EnqueueBackPropagation(OpenCLDevice* device, int queueIndex,
+		OpenCLMemory* previousInput, OpenCLMemory* delta,
+		OpenCLMemory* deltaOutput, bool blocking)
 {
 
 }

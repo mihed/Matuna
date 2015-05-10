@@ -11,255 +11,367 @@
 
 namespace ATML
 {
-	namespace Helper
+namespace Helper
+{
+
+OpenCLContext::OpenCLContext(
+		const vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>>& deviceConfigs)
+{
+
+	for (auto& configInfoTuple : deviceConfigs)
+		if (get<0>(configInfoTuple).CommandQueueCount() == 0)
+			throw invalid_argument(
+					"We cannot create a context with devices that has no device queues");
+
+	vector<cl_device_id> deviceIDs;
+	for (auto& configAndInfo : deviceConfigs)
+		deviceIDs.push_back(get<1>(configAndInfo).DeviceID());
+
+	cl_int error;
+	context = nullptr;
+	context = clCreateContext(0, deviceIDs.size(), deviceIDs.data(), nullptr,
+			nullptr, &error);
+	CheckOpenCLError(error, "Could not create the native OpenCL context");
+
+	//Create the device queues and create devices
+	for (auto& configAndInfo : deviceConfigs)
 	{
-
-		OpenCLContext::OpenCLContext(
-			const vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>>& deviceConfigs)
+		vector<cl_command_queue> queues;
+		for (auto& propertyFlag : get<0>(configAndInfo).GetCommandQueues())
 		{
-			vector<cl_device_id> deviceIDs;
-			for (auto& configAndInfo : deviceConfigs)
-				deviceIDs.push_back(get<1>(configAndInfo).DeviceID());
+			cl_command_queue queue = clCreateCommandQueue(context,
+					get<1>(configAndInfo).DeviceID(), propertyFlag, &error);
 
-			cl_int error;
-			context = clCreateContext(0, deviceIDs.size(), deviceIDs.data(), NULL, NULL,
-				&error);
-			CheckOpenCLError(error, "Could not create the native OpenCL context");
+			if (error != CL_SUCCESS)
+				for (auto queueToClean : queues)
+					clReleaseCommandQueue(queueToClean);
+			CheckOpenCLError(error, "Could not create the device queues");
 
-			//Create the device queues and create devices
-			for (auto& configAndInfo : deviceConfigs)
-			{
-				vector<cl_command_queue> queues;
-				for (auto& propertyFlag : get<0>(configAndInfo).GetCommandQueues())
-				{
-					cl_command_queue queue = clCreateCommandQueue(context,
-						get<1>(configAndInfo).DeviceID(), propertyFlag, &error);
-					CheckOpenCLError(error, "Could not create the device queues");
-					queues.push_back(queue);
-				}
-
-				devices.push_back(
-					unique_ptr<OpenCLDevice>(
-					new OpenCLDevice(this, get<1>(configAndInfo), queues)));
-
-			}
+			queues.push_back(queue);
 		}
 
-		OpenCLContext::~OpenCLContext()
+		devices.push_back(
+				unique_ptr<OpenCLDevice>(
+						new OpenCLDevice(this, get<1>(configAndInfo), queues)));
+
+	}
+}
+
+OpenCLContext::~OpenCLContext()
+{
+	for (auto& stringAndMap : kernels)
+		for (auto& stringAndKernel : stringAndMap.second)
+			CheckOpenCLError(clReleaseKernel(stringAndKernel.second),
+					"Could not release the kernels. If this happens, you need to review the how the resources are handled in the context");
+
+	for (auto& stringAndProgram : programs)
+		CheckOpenCLError(clReleaseProgram(stringAndProgram.second),
+				"Could not release the programs. If this happens, you need to review the how the resources are handled in the context");
+
+	//Correct order of cleanup. Don't change this unless you know what you are doing.
+	kernels.clear();
+	programs.clear();
+	devices.clear();
+
+	//Could happen that we have an exception in the constructor
+	if (context)
+		CheckOpenCLError(clReleaseContext(context),
+				"Could not release the context");
+}
+
+unique_ptr<OpenCLMemory> OpenCLContext::CreateMemory(cl_mem_flags flags,
+		size_t bytes) const
+{
+	cl_int error;
+	cl_mem memory = clCreateBuffer(context, flags, bytes, nullptr, &error);
+	CheckOpenCLError(error, "Could not create the OpenCL memory");
+	return unique_ptr<OpenCLMemory>(
+			new OpenCLMemory(memory, this, flags, bytes));
+}
+
+unique_ptr<OpenCLMemory> OpenCLContext::CreateMemory(cl_mem_flags flags,
+		size_t bytes, void* buffer) const
+{
+	cl_int error;
+	cl_mem memory = clCreateBuffer(context, flags, bytes, buffer, &error);
+	CheckOpenCLError(error, "Could not create the OpenCL memory");
+	return unique_ptr<OpenCLMemory>(
+			new OpenCLMemory(memory, this, flags, bytes));
+}
+
+vector<OpenCLDevice*> OpenCLContext::GetDevices() const
+{
+	vector<OpenCLDevice*> result;
+	for (auto& device : devices)
+		result.push_back(device.get());
+
+	return result;
+}
+
+void OpenCLContext::AddProgramFromSource(const string& programName,
+		const string& compilerOptions, const vector<string>& programCodeFiles,
+		const vector<OpenCLDevice*>& affectedDevices)
+{
+	cl_int error;
+
+	vector<const char*> rawProgramFiles;
+	vector<size_t> rawProgramLengths;
+	for (auto& programCode : programCodeFiles)
+	{
+		rawProgramFiles.push_back(programCode.c_str());
+		rawProgramLengths.push_back(programCode.size());
+	}
+
+	cl_program program = clCreateProgramWithSource(context,
+			rawProgramFiles.size(), rawProgramFiles.data(),
+			rawProgramLengths.data(), &error);
+	CheckOpenCLError(error, "Could not create the program from the source");
+
+	vector<cl_device_id> deviceIDs;
+	for (auto device : affectedDevices)
+		deviceIDs.push_back(device->DeviceID());
+
+	error = clBuildProgram(program, deviceIDs.size(), deviceIDs.data(),
+			compilerOptions.c_str(), nullptr, nullptr);
+
+	if (error != CL_BUILD_PROGRAM_FAILURE && error != CL_SUCCESS)
+	{
+		clReleaseProgram(program);
+		CheckOpenCLError(error, "Error when building the program");
+	}
+
+	for (auto& deviceID : deviceIDs)
+	{
+		size_t logSize;
+
+		error = clGetProgramBuildInfo(program, deviceID, CL_PROGRAM_BUILD_LOG,
+				0, nullptr, &logSize);
+
+		if (error != CL_SUCCESS)
+			clReleaseProgram(program);
+		CheckOpenCLError(error, "Could not get the build log");
+
+		unique_ptr<char[]> buildLogBuffer(new char[logSize + 1]);
+		error = clGetProgramBuildInfo(program, deviceID, CL_PROGRAM_BUILD_LOG,
+				logSize, buildLogBuffer.get(), nullptr);
+
+		if (error != CL_SUCCESS)
+			clReleaseProgram(program);
+		CheckOpenCLError(error, "Could not get the build log");
+
+		string buildLog = string(buildLogBuffer.get());
+
+		cl_build_status buildStatus;
+		error = clGetProgramBuildInfo(program, deviceID,
+		CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &buildStatus,
+				nullptr);
+
+		if (error != CL_SUCCESS)
+			clReleaseProgram(program);
+		CheckOpenCLError(error, "Could not get the build status");
+
+		if (buildStatus != CL_BUILD_SUCCESS)
 		{
-			for (auto& stringAndProgram : programs)
-				CheckOpenCLError(clReleaseProgram(stringAndProgram.second),
-				"Could not release the programs");
-
-			programs.clear();
-
-			//Make sure the devices clean up before deleting the context
-			devices.clear();
-
-			CheckOpenCLError(clReleaseContext(context), "Could not release the context");
+			clReleaseProgram(program);
+			stringstream stringStream;
+			stringStream << "Build failed: \n" << buildLog.c_str() << "\n";
+			throw OpenCLCompilationException(stringStream.str());
 		}
+	}
 
-		unique_ptr<OpenCLMemory> OpenCLContext::CreateMemory(cl_mem_flags flags,
-			size_t bytes) const
-		{
-			cl_int error;
-			cl_mem memory = clCreateBuffer(context, flags, bytes, NULL, &error);
-			CheckOpenCLError(error, "Could not create the OpenCL memory");
-			return unique_ptr<OpenCLMemory>(
-				new OpenCLMemory(memory, this, flags, bytes));
-		}
+	kernels.insert(make_pair(programName, unordered_map<string, cl_kernel>()));
+	programs.insert(make_pair(programName, program));
+}
 
-		unique_ptr<OpenCLMemory> OpenCLContext::CreateMemory(cl_mem_flags flags,
-			size_t bytes, void* buffer) const
-		{
-			cl_int error;
-			cl_mem memory = clCreateBuffer(context, flags, bytes, buffer, &error);
-			CheckOpenCLError(error, "Could not create the OpenCL memory");
-			return unique_ptr<OpenCLMemory>(
-				new OpenCLMemory(memory, this, flags, bytes));
-		}
+void OpenCLContext::AddProgramFromSource(OpenCLKernelProgram* kernelProgram,
+		const vector<OpenCLDevice*>& affectedDevices)
+{
+	AddProgramFromSource(kernelProgram->ProgramName(),
+			kernelProgram->GetCompilerOptions(),
+			kernelProgram->GetProgramCode(), affectedDevices);
+}
 
-		vector<OpenCLDevice*> OpenCLContext::GetDevices() const
-		{
-			vector<OpenCLDevice*> result;
-			for (auto& device : devices)
-				result.push_back(device.get());
+void OpenCLContext::AddKernel(OpenCLKernel* kernel)
+{
+	if (programs.find(kernel->ProgramName()) == programs.end())
+		throw invalid_argument(
+				"The program where the kernel belongs has not been added.");
 
-			return result;
-		}
+	if (kernels.find(kernel->ProgramName()) == kernels.end())
+		throw invalid_argument(
+				"The program has not been added to the kernels. This is an indication that there's something wrong in the implementation");
 
-		void OpenCLContext::AddProgramFromSource(const string& programName,
-			const string& compilerOptions, const vector<string>& programCodeFiles,
-			const vector<OpenCLDevice*>& affectedDevices)
-		{
-			cl_int error;
+	auto& program = programs[kernel->ProgramName()];
 
-			vector<const char*> rawProgramFiles;
-			vector<size_t> rawProgramLengths;
-			for (auto& programCode : programCodeFiles)
-			{
-				rawProgramFiles.push_back(programCode.c_str());
-				rawProgramLengths.push_back(programCode.size());
-			}
+	cl_int errorCode;
+	cl_kernel kernelToSet = clCreateKernel(program,
+			kernel->KernelName().c_str(), &errorCode);
+	CheckOpenCLError(errorCode, "Could not create the kernel");
 
-			cl_program program = clCreateProgramWithSource(context, rawProgramFiles.size(),
-				rawProgramFiles.data(), rawProgramLengths.data(), &error);
-			CheckOpenCLError(error, "Could not create the program from the source");
+	kernel->SetOCLKernel(kernelToSet);
+	kernel->SetContext(this);
 
-			vector<cl_device_id> deviceIDs;
-			for (auto device : affectedDevices)
-				deviceIDs.push_back(device->DeviceID());
+	if (!kernel->KernelSet())
+	{
+		clReleaseKernel(kernelToSet);
+		throw runtime_error(
+				"The context could not attach a native kernel to the OpenCLKernel");
+	}
 
-			error = clBuildProgram(program, deviceIDs.size(), deviceIDs.data(),
-				compilerOptions.c_str(),
-				NULL, NULL);
+	if (!kernel->ContextSet())
+	{
+		clReleaseKernel(kernelToSet);
+		throw runtime_error(
+				"The context could not attach itself to the OpenCLKernel");
+	}
 
-			if (error != CL_BUILD_PROGRAM_FAILURE && error != CL_SUCCESS)
-				CheckOpenCLError(error, "Error when building the program");
+	auto& kernelMap = kernels[kernel->ProgramName()];
+	kernelMap.insert(make_pair(kernel->KernelName(), kernelToSet));
+}
 
-			for (auto& deviceID : deviceIDs)
-			{
-				size_t logSize;
-				CheckOpenCLError(
-					clGetProgramBuildInfo(program, deviceID, CL_PROGRAM_BUILD_LOG,
-					0,
-					NULL, &logSize), "Could not get the build log");
+void OpenCLContext::RemoveProgram(const string& programName)
+{
+	if (programs.find(programName) == programs.end())
+		throw invalid_argument("The program has not been added.");
 
-				unique_ptr<char[]> buildLogBuffer(new char[logSize + 1]);
-				CheckOpenCLError(
-					clGetProgramBuildInfo(program, deviceID, CL_PROGRAM_BUILD_LOG,
-					logSize, buildLogBuffer.get(), NULL),
-					"Could not get the build log");
+	if (kernels.find(programName) == kernels.end())
+		throw invalid_argument(
+				"The program has not been added to the kernels. This is an indication that there's something wrong in the implementation");
 
-				string buildLog = string(buildLogBuffer.get());
+	//Start with removing all the associated kernels
+	for (auto& stringAndKernel : kernels[programName])
+		CheckOpenCLError(clReleaseKernel(stringAndKernel.second),
+				"Could not release the kernels. If this happens, you need to review the how the resources are handled in the context");
+	kernels.erase(programName);
 
-				cl_build_status buildStatus;
-				CheckOpenCLError(clGetProgramBuildInfo(program, deviceID,
-					CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &buildStatus, NULL),
-					"Could not get the build status");
-				if (buildStatus != CL_BUILD_SUCCESS)
-				{
-					stringstream stringStream;
-					stringStream << "Build failed: \n" << buildLog.c_str() << "\n";
-					throw OpenCLCompilationException(stringStream.str());
-				}
-			}
+	auto& program = programs[programName];
+	CheckOpenCLError(clReleaseProgram(program),
+			"Could not release the program");
+	programs.erase(programName);
+}
 
-			programs.insert(make_pair(programName, program));
-		}
+void OpenCLContext::RemoveProgram(OpenCLKernelProgram* kernelProgram)
+{
+	RemoveProgram(kernelProgram->ProgramName());
+}
 
-		//void OpenCLContext::AddProgramFromBinary(const string& programName,
-		//	const vector<vector<unsigned char>>& binaries,
-		//	const vector<OpenCLDevice*>& affectedDevices)
-		//{
+void OpenCLContext::RemoveKernel(OpenCLKernel* kernel)
+{
+	if (programs.find(kernel->ProgramName()) == programs.end())
+		throw invalid_argument("There's no program associated to the kernel.");
 
-		//	if (devices.size() != binaries.size())
-		//		throw invalid_argument("The number of devices must match the number of binaries");
+	if (kernels.find(kernel->ProgramName()) == kernels.end())
+		throw invalid_argument(
+				"There's no program associated to the kernel. This is an indication that there's something wrong in the implementation");
 
-		//	vector<size_t> lengths;
-		//	for (auto& binary : binaries)
-		//		lengths.push_back(binary.size());
+	auto& kernelMap = kernels[kernel->ProgramName()];
 
-		//	vector<cl_device_id> deviceIDs;
-		//	for (auto device : affectedDevices)
-		//		deviceIDs.push_back(device->DeviceID());
+	if (kernelMap.find(kernel->KernelName()) == kernelMap.end())
+		throw invalid_argument("The kernel has not been added.");
 
-		//	unsigned char** tempBinaries = new unsigned char*[binaries.size()];
-		//	for (size_t i = 0; i < binaries.size(); i++)
-		//	{
-		//		tempBinaries[i] = new unsigned char[lengths[i]];
-		//		memcpy(tempBinaries[i], binaries[i].data(), lengths[i]);
-		//	}
+	CheckOpenCLError(clReleaseKernel(kernelMap[kernel->KernelName()]),
+			"Could not remove the kernel.");
+}
 
-		//	cl_int error;
-		//	vector<cl_int> binaryStatus;
-		//	binaryStatus.resize(devices.size());
+//void OpenCLContext::AddProgramFromBinary(const string& programName,
+//	const vector<vector<unsigned char>>& binaries,
+//	const vector<OpenCLDevice*>& affectedDevices)
+//{
 
-		//	//The const_cast works here since we are in control of the tempBinaries variable.
-		//	cl_program program = clCreateProgramWithBinary(context, devices.size(),
-		//		deviceIDs.data(), lengths.data(), (const unsigned char**) tempBinaries, binaryStatus.data(), &error);
+//	if (devices.size() != binaries.size())
+//		throw invalid_argument("The number of devices must match the number of binaries");
 
-		//	for (size_t i = 0; i < binaries.size(); i++)
-		//		delete[] tempBinaries[i];
-		//	delete[] tempBinaries;
+//	vector<size_t> lengths;
+//	for (auto& binary : binaries)
+//		lengths.push_back(binary.size());
 
-		//	CheckOpenCLError(error, "Could not create the program from the binaries");
+//	vector<cl_device_id> deviceIDs;
+//	for (auto device : affectedDevices)
+//		deviceIDs.push_back(device->DeviceID());
 
-		//	//Make sure that the binaries has been loaded properly to the devices
-		//	for (auto status : binaryStatus)
-		//	{
-		//		if (status != CL_SUCCESS)
-		//		{
-		//			if (status == CL_INVALID_VALUE)
-		//				throw invalid_argument("The arguments are not valid");
-		//			else if (status == CL_INVALID_BINARY)
-		//				throw invalid_argument("The binary is not valid");
-		//			else
-		//				throw runtime_error("Unknown error when loading the binaries");
-		//		}
-		//	}
+//	unsigned char** tempBinaries = new unsigned char*[binaries.size()];
+//	for (size_t i = 0; i < binaries.size(); i++)
+//	{
+//		tempBinaries[i] = new unsigned char[lengths[i]];
+//		memcpy(tempBinaries[i], binaries[i].data(), lengths[i]);
+//	}
 
-		//	programs.insert(make_pair(programName, program));
-		//}
+//	cl_int error;
+//	vector<cl_int> binaryStatus;
+//	binaryStatus.resize(devices.size());
 
-		//vector<vector<unsigned char>> OpenCLContext::GetBinaryProgram(const string& programName)
-		//{
-		//	if (programs.find(programName) == programs.end())
-		//		throw invalid_argument(
-		//		"The program has not been added.");
+//	//The const_cast works here since we are in control of the tempBinaries variable.
+//	cl_program program = clCreateProgramWithBinary(context, devices.size(),
+//		deviceIDs.data(), lengths.data(), (const unsigned char**) tempBinaries, binaryStatus.data(), &error);
 
-		//	auto& program = programs[programName];
+//	for (size_t i = 0; i < binaries.size(); i++)
+//		delete[] tempBinaries[i];
+//	delete[] tempBinaries;
 
-		//	cl_uint deviceCount;
-		//	CheckOpenCLError(clGetProgramInfo(program, CL_PROGRAM_NUM_DEVICES, sizeof(cl_uint), &deviceCount, NULL), "Could not fetch the number of attached devices to this program");
+//	CheckOpenCLError(error, "Could not create the program from the binaries");
 
-		//	vector<size_t> binarySizes;
-		//	binarySizes.resize(deviceCount);
-		//	CheckOpenCLError(clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, deviceCount * sizeof(size_t), binarySizes.data(), NULL), "Could not retreive the binary sizes");
+//	//Make sure that the binaries has been loaded properly to the devices
+//	for (auto status : binaryStatus)
+//	{
+//		if (status != CL_SUCCESS)
+//		{
+//			if (status == CL_INVALID_VALUE)
+//				throw invalid_argument("The arguments are not valid");
+//			else if (status == CL_INVALID_BINARY)
+//				throw invalid_argument("The binary is not valid");
+//			else
+//				throw runtime_error("Unknown error when loading the binaries");
+//		}
+//	}
 
-		//	unsigned char** binaries = new unsigned char*[deviceCount];
-		//	for (size_t i = 0; i < deviceCount; i++)
-		//		binaries[i] = new unsigned char[binarySizes[i]];
+//	programs.insert(make_pair(programName, program));
+//}
 
-		//	auto error = clGetProgramInfo(program, CL_PROGRAM_BINARIES, deviceCount * sizeof(unsigned char*), binaries, NULL);
-		//	if (error != CL_SUCCESS)
-		//	{
-		//		for (size_t i = 0; i < deviceCount; i++)
-		//			delete[] binaries[i];
+//vector<vector<unsigned char>> OpenCLContext::GetBinaryProgram(const string& programName)
+//{
+//	if (programs.find(programName) == programs.end())
+//		throw invalid_argument(
+//		"The program has not been added.");
 
-		//		delete[] binaries;
+//	auto& program = programs[programName];
 
-		//		throw OpenCLException(error, "Could not get the binaries");
-		//	}
+//	cl_uint deviceCount;
+//	CheckOpenCLError(clGetProgramInfo(program, CL_PROGRAM_NUM_DEVICES, sizeof(cl_uint), &deviceCount, NULL), "Could not fetch the number of attached devices to this program");
 
-		//	vector<vector<unsigned char>> result;
-		//	result.resize(deviceCount);
-		//	for (size_t i = 0; i < deviceCount; i++)
-		//	{
-		//		result[i].resize(binarySizes[i]);
-		//		memcpy(result[i].data(), binaries[i], binarySizes[i]);
-		//	}
+//	vector<size_t> binarySizes;
+//	binarySizes.resize(deviceCount);
+//	CheckOpenCLError(clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, deviceCount * sizeof(size_t), binarySizes.data(), NULL), "Could not retreive the binary sizes");
 
-		//	for (size_t i = 0; i < deviceCount; i++)
-		//		delete[] binaries[i];
+//	unsigned char** binaries = new unsigned char*[deviceCount];
+//	for (size_t i = 0; i < deviceCount; i++)
+//		binaries[i] = new unsigned char[binarySizes[i]];
 
-		//	delete[] binaries;
+//	auto error = clGetProgramInfo(program, CL_PROGRAM_BINARIES, deviceCount * sizeof(unsigned char*), binaries, NULL);
+//	if (error != CL_SUCCESS)
+//	{
+//		for (size_t i = 0; i < deviceCount; i++)
+//			delete[] binaries[i];
 
-		//	return result;
-		//}
+//		delete[] binaries;
 
-		void OpenCLContext::RemoveProgram(const string& programName)
-		{
-			if (programs.find(programName) == programs.end())
-				throw invalid_argument(
-				"The program has not been added.");
+//		throw OpenCLException(error, "Could not get the binaries");
+//	}
 
-			auto& program = programs[programName];
-			CheckOpenCLError(clReleaseProgram(program),
-				"Could not release the program");
+//	vector<vector<unsigned char>> result;
+//	result.resize(deviceCount);
+//	for (size_t i = 0; i < deviceCount; i++)
+//	{
+//		result[i].resize(binarySizes[i]);
+//		memcpy(result[i].data(), binaries[i], binarySizes[i]);
+//	}
 
-			programs.erase(programName);
-		}
+//	for (size_t i = 0; i < deviceCount; i++)
+//		delete[] binaries[i];
 
-	} /* namespace Helper */
+//	delete[] binaries;
+
+//	return result;
+//}
+
+} /* namespace Helper */
 } /* namespace ATML */

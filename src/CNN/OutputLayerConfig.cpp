@@ -12,7 +12,10 @@ namespace ATML
 namespace MachineLearning
 {
 
-OutputLayerConfig::OutputLayerConfig()
+OutputLayerConfig::OutputLayerConfig(bool useRelaxedMath,
+		ATMLComputationPrecision computationPrecision) :
+		useRelaxedMath(useRelaxedMath), computationPrecision(
+				computationPrecision)
 {
 
 }
@@ -20,6 +23,15 @@ OutputLayerConfig::OutputLayerConfig()
 OutputLayerConfig::~OutputLayerConfig()
 {
 
+}
+
+bool OutputLayerConfig::UseRelaxedMath() const
+{
+	return useRelaxedMath;
+}
+ATMLComputationPrecision OutputLayerConfig::ComputationPrecision() const
+{
+	return computationPrecision;
 }
 
 } /* namespace MachineLearning */

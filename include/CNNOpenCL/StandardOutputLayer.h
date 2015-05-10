@@ -35,9 +35,9 @@ public:
 
 	virtual void InterlockFinalized() override;
 
-	void EnqueueBackPropagation(shared_ptr<OpenCLMemory> previousInput,
-			shared_ptr<OpenCLMemory> target,
-			shared_ptr<OpenCLMemory> deltaOutput);
+	void EnqueueBackPropagation(OpenCLDevice* device, int queueIndex,
+			OpenCLMemory* previousInput, OpenCLMemory* delta,
+			OpenCLMemory* deltaOutput, bool blocking = true);
 };
 
 } /* namespace MachineLearning */

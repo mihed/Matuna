@@ -7,16 +7,19 @@
 
 #include "Layer.h"
 
-namespace ATML {
-namespace MachineLearning {
+namespace ATML
+{
+namespace MachineLearning
+{
 
-Layer::Layer() {
-	// TODO Auto-generated constructor stub
+Layer::Layer()
+{
 
 }
 
-Layer::~Layer() {
-	// TODO Auto-generated destructor stub
+Layer::~Layer()
+{
+
 }
 
 } /* namespace MachineLearning */

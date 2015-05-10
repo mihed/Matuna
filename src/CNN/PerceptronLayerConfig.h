@@ -27,7 +27,8 @@ private:
 public:
 	PerceptronLayerConfig(int units, ATMLActivationFunction activationFunction =
 			ATMLSigmoidActivation, ATMLConnectionType connectionType =
-			ATMLFullConnection);
+			ATMLFullConnection, bool useRelaxedMath = false,
+			ATMLComputationPrecision computationPrecision = ATMLNormalPrecision);
 	~PerceptronLayerConfig();
 
 	int Units() const;

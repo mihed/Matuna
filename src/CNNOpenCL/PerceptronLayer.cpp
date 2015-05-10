@@ -8,21 +8,29 @@
 #include "PerceptronLayer.h"
 #include "CNN/InterlockHelper.h"
 #include <stdexcept>
+#include <type_traits>
+#include <chrono>
+#include <random>
 
 namespace ATML
 {
 namespace MachineLearning
 {
 
-template class PerceptronLayer<cl_float>;
-template class PerceptronLayer<cl_double>;
+template class PerceptronLayer<cl_float> ;
+template class PerceptronLayer<cl_double> ;
 
 template<class T>
 PerceptronLayer<T>::PerceptronLayer(shared_ptr<OpenCLContext> context,
 		const vector<LayerDataDescription>& inputLayerDescriptions,
 		const PerceptronLayerConfig* config) :
-		OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions, config)
+		OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions, config), config(
+				*config)
 {
+	if (inputLayerDescriptions.size() == 0)
+		throw invalid_argument(
+				"There's no input data descriptions for the perceptron layer.");
+
 	//In a perceptron layer, we cannot have multiple input descriptions for the same network
 	//since it will correspond to a different weight matrix.
 	if (inputLayerDescriptions.size() > 1)
@@ -66,18 +74,23 @@ PerceptronLayer<T>::PerceptronLayer(shared_ptr<OpenCLContext> context,
 
 		this->inBackPropMemoryProposals.push_back(outForwardMemProp);
 	}
-
-	//We are not using any automatic tuning atm.
-	if (inputLayerDescriptions.size() == 0)
-		throw invalid_argument(
-				"There's no input data descriptions for the perceptron layer.");
 }
 
 template<class T>
 PerceptronLayer<T>::~PerceptronLayer()
 {
-	if (forwardPerceptronKernel.get())
-		this->context->RemoveProgram(forwardPerceptronKernel->ProgramName());
+	for (auto& deviceAndKernel : deviceAndKernels)
+	{
+		auto& kernelProgram = deviceAndKernel.second;
+		this->context->RemoveKernel(kernelProgram.get());
+		this->context->RemoveProgram(kernelProgram.get());
+	}
+}
+
+template<class T>
+PerceptronLayerConfig PerceptronLayer<T>::GetConfig() const
+{
+	return config;
 }
 
 template<class T>
@@ -102,11 +115,125 @@ void PerceptronLayer<T>::InterlockFinalized()
 template<class T>
 void PerceptronLayer<T>::InitializeNormalPerceptron()
 {
-	//FIXME: We cannot use the context interface here. Since we need to evaluate pre-processors options.
-
 	auto inputDataDescriptions = this->InForwardPropDataDescription();
-	auto& firstData = inputDataDescriptions[0];
+	auto outputDataDescriptions = this->outForwardPropDataDescriptions;
+	auto& firstInputData = inputDataDescriptions[0];
+	auto& firstOutputData = outputDataDescriptions[0];
 
+	int biasCount = firstOutputData.Width * firstOutputData.Height
+			* firstOutputData.Units;
+
+	vector<OpenCLDevice*> devices = this->context->GetDevices();
+
+	InitializeParameters();
+
+	for (auto device : devices)
+	{
+		auto deviceInfo = device->DeviceInfo();
+
+		//Make sure the type we want to execute is supported on the device.
+		if (is_same<cl_double, T>::value)
+		{
+			if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+				throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+		}
+		else if (is_same<cl_float, T>::value)
+		{
+			if (deviceInfo.PreferredFloatVectorWidth() == 0)
+				throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+		}
+		else
+			throw runtime_error(
+					"The template argument does not match the supported arguments");
+
+		unique_ptr<ForwardPerceptronKernel<T>> kernel(
+				new ForwardPerceptronKernel<T>(
+						firstInputData.Width * firstInputData.Height
+								* firstInputData.Units,
+						firstOutputData.Width * firstOutputData.Height
+								* firstOutputData.Units));
+
+		//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
+		auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+		auto biasBytes = sizeof(T) * biasCount;
+		if (maximumConstantBufferSize > weights->ByteSize())
+		{
+			kernel->SetUseConstantWeights(true);
+			maximumConstantBufferSize -= weights->ByteSize();
+		}
+		if (maximumConstantBufferSize > biasBytes)
+		{
+			kernel->SetUseConstantInput(true);
+			maximumConstantBufferSize -= biasBytes;
+		}
+		if (maximumConstantBufferSize > biasBytes)
+		{
+			kernel->SetUseConstantBiases(true);
+			maximumConstantBufferSize -= biasBytes;
+		}
+
+		kernel->SetUseRelaxedMath(config.UseRelaxedMath());
+		kernel->SetComputationPrecision(config.ComputationPrecision());
+		kernel->SetActivationFunction(config.ActivationFunction());
+		kernel->SetWeights(weights.get());
+		kernel->SetBiases(weights.get());
+
+		vector<OpenCLDevice*> oneDeviceVector;
+		oneDeviceVector.push_back(device);
+		this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
+		this->context->AddKernel(kernel.get());
+		kernel->InitializeArgumentsAndCompilerOptions();
+		deviceAndKernels.insert(make_pair(device, move(kernel)));
+	}
+}
+
+template<class T>
+void PerceptronLayer<T>::InitializeParameters()
+{
+	auto inputDataDescriptions = this->InForwardPropDataDescription();
+	auto outputDataDescriptions = this->outForwardPropDataDescriptions;
+	auto& firstInputData = inputDataDescriptions[0];
+	auto& firstOutputData = outputDataDescriptions[0];
+
+	int weightCount = firstInputData.Width * firstInputData.Height
+			* firstInputData.Units * firstOutputData.Width
+			* firstOutputData.Height * firstOutputData.Units;
+
+	int biasCount = firstOutputData.Width * firstOutputData.Height
+			* firstOutputData.Units;
+
+	weights = move(
+			this->context->CreateMemory(CL_MEM_READ_WRITE,
+					sizeof(T) * weightCount));
+
+	biases = move(
+			this->context->CreateMemory(CL_MEM_READ_WRITE,
+					sizeof(T) * biasCount));
+
+	auto seed = chrono::system_clock::now().time_since_epoch().count();
+	default_random_engine generator(seed);
+
+	uniform_real_distribution<T> uniformDistribution(0, 0.1);
+
+	vector<T> initialWeightValues;
+	initialWeightValues.resize(weightCount);
+	for (int i = 0; i < weightCount; i++)
+		initialWeightValues[i] = uniformDistribution(generator);
+
+	vector<T> initialBiasValues;
+	initialBiasValues.resize(biasCount);
+	for (int i = 0; i < biasCount; i++)
+		initialBiasValues.push_back(uniformDistribution(generator));
+
+	//Since this is initialization, we don't really care about which device and device queue we are using
+	OpenCLDevice* device = this->context->GetDevices()[0];
+	device->WriteMemory(weights.get(), sizeof(T) * initialWeightValues.size(),
+			initialWeightValues.data(), 0, false);
+	device->WriteMemory(biases.get(), sizeof(T) * initialBiasValues.size(),
+			initialBiasValues.data(), 0, false);
+	device->WaitForDeviceQueue(0);
 }
 
 template<class T>
@@ -116,16 +243,20 @@ void PerceptronLayer<T>::InitializeImagePerceptron()
 }
 
 template<class T>
-void PerceptronLayer<T>::EnqueueForwardPropagation(
-		shared_ptr<OpenCLMemory> previousInput, shared_ptr<OpenCLMemory> output)
+void PerceptronLayer<T>::EnqueueForwardPropagation(OpenCLDevice* device,
+		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* output,
+		bool blocking)
 {
-//FIXME: I don't know which device to enqueue to.
+	auto& kernel = deviceAndKernels[device];
+	kernel->SetInput(previousInput);
+	kernel->SetOutput(output);
+	device->ExecuteKernel(kernel.get(), queueIndex, blocking);
 }
 
 template<class T>
-void PerceptronLayer<T>::EnqueueBackPropagation(
-		shared_ptr<OpenCLMemory> previousInput, shared_ptr<OpenCLMemory> delta,
-		shared_ptr<OpenCLMemory> deltaOutput)
+void PerceptronLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
+		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* delta,
+		OpenCLMemory* deltaOutput, bool blocking)
 {
 	throw runtime_error("Not implemented");
 }

@@ -9,6 +9,7 @@
 #define ATML_CNN_FORWARDBACKPROPLAYERCONFIG_H_
 
 #include "ILayerConfig.h"
+#include "ATMLComputationPrecision.h"
 
 namespace ATML
 {
@@ -17,9 +18,17 @@ namespace MachineLearning
 
 class ForwardBackPropLayerConfig: public ILayerConfig
 {
+private:
+	bool useRelaxedMath;
+	ATMLComputationPrecision computationPrecision;
+
 public:
-	ForwardBackPropLayerConfig();
+	ForwardBackPropLayerConfig(bool useRelaxedMath = false,
+			ATMLComputationPrecision computationPrecision = ATMLNormalPrecision);
 	virtual ~ForwardBackPropLayerConfig();
+
+	bool UseRelaxedMath() const;
+	ATMLComputationPrecision ComputationPrecision() const;
 };
 
 } /* namespace MachineLearning */

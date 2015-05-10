@@ -11,11 +11,13 @@
 #include "OpenCLForwardBackPropLayer.h"
 #include "ForwardPerceptronKernel.h"
 #include "CNN/PerceptronLayerConfig.h"
-#include "CNN/ATMLPrecisionEnum.h"
 #include "OpenCLHelper/OpenCLContext.h"
 
+#include <unordered_map>
+#include <vector>
 #include <memory>
 
+using namespace std;
 using namespace ATML::Helper;
 
 namespace ATML
@@ -28,7 +30,11 @@ class PerceptronLayer: public OpenCLForwardBackPropLayer<T>
 {
 
 private:
-	unique_ptr<ForwardPerceptronKernel> forwardPerceptronKernel;
+	unordered_map<OpenCLDevice*, unique_ptr<ForwardPerceptronKernel<T>>> deviceAndKernels;
+	unique_ptr<OpenCLMemory> weights;
+	unique_ptr<OpenCLMemory> biases;
+	PerceptronLayerConfig config;
+
 public:
 	PerceptronLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
@@ -37,20 +43,26 @@ public:
 
 	virtual void InterlockFinalized() override;
 
-	virtual void EnqueueForwardPropagation(
-			shared_ptr<OpenCLMemory> previousInput,
-			shared_ptr<OpenCLMemory> output) override;
+	virtual void EnqueueForwardPropagation(OpenCLDevice* device, int queueIndex,
+			OpenCLMemory* previousInput, OpenCLMemory* output, bool blocking =
+			true) override;
 
-	virtual void EnqueueBackPropagation(shared_ptr<OpenCLMemory> previousInput,
-			shared_ptr<OpenCLMemory> delta,
-			shared_ptr<OpenCLMemory> deltaOutput) override;
+	virtual void EnqueueBackPropagation(OpenCLDevice* device, int queueIndex,
+			OpenCLMemory* previousInput, OpenCLMemory* delta,
+			OpenCLMemory* deltaOutput, bool blocking = true) override;
+
+	PerceptronLayerConfig GetConfig() const;
+
+	//TODO: Add some read / write parameters. Now it's all random
 
 private:
 	void InitializeNormalPerceptron();
 	void InitializeImagePerceptron();
+	void InitializeParameters();
 };
 
-} /* namespace MachineLearning */
+}
+/* namespace MachineLearning */
 } /* namespace ATML */
 
 #endif /* CNNOPENCL_PERCEPTRONLAYER_H_ */

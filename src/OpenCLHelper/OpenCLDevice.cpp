@@ -21,7 +21,9 @@ OpenCLDevice::OpenCLDevice(const OpenCLContext* const context,
 		context(context), deviceInfo(deviceInfo), queues(queues), deviceID(
 				deviceInfo.DeviceID())
 {
-
+	if (queues.size() == 0)
+		throw invalid_argument(
+				"We cannot initialize a device without a device queue");
 }
 
 OpenCLDevice::~OpenCLDevice()
@@ -35,8 +37,15 @@ void OpenCLDevice::ExecuteKernel(const OpenCLKernel* kernel, int queueIndex,
 		bool blocking)
 {
 
-	if (!kernel->ArgumentsSet())
-		throw invalid_argument("You need to set the argument of the kernel before executing it");
+	if (!kernel->ContextSet())
+		throw invalid_argument(
+				"The kernel has not been attached to any context");
+	if (!kernel->KernelSet())
+		throw invalid_argument(
+				"The kernel has not been set. Make sure you have attached the kernel to the correct context");
+	if (kernel->GetContext() != context)
+		throw invalid_argument(
+				"The kernel has not been attached to the same context as the device.");
 
 	auto kernelToExecute = kernel->GetKernel();
 	auto globalWorkSize = kernel->GlobalWorkSize();
@@ -50,7 +59,6 @@ void OpenCLDevice::ExecuteKernel(const OpenCLKernel* kernel, int queueIndex,
 
 	if (localWorkSize.size() != 0)
 	{
-		//TODO: For speed, should probably just include this when running in debug mode
 		if (localWorkSize.size() != globalDimensionSize)
 			throw invalid_argument(
 					"The dimension of the local and the global work size must be the same");
@@ -62,18 +70,16 @@ void OpenCLDevice::ExecuteKernel(const OpenCLKernel* kernel, int queueIndex,
 
 		CheckOpenCLError(
 				clEnqueueNDRangeKernel(queue, kernelToExecute,
-						globalDimensionSize,
-						NULL, globalWorkSize.data(), localWorkSize.data(), 0,
-						NULL,
-						NULL),
+						globalDimensionSize, nullptr, globalWorkSize.data(),
+						localWorkSize.data(), 0, nullptr, nullptr),
 				"Could not enqueue the kernel to the device queue");
 	}
 	else
 	{
 		CheckOpenCLError(
 				clEnqueueNDRangeKernel(queue, kernelToExecute,
-						globalDimensionSize,
-						NULL, globalWorkSize.data(), NULL, 0, NULL, NULL),
+						globalDimensionSize, nullptr, globalWorkSize.data(),
+						nullptr, 0, nullptr, nullptr),
 				"Could not enqueue the kernel to the device queue");
 	}
 
@@ -96,12 +102,12 @@ void OpenCLDevice::WriteMemory(OpenCLMemory* memory, size_t bytes, void* buffer,
 	if (blockingCall)
 		CheckOpenCLError(
 				clEnqueueWriteBuffer(queues[queueIndex], memory->GetCLMemory(),
-				CL_TRUE, 0, bytes, buffer, 0, NULL, NULL),
+				CL_TRUE, 0, bytes, buffer, 0, nullptr, nullptr),
 				"Could not write the buffer to the device");
 	else
 		CheckOpenCLError(
 				clEnqueueWriteBuffer(queues[queueIndex], memory->GetCLMemory(),
-				CL_FALSE, 0, bytes, buffer, 0, NULL, NULL),
+				CL_FALSE, 0, bytes, buffer, 0, nullptr, nullptr),
 				"Could not write the buffer to the device");
 }
 
@@ -113,12 +119,13 @@ void OpenCLDevice::ReadMemory(OpenCLMemory* memory, size_t bytes, void* buffer,
 
 	if (blockingCall)
 		CheckOpenCLError(
-				clEnqueueReadBuffer(queues[queueIndex], memory->GetCLMemory(), CL_TRUE,
-						0, bytes, buffer, 0, NULL, NULL),
+				clEnqueueReadBuffer(queues[queueIndex], memory->GetCLMemory(),
+				CL_TRUE, 0, bytes, buffer, 0, nullptr, nullptr),
 				"Could not write the buffer to the device");
 	else
-		CheckOpenCLError(clEnqueueReadBuffer(queues[queueIndex], memory->GetCLMemory(),
-		CL_FALSE, 0, bytes, buffer, 0, NULL, NULL),
+		CheckOpenCLError(
+				clEnqueueReadBuffer(queues[queueIndex], memory->GetCLMemory(),
+				CL_FALSE, 0, bytes, buffer, 0, nullptr, nullptr),
 				"Could not write the buffer to the device");
 }
 

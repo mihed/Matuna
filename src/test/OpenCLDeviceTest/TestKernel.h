@@ -35,7 +35,6 @@ public:
 	void SetInput2(shared_ptr<OpenCLMemory> input2);
 	void SetOutput(shared_ptr<OpenCLMemory> output);
 
-	virtual void SetArguments() override;
 	virtual string GetCompilerOptions() const override;
 	virtual vector<string> GetProgramCode() const override;
 

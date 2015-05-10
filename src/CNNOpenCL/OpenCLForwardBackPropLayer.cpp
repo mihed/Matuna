@@ -14,8 +14,8 @@ namespace ATML
 namespace MachineLearning
 {
 
-template class OpenCLForwardBackPropLayer<cl_float>;
-template class OpenCLForwardBackPropLayer<cl_double>;
+template class OpenCLForwardBackPropLayer<cl_float> ;
+template class OpenCLForwardBackPropLayer<cl_double> ;
 
 template<class T>
 OpenCLForwardBackPropLayer<T>::OpenCLForwardBackPropLayer(
@@ -30,7 +30,7 @@ OpenCLForwardBackPropLayer<T>::OpenCLForwardBackPropLayer(
 template<class T>
 OpenCLForwardBackPropLayer<T>::~OpenCLForwardBackPropLayer()
 {
-	// TODO Auto-generated destructor stub
+
 }
 
 } /* namespace MachineLearning */
