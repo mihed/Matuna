@@ -112,8 +112,16 @@ void OpenCLContext::AddProgramFromSource(const string& programName,
 		const string& compilerOptions, const vector<string>& programCodeFiles,
 		const vector<OpenCLDevice*>& affectedDevices)
 {
-	cl_int error;
 
+	if (programs.find(programName) != programs.end())
+		throw invalid_argument(
+		"The program has already been added.");
+
+	if (kernels.find(programName) != kernels.end())
+		throw invalid_argument(
+		"The program has already been added in the kernels. This is an indication that there's something wrong in the implementation");
+
+	cl_int error;
 	vector<const char*> rawProgramFiles;
 	vector<size_t> rawProgramLengths;
 	for (auto& programCode : programCodeFiles)
@@ -271,6 +279,8 @@ void OpenCLContext::RemoveKernel(OpenCLKernel* kernel)
 
 	CheckOpenCLError(clReleaseKernel(kernelMap[kernel->KernelName()]),
 			"Could not remove the kernel.");
+
+	kernelMap.erase(kernel->KernelName());
 }
 
 //void OpenCLContext::AddProgramFromBinary(const string& programName,

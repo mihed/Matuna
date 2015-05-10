@@ -31,17 +31,20 @@ string TestKernel::ProgramName() const
 
 void TestKernel::SetInput1(shared_ptr<OpenCLMemory> input1)
 {
-	memoryArguments.push_back(make_tuple(0, input1));
+	auto memory = input1->GetCLMemory();
+	CheckOpenCLError(clSetKernelArg(GetKernel(), 0, sizeof(cl_mem), &memory), "Could not set the kernel argument");
 }
 
 void TestKernel::SetInput2(shared_ptr<OpenCLMemory> input2)
 {
-	memoryArguments.push_back(make_tuple(1, input2));
+	auto memory = input2->GetCLMemory();
+	CheckOpenCLError(clSetKernelArg(GetKernel(), 1, sizeof(cl_mem), &memory), "Could not set the kernel argument");
 }
 
 void TestKernel::SetOutput(shared_ptr<OpenCLMemory> output)
 {
-	memoryArguments.push_back(make_tuple(2, output));
+	auto memory = output->GetCLMemory();
+	CheckOpenCLError(clSetKernelArg(GetKernel(), 2, sizeof(cl_mem), &memory), "Could not set the kernel argument");
 }
 
 void TestKernel::SetMemorySize(size_t size)

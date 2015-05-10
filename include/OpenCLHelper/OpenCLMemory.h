@@ -28,10 +28,10 @@ class OpenCLMemory
 final
 {
 	private:
-		const cl_mem memory;
-		const cl_mem_flags readWriteFlag;
+		cl_mem memory;
+		cl_mem_flags readWriteFlag;
 		const OpenCLContext* const owningContext;
-		const size_t byteSize;
+		size_t byteSize;
 	public:
 
 		/**
@@ -59,7 +59,7 @@ final
 		}
 		;
 
-		const cl_mem GetCLMemory() const
+		cl_mem GetCLMemory() const
 		{
 			return memory;
 		}

@@ -23,7 +23,6 @@ public:
 	static const string programCode;
 
 private:
-	vector<tuple<cl_uint, shared_ptr<OpenCLMemory>>> memoryArguments;
 	vector<size_t> globalWorkSize;
 	vector<size_t> localWorkSize;
 public:

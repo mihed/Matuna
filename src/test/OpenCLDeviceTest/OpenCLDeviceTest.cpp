@@ -137,6 +137,7 @@ SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLConte
 				{
 					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
 					CHECK_THROWS(context->RemoveProgram(kernel.ProgramName()));
+					CHECK_THROWS(context->RemoveProgram(&kernel));
 				}
 			}
 		}
@@ -158,12 +159,17 @@ SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLConte
 			{
 				for (auto& platformInfo : platformInfos)
 				{
-					//TODO:
-					//auto context = OpenCLDeviceHandler::GetContext(platformInfo);
-					//auto testKernel = context->CreateOpenCLKernelProgram<TestKernel>(context->GetDevices());
-					//INFO("Release the kernel before the program to be rigorous");
-					//testKernel.reset();
-					//context->RemoveProgram(kernel.ProgramName());
+					TestKernel kernel2;
+					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					context->AddProgramFromSource(&kernel2, context->GetDevices());
+					CHECK_FALSE(kernel2.KernelSet());
+					CHECK_FALSE(kernel2.ContextSet());
+					context->AddKernel(&kernel2);
+					CHECK(kernel2.KernelSet());
+					CHECK(kernel2.ContextSet());
+					INFO("Release the kernel before the program to be rigorous");
+					context->RemoveKernel(&kernel2);
+					context->RemoveProgram(&kernel2);
 				}
 			}
 		}
@@ -173,10 +179,8 @@ SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLConte
 			{
 				for (auto& platformInfo : platformInfos)
 				{
-					//TODO:
-					//auto context = OpenCLDeviceHandler::GetContext(platformInfo);
-					//CHECK_THROWS(context->CreateOpenCLKernel<TestKernel>());
-					//CHECK_THROWS(context->RemoveProgram(kernel.ProgramName()));
+					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					CHECK_THROWS(context->RemoveProgram(kernel.ProgramName()));
 				}
 			}
 		}
@@ -238,60 +242,58 @@ SCENARIO("Executing an OCL kernel", "[OpenCLDevice][OpenCLDeviceHandler][OpenCLK
 		INFO("Making sure that we get an exception without adding");
 		CHECK_THROWS(context->RemoveProgram(""));
 
-		INFO("Creating the necessary memory");
-		shared_ptr<OpenCLMemory> input1Memory(move(context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
-		shared_ptr<OpenCLMemory> input2Memory(move(context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
-		shared_ptr<OpenCLMemory> outputMemory(move(context->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(cl_float) * bufferSize)));
-
-		//TODO:
-		/*auto kernel = context->CreateOpenCLKernelProgram<TestKernel>(context->GetDevices());
-
-		kernel->SetInput1(input1Memory);
-		kernel->SetInput2(input2Memory);
-		kernel->SetOutput(outputMemory);
-		kernel->SetMemorySize(bufferSize);
-		CHECK(kernel->KernelSet());
-		kernel->SetArguments();
-		CHECK(kernel->ArgumentsSet());
-
-		for (auto device : context->GetDevices())
 		{
 
-			INFO("Writing to the input memory");
-			device->WriteMemory(input1Memory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
-			device->WriteMemory(input2Memory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
+			INFO("Creating the necessary memory");
+			shared_ptr<OpenCLMemory> input1Memory(move(context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
+			shared_ptr<OpenCLMemory> input2Memory(move(context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize)));
+			shared_ptr<OpenCLMemory> outputMemory(move(context->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(cl_float) * bufferSize)));
 
-			INFO("Making sure that the memory is correctly written");
-			auto rawOutputBuffer = outputBuffer.get();
-			device->ReadMemory(input1Memory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
-			for (int i = 0; i < bufferSize; i++)
-				CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
+			TestKernel kernel;
+			context->AddProgramFromSource(&kernel, context->GetDevices());
+			context->AddKernel(&kernel);
 
-			device->ReadMemory(input2Memory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
-			for (int i = 0; i < bufferSize; i++)
-				CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
+			CHECK(kernel.KernelSet());
+			CHECK(kernel.ContextSet());
 
-			device->ExecuteKernel(kernel.get());
+			kernel.SetInput1(input1Memory);
+			kernel.SetInput2(input2Memory);
+			kernel.SetOutput(outputMemory);
+			kernel.SetMemorySize(bufferSize);
 
-			//Let us now read the output memory
-			device->ReadMemory(outputMemory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
-			auto rawOutputPointer = outputBuffer.get();
-			for (int i = 0; i < bufferSize; i++)
+			for (auto device : context->GetDevices())
 			{
-				auto calculatedResult = cl_float(i) * cl_float(i);
-				auto difference = abs(calculatedResult - rawOutputPointer[i]);
-				CHECK(difference <= epsilon);
+
+				INFO("Writing to the input memory");
+				device->WriteMemory(input1Memory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
+				device->WriteMemory(input2Memory.get(), sizeof(cl_float) * bufferSize, inputBuffer.get());
+
+				INFO("Making sure that the memory is correctly written");
+				auto rawOutputBuffer = outputBuffer.get();
+				device->ReadMemory(input1Memory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
+				for (int i = 0; i < bufferSize; i++)
+					CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
+
+				device->ReadMemory(input2Memory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
+				for (int i = 0; i < bufferSize; i++)
+					CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
+
+				device->ExecuteKernel(&kernel);
+
+				//Let us now read the output memory
+				device->ReadMemory(outputMemory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
+				auto rawOutputPointer = outputBuffer.get();
+				for (int i = 0; i < bufferSize; i++)
+				{
+					auto calculatedResult = cl_float(i) * cl_float(i);
+					auto difference = abs(calculatedResult - rawOutputPointer[i]);
+					CHECK(difference <= epsilon);
+				}
 			}
+
+			INFO("Removing the kernel from context");
+			context->RemoveKernel(&kernel);
+			context->RemoveProgram(&kernel);
 		}
-
-		//Release the memories before
-		input1Memory.reset();
-		input2Memory.reset();
-		outputMemory.reset();
-
-		//Release the kernel before the context to be rigorous
-		kernel.reset();
-		*/
-
 	}
 }

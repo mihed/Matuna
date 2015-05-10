@@ -23,13 +23,11 @@ OpenCLKernel::OpenCLKernel()
 	kernel = nullptr;
 	context = nullptr;
 	kernelSet = false;
-	argumentsSet = false;
 }
 
 OpenCLKernel::~OpenCLKernel()
 {
-	if (kernelSet)
-		clReleaseKernel(kernel);
+
 }
 
 void OpenCLKernel::SetOCLKernel(cl_kernel kernel)

@@ -6,6 +6,7 @@
  */
 
 #include "ForwardPerceptronKernel.h"
+#include "OpenCLHelper/OpenCLUtility.h"
 #include "Helper/Path.h"
 #include <sstream>
 #include <type_traits>
@@ -49,14 +50,21 @@ ForwardPerceptronKernel<T>::~ForwardPerceptronKernel()
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::InitializeArgumentsAndCompilerOptions()
+void ForwardPerceptronKernel<T>::InitializeArguments()
 {
-	//Arguments that do not change between executions
 	auto rawWeights = weights->GetCLMemory();
 	auto rawBiases = biases->GetCLMemory();
-	clSetKernelArg(this->kernel, 2, sizeof(cl_mem), &rawWeights);
-	clSetKernelArg(this->kernel, 3, sizeof(cl_mem), &rawBiases);
+	CheckOpenCLError(
+			clSetKernelArg(this->GetKernel(), 2, sizeof(cl_mem), &rawWeights),
+			"Could not set the kernel arguments");
+	CheckOpenCLError(
+			clSetKernelArg(this->GetKernel(), 3, sizeof(cl_mem), &rawBiases),
+			"Could not set the kernel arguments");
+}
 
+template<class T>
+void ForwardPerceptronKernel<T>::InitializeCompilerOptions()
+{
 	//Constructing compiler options string
 	stringstream stringStream;
 
@@ -101,14 +109,18 @@ template<class T>
 void ForwardPerceptronKernel<T>::SetInput(OpenCLMemory* input)
 {
 	auto rawInput = input->GetCLMemory();
-	clSetKernelArg(this->kernel, 0, sizeof(cl_mem), &rawInput);
+	CheckOpenCLError(
+			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
+			"Could not set the kernel arguments");
 }
 
 template<class T>
 void ForwardPerceptronKernel<T>::SetOutput(OpenCLMemory* output)
 {
 	auto rawOutput = output->GetCLMemory();
-	clSetKernelArg(this->kernel, 1, sizeof(cl_mem), &rawOutput);
+	CheckOpenCLError(
+			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawOutput),
+			"Could not set the kernel arguments");
 }
 
 template<class T>

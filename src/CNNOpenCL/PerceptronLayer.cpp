@@ -179,12 +179,12 @@ void PerceptronLayer<T>::InitializeNormalPerceptron()
 		kernel->SetActivationFunction(config.ActivationFunction());
 		kernel->SetWeights(weights.get());
 		kernel->SetBiases(weights.get());
-
+		kernel->InitializeCompilerOptions();
 		vector<OpenCLDevice*> oneDeviceVector;
 		oneDeviceVector.push_back(device);
 		this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
 		this->context->AddKernel(kernel.get());
-		kernel->InitializeArgumentsAndCompilerOptions();
+		kernel->InitializeArguments();
 		deviceAndKernels.insert(make_pair(device, move(kernel)));
 	}
 }
@@ -225,7 +225,7 @@ void PerceptronLayer<T>::InitializeParameters()
 	vector<T> initialBiasValues;
 	initialBiasValues.resize(biasCount);
 	for (int i = 0; i < biasCount; i++)
-		initialBiasValues.push_back(uniformDistribution(generator));
+		initialBiasValues[i] = uniformDistribution(generator);
 
 	//Since this is initialization, we don't really care about which device and device queue we are using
 	OpenCLDevice* device = this->context->GetDevices()[0];

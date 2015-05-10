@@ -68,7 +68,8 @@ public:
 	//Changed for every execution
 	void SetOutput(OpenCLMemory* output);
 
-	void InitializeArgumentsAndCompilerOptions();
+	void InitializeArguments();
+	void InitializeCompilerOptions();
 
 	virtual string ProgramName() const override;
 	virtual string GetCompilerOptions() const override;
