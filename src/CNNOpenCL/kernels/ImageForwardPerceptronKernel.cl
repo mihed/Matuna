@@ -56,6 +56,15 @@
 #endif
 
 #ifdef DOUBLE_PRECISION
+
+    #if defined(cl_khr_fp64)  // Khronos extension available?
+    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+    #elif defined(cl_amd_fp64)  // AMD extension available?
+    #pragma OPENCL EXTENSION cl_amd_fp64 : enable
+    #else
+    #error "Double precision floating point not supported by OpenCL implementation."
+    #endif
+
     #define ONE 1.0
     #define TANH_OUTER 1.7159
     #define TANH_INNER 0.666666666666666
@@ -69,7 +78,7 @@
 
 __kernel void ForwardPerceptronKernel(
 #ifdef CONSTANT_INPUT
-    __constant float* input,
+    __constant TYPE* input,
 #else
     __global const TYPE* input,
 #endif
@@ -111,10 +120,14 @@ __kernel void ForwardPerceptronKernel(
     }
 
 #if defined(SIGMOID)
-    #if defined(HALF_MATH)
-        output[outputIndex] = ONE / (ONE + half_exp(-(sum + biases[outputIndex])));
-    #elif defined(NATIVE_MATH)
-        output[outputIndex] = ONE / (ONE + native_exp(-(sum + biases[outputIndex])));
+    #ifndef DOUBLE_PRECISION
+        #if defined(HALF_MATH)
+            output[outputIndex] = ONE / (ONE + half_exp(-(sum + biases[outputIndex])));
+        #elif defined(NATIVE_MATH)
+            output[outputIndex] = ONE / (ONE + native_exp(-(sum + biases[outputIndex])));
+        #else
+            output[outputIndex] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
+        #endif
     #else
         output[outputIndex] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
     #endif

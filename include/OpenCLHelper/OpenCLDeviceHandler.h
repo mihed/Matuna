@@ -54,7 +54,7 @@ final
 				const OpenCLPlatformInfo& platformInfo, int queuesPerDevice = 1,
 				cl_command_queue_properties queueType = 0);
 
-		static unique_ptr<OpenCLContext> GetContext(
+		static unique_ptr<OpenCLContext> GetContext(const OpenCLPlatformInfo& platformInfo,
 				vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>> deviceConfigs);
 	};
 

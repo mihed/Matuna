@@ -14,8 +14,9 @@ namespace ATML
 namespace Helper
 {
 
-OpenCLContext::OpenCLContext(
-		const vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>>& deviceConfigs)
+	OpenCLContext::OpenCLContext(const OpenCLPlatformInfo& platformInfo,
+		const vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>>& deviceConfigs) :
+		platformInfo(platformInfo)
 {
 
 	for (auto& configInfoTuple : deviceConfigs)
@@ -77,6 +78,11 @@ OpenCLContext::~OpenCLContext()
 	if (context)
 		CheckOpenCLError(clReleaseContext(context),
 				"Could not release the context");
+}
+
+OpenCLPlatformInfo OpenCLContext::GetPlatformInfo() const
+{
+	return platformInfo;
 }
 
 unique_ptr<OpenCLMemory> OpenCLContext::CreateMemory(cl_mem_flags flags,

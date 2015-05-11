@@ -42,6 +42,71 @@ vector<vector<T>> GetSimplePerceptronInputs()
 	return inputs;
 }
 
+template<class T>
+void CalculateORPerceptron(unique_ptr<CNNConfig> config, unique_ptr<OpenCLContext> contextPointer,
+	unique_ptr<PerceptronLayerConfig> perceptronConfig,
+	vector<vector<T>> inputs, vector<T> targets)
+{
+	unique_ptr<StandardOutputLayerConfig> outputLayerConfig(new StandardOutputLayerConfig());
+
+	INFO("Pushng the perceptron config to the cnn config");
+	config->AddToBack(move(perceptronConfig));
+	config->SetOutputConfig(move(outputLayerConfig));
+
+	INFO("Initializing the network");
+	CNNOpenCL<T> network(move(contextPointer), move(config));
+	CHECK(network.Interlocked());
+
+	INFO("Creating a pointer with previusly calculated parameters");
+	//We know that the weight matrix is located in memory like an image buffer, with the bias value directly after.
+	unique_ptr<T[]> parameters(new T[3]);
+	parameters[0] = 1.3860e03f;
+	parameters[1] = 776.3274f;
+	parameters[2] = -397.6140f;
+
+	INFO("Setting the network parameters to the previosly calculated OR parameters");
+	network.SetParameters(parameters.get());
+
+	CHECK(network.GetParameterCount() == 3);
+
+	INFO("Making sure the read parameters correspond to the set parameters");
+	unique_ptr<T[]> readParameters(new T[network.GetParameterCount()]);
+	network.GetParameters(readParameters.get());
+
+	for (int i = 0; i < 3; i++)
+	{
+		CHECK(readParameters[i] == parameters[i]);
+	}
+
+	CHECK(targets.size() == inputs.size());
+	for (int i = 0; i < targets.size(); i++)
+	{
+		T output;
+		network.FeedForward(inputs[i].data(), 0, &output);
+		auto difference = abs(targets[i] - output);
+		REQUIRE(difference < 0.01);
+	}
+}
+
+unique_ptr<OpenCLContext> GetDoubleCapableContext(const OpenCLPlatformInfo& platfomInfo)
+{
+	auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platfomInfo);
+	vector<OpenCLDeviceInfo> capabaleDevices;
+	for (auto& deviceInfo : deviceInfos)
+		if (deviceInfo.PreferredDoubleVectorWidth() != 0)
+			capabaleDevices.push_back(deviceInfo);
+
+	vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>> configAndInfos;
+	for (auto& deviceInfo : capabaleDevices)
+	{
+		OpenCLDeviceConfig config;
+		config.AddCommandQueue();
+		configAndInfos.push_back(make_tuple(config, deviceInfo));
+	}
+
+	return OpenCLDeviceHandler::GetContext(platfomInfo, configAndInfos);
+}
+
 SCENARIO("Forward propagating an OR CNN network")
 {
 
@@ -87,45 +152,178 @@ SCENARIO("Forward propagating an OR CNN network")
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1));
-				unique_ptr<StandardOutputLayerConfig> outputLayerConfig(new StandardOutputLayerConfig());
+				CalculateORPerceptron<cl_float>(move(config), move(contextPointer), move(perceptronConfig), inputsFloat, targetsFloat);
+			}
+		}
+	}
 
-				INFO("Pushng the perceptron config to the cnn config");
-				config->AddToBack(move(perceptronConfig));
-				config->SetOutputConfig(move(outputLayerConfig));
 
-				INFO("Initializing the network");
-				CNNOpenCL<cl_float> network(move(contextPointer), move(config));
-				CHECK(network.Interlocked());
+	WHEN("Creating an OR network with float, native precision and no relaxed math")
+	{
+		INFO("Creating the contexts");
+		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
 
-				INFO("Creating a pointer with previusly calculated parameters");
-				//We know that the weight matrix is located in memory like an image buffer, with the bias value directly after.
-				unique_ptr<cl_float[]> parameters(new cl_float[3]);
-				parameters[0] = 1.3860e03f;
-				parameters[1] = 776.3274f;
-				parameters[2] = -397.6140f;
+		vector<unique_ptr<OpenCLContext>> contexts;
+		for (auto platformInfo : platformInfos)
+			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
 
-				INFO("Setting the network parameters to the previosly calculated OR parameters");
-				network.SetParameters(parameters.get());
+		THEN("We must have correct OR output with the known parameters")
+		{
+			INFO("For every context we create a network");
+			for (auto& contextPointer : contexts)
+			{
+				INFO("Initializing the CNN config");
+				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
-				CHECK(network.GetParameterCount() == 3);
+				INFO("Creating a perceptron layer config");
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLNativePrecision));
+				CalculateORPerceptron<cl_float>(move(config), move(contextPointer), move(perceptronConfig), inputsFloat, targetsFloat);
+			}
+		}
+	}
 
-				INFO("Making sure the read parameters correspond to the set parameters");
-				unique_ptr<cl_float[]> readParameters(new cl_float[network.GetParameterCount()]);
-				network.GetParameters(readParameters.get());
+	WHEN("Creating an OR network with float, half precision and no relaxed math")
+	{
+		INFO("Creating the contexts");
+		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
 
-				for (int i = 0; i < 3; i++)
-				{
-					CHECK(readParameters[i] == parameters[i]);
-				}
+		vector<unique_ptr<OpenCLContext>> contexts;
+		for (auto platformInfo : platformInfos)
+			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
 
-				CHECK(targetsFloat.size() == inputsFloat.size());
-				for (int i = 0; i < targetsFloat.size(); i++)
-				{
-					cl_float output;
-					network.FeedForward(inputsFloat[i].data(), 0, &output);
-					auto difference = abs(targetsFloat[i] - output);
-					REQUIRE(difference < 0.01);
-				}
+		THEN("We must have correct OR output with the known parameters")
+		{
+			INFO("For every context we create a network");
+			for (auto& contextPointer : contexts)
+			{
+				INFO("Initializing the CNN config");
+				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+
+				INFO("Creating a perceptron layer config");
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLHalfPrecision));
+				CalculateORPerceptron<cl_float>(move(config), move(contextPointer), move(perceptronConfig), inputsFloat, targetsFloat);
+			}
+		}
+	}
+
+	WHEN("Creating an OR network with float, half precision and relaxed math")
+	{
+		INFO("Creating the contexts");
+		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+
+		vector<unique_ptr<OpenCLContext>> contexts;
+		for (auto platformInfo : platformInfos)
+			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+
+		THEN("We must have correct OR output with the known parameters")
+		{
+			INFO("For every context we create a network");
+			for (auto& contextPointer : contexts)
+			{
+				INFO("Initializing the CNN config");
+				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+
+				cout << contextPointer->GetPlatformInfo().GetString().c_str() << endl;
+
+				INFO("Creating a perceptron layer config");
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, true, ATMLHalfPrecision));
+				CalculateORPerceptron<cl_float>(move(config), move(contextPointer), move(perceptronConfig), inputsFloat, targetsFloat);
+			}
+		}
+	}
+
+	WHEN("Creating an OR network with double, standard precision and no relaxed math")
+	{
+		INFO("Creating the contexts");
+		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+
+		vector<unique_ptr<OpenCLContext>> contexts;
+		for (auto platformInfo : platformInfos)
+			contexts.push_back(move(GetDoubleCapableContext(platformInfo)));
+
+		THEN("We must have correct OR output with the known parameters")
+		{
+			INFO("For every context we create a network");
+			for (auto& contextPointer : contexts)
+			{
+				INFO("Initializing the CNN config");
+				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+
+				INFO("Creating a perceptron layer config");
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1));
+				CalculateORPerceptron<cl_double>(move(config), move(contextPointer), move(perceptronConfig), inputsDouble, targetsDouble);
+			}
+		}
+	}
+
+	WHEN("Creating an OR network with double, native precision and no relaxed math")
+	{
+		INFO("Creating the contexts");
+		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+
+		vector<unique_ptr<OpenCLContext>> contexts;
+		for (auto platformInfo : platformInfos)
+			contexts.push_back(move(GetDoubleCapableContext(platformInfo)));
+
+		THEN("We must have correct OR output with the known parameters")
+		{
+			INFO("For every context we create a network");
+			for (auto& contextPointer : contexts)
+			{
+				INFO("Initializing the CNN config");
+				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+
+				INFO("Creating a perceptron layer config");
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLNativePrecision));
+				CalculateORPerceptron<cl_double>(move(config), move(contextPointer), move(perceptronConfig), inputsDouble, targetsDouble);
+			}
+		}
+	}
+
+	WHEN("Creating an OR network with double, half precision and no relaxed math")
+	{
+		INFO("Creating the contexts");
+		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+
+		vector<unique_ptr<OpenCLContext>> contexts;
+		for (auto platformInfo : platformInfos)
+			contexts.push_back(move(GetDoubleCapableContext(platformInfo)));
+
+		THEN("We must have correct OR output with the known parameters")
+		{
+			INFO("For every context we create a network");
+			for (auto& contextPointer : contexts)
+			{
+				INFO("Initializing the CNN config");
+				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+
+				INFO("Creating a perceptron layer config");
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLHalfPrecision));
+				CalculateORPerceptron<cl_double>(move(config), move(contextPointer), move(perceptronConfig), inputsDouble, targetsDouble);
+			}
+		}
+	}
+
+	WHEN("Creating an OR network with double, half precision and relaxed math")
+	{
+		INFO("Creating the contexts");
+		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+
+		vector<unique_ptr<OpenCLContext>> contexts;
+		for (auto platformInfo : platformInfos)
+			contexts.push_back(move(GetDoubleCapableContext(platformInfo)));
+
+		THEN("We must have correct OR output with the known parameters")
+		{
+			INFO("For every context we create a network");
+			for (auto& contextPointer : contexts)
+			{
+				INFO("Initializing the CNN config");
+				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+
+				INFO("Creating a perceptron layer config");
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, true, ATMLHalfPrecision));
+				CalculateORPerceptron<cl_double>(move(config), move(contextPointer), move(perceptronConfig), inputsDouble, targetsDouble);
 			}
 		}
 	}

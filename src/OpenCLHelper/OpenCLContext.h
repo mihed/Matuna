@@ -39,9 +39,10 @@ final
 		vector<unique_ptr<OpenCLDevice>> devices;
 		unordered_map<string, cl_program> programs;
 		unordered_map<string, unordered_map<string, cl_kernel>> kernels;
+		OpenCLPlatformInfo platformInfo;
 
 	public:
-		OpenCLContext(
+		OpenCLContext(const OpenCLPlatformInfo& platformInfo,
 				const vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>>& deviceConfigs);
 		~OpenCLContext();
 
@@ -95,6 +96,8 @@ final
 			return devices.size();
 		}
 		;
+
+		OpenCLPlatformInfo GetPlatformInfo() const;
 
 		vector<OpenCLDevice*> GetDevices() const;
 

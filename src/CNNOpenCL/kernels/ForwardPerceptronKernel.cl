@@ -16,6 +16,15 @@
 #endif
 
 #ifdef DOUBLE_PRECISION
+
+    #if defined(cl_khr_fp64)  // Khronos extension available?
+    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+    #elif defined(cl_amd_fp64)  // AMD extension available?
+    #pragma OPENCL EXTENSION cl_amd_fp64 : enable
+    #else
+    #error "Double precision floating point not supported by OpenCL implementation."
+    #endif
+
     #define ONE 1.0
     #define TANH_OUTER 1.7159
     #define TANH_INNER 0.666666666666666
@@ -29,7 +38,7 @@
 
 __kernel void ForwardPerceptronKernel(
 #ifdef CONSTANT_INPUT
-    __constant float* input,
+    __constant TYPE* input,
 #else
     __global const TYPE* input,
 #endif
@@ -52,7 +61,6 @@ __kernel void ForwardPerceptronKernel(
     
     //TEST----------------------
     /*printf("Input count: %i \n", INPUT_COUNT);
-    
     #ifdef CONSTANT_INPUT
     printf("Using constant input\n");
     #else
@@ -91,8 +99,8 @@ __kernel void ForwardPerceptronKernel(
      printf("Using tanh\n");
     #else
      printf("Using linear\n");
-    #endif*/
-    //END-----------------------
+    #endif
+    *///END-----------------------
     
     const int outputIndex = get_global_id(0);
     const int rowIndex = INPUT_COUNT * outputIndex;
@@ -101,8 +109,8 @@ __kernel void ForwardPerceptronKernel(
     for (int i = 0; i < INPUT_COUNT; i++)
     {
         //TEST-----------------------
-       // printf("Weight(%i,%i): %f \n", rowIndex, i, weights[i + rowIndex]);
-       // printf("Input(%i): %f \n", input[i]);
+        //printf("Weight(%i,%i): %f \n", rowIndex, i, weights[i + rowIndex]);
+        //printf("Input(%i): %f \n", input[i]);
         //END-----------------------
         sum += input[i] * weights[i + rowIndex];    
     }
@@ -113,10 +121,14 @@ __kernel void ForwardPerceptronKernel(
     //END-----------------------
 
 #if defined(SIGMOID)
-    #if defined(HALF_MATH)
-        output[outputIndex] = ONE / (ONE + half_exp(-(sum + biases[outputIndex])));
-    #elif defined(NATIVE_MATH)
-        output[outputIndex] = ONE / (ONE + native_exp(-(sum + biases[outputIndex])));
+    #ifndef DOUBLE_PRECISION
+        #if defined(HALF_MATH)
+            output[outputIndex] = ONE / (ONE + half_exp(-(sum + biases[outputIndex])));
+        #elif defined(NATIVE_MATH)
+            output[outputIndex] = ONE / (ONE + native_exp(-(sum + biases[outputIndex])));
+        #else
+            output[outputIndex] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
+        #endif
     #else
         output[outputIndex] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
     #endif

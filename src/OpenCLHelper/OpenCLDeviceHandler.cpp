@@ -340,10 +340,10 @@ unique_ptr<OpenCLContext> OpenCLDeviceHandler::GetContext(
 		deviceConfigs.push_back(make_tuple(deviceConfig, deviceInfo));
 	}
 
-	return unique_ptr<OpenCLContext>(new OpenCLContext(deviceConfigs));
+	return unique_ptr<OpenCLContext>(new OpenCLContext(platformInfo,deviceConfigs));
 }
 
-unique_ptr<OpenCLContext> OpenCLDeviceHandler::GetContext(
+unique_ptr<OpenCLContext> OpenCLDeviceHandler::GetContext(const OpenCLPlatformInfo& platformInfo,
 		vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>> deviceConfigs)
 {
 	for (auto& config : deviceConfigs)
@@ -351,7 +351,7 @@ unique_ptr<OpenCLContext> OpenCLDeviceHandler::GetContext(
 			throw invalid_argument(
 					"We must have at least one command queue for a device");
 
-	return unique_ptr<OpenCLContext>(new OpenCLContext(deviceConfigs));
+	return unique_ptr<OpenCLContext>(new OpenCLContext(platformInfo, deviceConfigs));
 }
 
 } /* namespace Helper */

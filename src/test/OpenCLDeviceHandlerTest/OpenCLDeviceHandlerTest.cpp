@@ -14,19 +14,19 @@ using namespace ATML::Helper;
 SCENARIO("Fetching device and platform information", "[PlatformInfo]")
 {
 	WHEN("Getting platform informations"){
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
-	if (platformInfos.size() == 0)
-	{
-		WARN("No platforms are detected. "
+		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		if (platformInfos.size() == 0)
+		{
+			WARN("No platforms are detected. "
 				"This is either because you are running "
 				"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
+		}
+		THEN("We should have a vector with a lot of information that is printable")
+		{
+			for (auto& info : platformInfos)
+				cout << info.GetString().c_str() << endl;
+		}
 	}
-	THEN("We should have a vector with a lot of information that is printable")
-	{
-		for(auto& info : platformInfos)
-		cout << info.GetString().c_str() << endl;
-	}
-}
 }
 
 SCENARIO("Fetching device information", "[DeviceInfo]")
@@ -35,71 +35,71 @@ SCENARIO("Fetching device information", "[DeviceInfo]")
 	if (platformInfos.size() == 0)
 	{
 		WARN(
-				"No platforms are detected. "
-						"This is either because you are running "
-						"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
+			"No platforms are detected. "
+			"This is either because you are running "
+			"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
 	}
 	WHEN("Fetching the device info from the platform infos"){
-	size_t size1;
-	THEN("The device infos should be printable and working")
-	{
-		for(auto& platformInfo : platformInfos)
+		size_t size1;
+		THEN("The device infos should be printable and working")
 		{
-			auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platformInfo);
-			size1 = deviceInfos.size();
-			for(auto& info : deviceInfos)
-			cout << info.GetString().c_str() << endl;
+			for (auto& platformInfo : platformInfos)
+			{
+				auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platformInfo);
+				size1 = deviceInfos.size();
+				for (auto& info : deviceInfos)
+					cout << info.GetString().c_str() << endl;
+			}
 		}
 	}
 }
-}
 
-SCENARIO("Fetching the context from the devicehandler","[OpenCLContext][OpenCLDeviceHandler]")
+SCENARIO("Fetching the context from the devicehandler", "[OpenCLContext][OpenCLDeviceHandler]")
 {
 	INFO("Fetching the platform infos");
 	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
 	if (platformInfos.size() == 0)
 	{
 		WARN(
-				"No platforms are detected. "
-						"This is either because you are running "
-						"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
+			"No platforms are detected. "
+			"This is either because you are running "
+			"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
 	}
 	for (auto& platformInfo : platformInfos)
 	{
 		WHEN("Creating the context from a platform info with standard arguments"){
-		auto context = OpenCLDeviceHandler::GetContext(platformInfo);
-		THEN("We should be able to get the devices from the context")
+			auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+			THEN("We should be able to get the devices from the context")
+			{
+				auto devices = context->GetDevices();
+				CHECK(devices.size() == context->DeviceCount());
+			}
+		}
+		WHEN("Creating the context with 2 device queues")
 		{
-			auto devices = context->GetDevices();
-			CHECK(devices.size() == context->DeviceCount());
+			auto context = OpenCLDeviceHandler::GetContext(platformInfo, 2);
+			THEN("We should be able to get the devices from the context")
+			{
+				auto devices = context->GetDevices();
+				CHECK(devices.size() == context->DeviceCount());
+			}
+		}
+		WHEN("Creating the context using custom configurations")
+		{
+			auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platformInfo);
+			vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>> configs;
+			for (auto& deviceInfo : deviceInfos)
+			{
+				OpenCLDeviceConfig config;
+				config.AddCommandQueue();
+				configs.push_back(make_tuple(config, deviceInfo));
+			}
+			auto context = OpenCLDeviceHandler::GetContext(platformInfo, configs);
+			THEN("We should be able to get the devices from the context")
+			{
+				auto devices = context->GetDevices();
+				CHECK(devices.size() == context->DeviceCount());
+			}
 		}
 	}
-	WHEN("Creating the context with 2 device queues")
-	{
-		auto context = OpenCLDeviceHandler::GetContext(platformInfo, 2);
-		THEN("We should be able to get the devices from the context")
-		{
-			auto devices = context->GetDevices();
-			CHECK(devices.size() == context->DeviceCount());
-		}
-	}
-	WHEN("Creating the context using custom configurations")
-	{
-		auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platformInfo);
-		vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>> configs;
-		for(auto& deviceInfo : deviceInfos)
-		{
-			OpenCLDeviceConfig config;
-			config.AddCommandQueue();
-			configs.push_back(make_tuple(config, deviceInfo));
-		}
-		auto context = OpenCLDeviceHandler::GetContext(configs);
-		THEN("We should be able to get the devices from the context")
-		{
-			auto devices = context->GetDevices();
-			CHECK(devices.size() == context->DeviceCount());
-		}
-	}
-}
 }
