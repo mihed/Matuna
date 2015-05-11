@@ -37,6 +37,14 @@ public:
 	virtual void EnqueueBackPropagation(OpenCLDevice* device, int queueIndex,
 			OpenCLMemory* previousInput, OpenCLMemory* delta,
 			OpenCLMemory* deltaOutput, bool blocking = true) override;
+
+	virtual void GetParameters(T* parameters, OpenCLDevice* device,
+			int queueIndex, bool blocking = true) override;
+
+	virtual void SetParameters(T* parameters, OpenCLDevice* device,
+			int queueIndex, bool blocking = true) override;
+
+	virtual size_t GetParameterCount() override;
 };
 
 } /* namespace MachineLearning */

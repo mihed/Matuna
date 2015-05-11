@@ -26,7 +26,14 @@ private:
 	vector<LayerDataDescription> inputDataDescriptions;
 	vector<LayerMemoryDescription> inputMemoryDescriptions;
 	vector<LayerMemoryDescription> inputMemoryProposals;
+
+	vector<LayerMemoryDescription> outputMemoryDescriptions;
+	vector<LayerDataDescription> outputDataDescriptions;
+
 	bool inputInterlocked;
+	bool outputInterlocked;
+	bool outputDataInterlocked;
+
 public:
 	CNN(const CNNConfig& config);
 	virtual ~CNN();
@@ -34,11 +41,20 @@ public:
 	void InterlockForwardPropInput(
 			const vector<LayerMemoryDescription>& inputDescriptions);
 
+	void InterlockForwardPropOutput(
+			const vector<LayerMemoryDescription>& outputDescriptions);
+
+	void InterlockForwardPropDataOutput(
+			const vector<LayerDataDescription>& outputDescriptions);
+
 	bool Interlocked() const;
 
 	vector<LayerDataDescription> InputDataDescriptions() const;
 	vector<LayerMemoryDescription> InputMemoryDescriptions() const;
 	vector<LayerMemoryDescription> InputMemoryProposals() const;
+
+	vector<LayerDataDescription> OutputDataDescriptions() const;
+	vector<LayerMemoryDescription> OutputMemoryDescriptions() const;
 
 };
 

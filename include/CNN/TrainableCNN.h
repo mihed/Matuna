@@ -27,15 +27,17 @@ public:
 	TrainableCNN(const CNNConfig& config);
 	virtual ~TrainableCNN();
 
-	virtual void FeedForward(const T* input, int formatIndex, T* output) = 0;
+	virtual void FeedForward(T* input, int formatIndex, T* output) = 0;
 
-	virtual T CalculateError(const T* propagatedValue, int formatIndex,
-			const T* target)= 0;
+	virtual T CalculateError(T* propagatedValue, int formatIndex,
+			T* target)= 0;
 
-	virtual void CalculateGradient(const T* input, int formatIndex,
+	virtual void CalculateGradient(T* input, int formatIndex,
 			T* output)= 0;
 
 	virtual void GetParameters(T* parameters)= 0;
+
+	virtual void SetParameters(T* parameters) = 0;
 
 	virtual size_t GetParameterCount()= 0;
 

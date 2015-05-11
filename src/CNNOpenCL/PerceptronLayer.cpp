@@ -74,6 +74,9 @@ PerceptronLayer<T>::PerceptronLayer(shared_ptr<OpenCLContext> context,
 
 		this->inBackPropMemoryProposals.push_back(outForwardMemProp);
 	}
+
+	auto inputDataDescriptions = this->InForwardPropDataDescription();
+	inputDescription = inputDataDescriptions[0];
 }
 
 template<class T>
@@ -97,16 +100,14 @@ template<class T>
 void PerceptronLayer<T>::InterlockFinalized()
 {
 	auto inputMemoryDescriptions = this->InForwardPropMemoryDescription();
-	auto inputDataDescriptions = this->InForwardPropDataDescription();
 	auto& firstMemory = inputMemoryDescriptions[0];
-	auto& firstData = inputDataDescriptions[0];
 
 	//IF the memory descriptions doesn't contain any padding or offsets, we may use the standard forward prop kernel.
 	if (firstMemory.HeightOffset == 0 && firstMemory.UnitOffset == 0
 			&& firstMemory.WidthOffset == 0
-			&& firstMemory.Width == firstData.Width
-			&& firstMemory.Height == firstData.Height
-			&& firstMemory.Units == firstData.Units)
+			&& firstMemory.Width == inputDescription.Width
+			&& firstMemory.Height == inputDescription.Height
+			&& firstMemory.Units == inputDescription.Units)
 		InitializeNormalPerceptron();
 	else
 		InitializeImagePerceptron();
@@ -115,9 +116,7 @@ void PerceptronLayer<T>::InterlockFinalized()
 template<class T>
 void PerceptronLayer<T>::InitializeNormalPerceptron()
 {
-	auto inputDataDescriptions = this->InForwardPropDataDescription();
 	auto outputDataDescriptions = this->outForwardPropDataDescriptions;
-	auto& firstInputData = inputDataDescriptions[0];
 	auto& firstOutputData = outputDataDescriptions[0];
 
 	int biasCount = firstOutputData.Width * firstOutputData.Height
@@ -150,8 +149,8 @@ void PerceptronLayer<T>::InitializeNormalPerceptron()
 
 		unique_ptr<ForwardPerceptronKernel<T>> kernel(
 				new ForwardPerceptronKernel<T>(
-						firstInputData.Width * firstInputData.Height
-								* firstInputData.Units,
+						inputDescription.Width * inputDescription.Height
+								* inputDescription.Units,
 						firstOutputData.Width * firstOutputData.Height
 								* firstOutputData.Units));
 
@@ -178,7 +177,7 @@ void PerceptronLayer<T>::InitializeNormalPerceptron()
 		kernel->SetComputationPrecision(config.ComputationPrecision());
 		kernel->SetActivationFunction(config.ActivationFunction());
 		kernel->SetWeights(weights.get());
-		kernel->SetBiases(weights.get());
+		kernel->SetBiases(biases.get());
 		kernel->InitializeCompilerOptions();
 		vector<OpenCLDevice*> oneDeviceVector;
 		oneDeviceVector.push_back(device);
@@ -192,13 +191,11 @@ void PerceptronLayer<T>::InitializeNormalPerceptron()
 template<class T>
 void PerceptronLayer<T>::InitializeParameters()
 {
-	auto inputDataDescriptions = this->InForwardPropDataDescription();
 	auto outputDataDescriptions = this->outForwardPropDataDescriptions;
-	auto& firstInputData = inputDataDescriptions[0];
 	auto& firstOutputData = outputDataDescriptions[0];
 
-	int weightCount = firstInputData.Width * firstInputData.Height
-			* firstInputData.Units * firstOutputData.Width
+	int weightCount = inputDescription.Width * inputDescription.Height
+			* inputDescription.Units * firstOutputData.Width
 			* firstOutputData.Height * firstOutputData.Units;
 
 	int biasCount = firstOutputData.Width * firstOutputData.Height
@@ -259,6 +256,39 @@ void PerceptronLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
 		OpenCLMemory* deltaOutput, bool blocking)
 {
 	throw runtime_error("Not implemented");
+}
+
+template<class T>
+void PerceptronLayer<T>::GetParameters(T* parameters, OpenCLDevice* device,
+		int queueIndex, bool blocking)
+{
+	device->ReadMemory(weights.get(), weights->ByteSize(), parameters,
+			queueIndex, blocking);
+	auto biasPosition = parameters
+			+ config.Units() * inputDescription.Width * inputDescription.Height
+					* inputDescription.Units;
+	device->ReadMemory(biases.get(), biases->ByteSize(), biasPosition,
+			queueIndex, blocking);
+}
+
+template<class T>
+void PerceptronLayer<T>::SetParameters(T* parameters,
+		OpenCLDevice* device, int queueIndex, bool blocking)
+{
+	device->WriteMemory(weights.get(), weights->ByteSize(), parameters,
+			queueIndex, blocking);
+	auto biasPosition = parameters
+			+ config.Units() * inputDescription.Width * inputDescription.Height
+					* inputDescription.Units;
+	device->WriteMemory(biases.get(), biases->ByteSize(), biasPosition,
+			queueIndex, blocking);
+}
+
+template<class T>
+size_t PerceptronLayer<T>::GetParameterCount()
+{
+	return inputDescription.Height * inputDescription.Width
+			* inputDescription.Units * config.Units() + config.Units();
 }
 
 } /* namespace MachineLearning */

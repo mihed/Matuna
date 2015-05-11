@@ -49,14 +49,68 @@ __kernel void ForwardPerceptronKernel(
 #endif
     )
 {
+    
+    //TEST----------------------
+    /*printf("Input count: %i \n", INPUT_COUNT);
+    
+    #ifdef CONSTANT_INPUT
+    printf("Using constant input\n");
+    #else
+    printf("Using global input\n");
+    #endif
+    
+    #ifdef CONSTANT_WEIGHTS
+    printf("Using constant weights\n");
+    #else
+    printf("Using global weights\n");
+    #endif
+    
+    #ifdef CONSTANT_BIASES
+    printf("Using constant biases\n");
+    #else
+    printf("Using global biases\n");
+    #endif
+    
+    #if defined(HALF_MATH)
+         printf("Using half math\n");
+    #elif defined(NATIVE_MATH)
+        printf("Using native math\n");
+    #else
+         printf("Using standard math\n");
+    #endif
+    
+    #ifdef DOUBLE_PRECISION
+     printf("Using double\n");
+    #else
+     printf("Using single\n");
+    #endif
+    
+    #if defined(SIGMOID)
+     printf("Using sigmoid\n");
+    #elif defined(TANH)
+     printf("Using tanh\n");
+    #else
+     printf("Using linear\n");
+    #endif*/
+    //END-----------------------
+    
     const int outputIndex = get_global_id(0);
     const int rowIndex = INPUT_COUNT * outputIndex;
     
     TYPE sum = 0;
     for (int i = 0; i < INPUT_COUNT; i++)
     {
+        //TEST-----------------------
+       // printf("Weight(%i,%i): %f \n", rowIndex, i, weights[i + rowIndex]);
+       // printf("Input(%i): %f \n", input[i]);
+        //END-----------------------
         sum += input[i] * weights[i + rowIndex];    
     }
+    
+    //TEST-----------------------
+    //printf("Sum before activation (index : %i): %f \n", outputIndex, sum);
+    //printf("Bias(%i): %f \n", outputIndex, biases[outputIndex]);
+    //END-----------------------
 
 #if defined(SIGMOID)
     #if defined(HALF_MATH)
@@ -72,4 +126,7 @@ __kernel void ForwardPerceptronKernel(
     output[outputIndex] = sum + biases[outputIndex];
 #endif
 
+    //TEST-----------------------
+    //printf("Result: %f \n", output[outputIndex]);
+    //END-----------------------
 }

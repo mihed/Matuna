@@ -139,9 +139,6 @@ void CNNFactoryVisitor::InterlockLayer(BackPropLayer* layer)
 				layer->OutBackPropMemoryProposal());
 
 		network->InterlockForwardPropInput(compatibleInputMemory);
-
-		if (!network->Interlocked())
-			throw runtime_error("The network is not interlocked");
 	}
 }
 

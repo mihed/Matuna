@@ -38,18 +38,39 @@ void ConvolutionLayer<T>::InterlockFinalized()
 }
 
 template<class T>
-void ConvolutionLayer<T>::EnqueueForwardPropagation(OpenCLDevice* device, int queueIndex,
-		OpenCLMemory* previousInput, OpenCLMemory* output, bool blocking)
+void ConvolutionLayer<T>::EnqueueForwardPropagation(OpenCLDevice* device,
+		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* output,
+		bool blocking)
 {
 
 }
 
 template<class T>
-void ConvolutionLayer<T>::EnqueueBackPropagation(OpenCLDevice* device, int queueIndex,
-		OpenCLMemory* previousInput, OpenCLMemory* delta,
+void ConvolutionLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
+		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* delta,
 		OpenCLMemory* deltaOutput, bool blocking)
 {
 
+}
+
+template<class T>
+void ConvolutionLayer<T>::GetParameters(T* parameters, OpenCLDevice* device,
+		int queueIndex, bool blocking)
+{
+
+}
+
+template<class T>
+void ConvolutionLayer<T>::SetParameters(T* parameters,
+		OpenCLDevice* device, int queueIndex, bool blocking)
+{
+
+}
+
+template<class T>
+size_t ConvolutionLayer<T>::GetParameterCount()
+{
+	return 0;
 }
 
 } /* namespace MachineLearning */

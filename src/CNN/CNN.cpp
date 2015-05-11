@@ -18,6 +18,8 @@ CNN::CNN(const CNNConfig& config)
 	inputDataDescriptions = config.InputDataDescription();
 	inputMemoryProposals = config.InputMemoryProposal();
 	inputInterlocked = false;
+	outputInterlocked = false;
+	outputDataInterlocked = false;
 
 	//It is completely forbidding to call CNNFactoryVisitor here.
 	//However, it will work in any base classes since this constructor is instantiated first.
@@ -38,9 +40,29 @@ void CNN::InterlockForwardPropInput(
 	inputInterlocked = true;
 }
 
+void CNN::InterlockForwardPropOutput(
+		const vector<LayerMemoryDescription>& outputDescriptions)
+{
+	if (outputInterlocked)
+		throw runtime_error("The output is already interlocked");
+
+	outputMemoryDescriptions = outputDescriptions;
+	outputInterlocked = true;
+}
+
+void CNN::InterlockForwardPropDataOutput(
+		const vector<LayerDataDescription>& outputDescriptions)
+{
+	if (outputDataInterlocked)
+		throw runtime_error("The output data is already interlocked");
+
+	outputDataDescriptions = outputDescriptions;
+	outputDataInterlocked = true;
+}
+
 bool CNN::Interlocked() const
 {
-	return inputInterlocked;
+	return inputInterlocked && outputDataInterlocked && outputInterlocked;
 }
 
 vector<LayerDataDescription> CNN::InputDataDescriptions() const
@@ -56,6 +78,15 @@ vector<LayerMemoryDescription> CNN::InputMemoryDescriptions() const
 vector<LayerMemoryDescription> CNN::InputMemoryProposals() const
 {
 	return inputMemoryProposals;
+}
+
+vector<LayerDataDescription> CNN::OutputDataDescriptions() const
+{
+	return outputDataDescriptions;
+}
+vector<LayerMemoryDescription> CNN::OutputMemoryDescriptions() const
+{
+	return outputMemoryDescriptions;
 }
 
 } /* namespace MachineLearning */

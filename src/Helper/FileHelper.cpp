@@ -93,7 +93,8 @@ namespace ATML
 
 			file.close();
 
-			return stringStream.str();
+			string result = stringStream.str();
+			return result;
 		}
 
 	} /* namespace Helper */

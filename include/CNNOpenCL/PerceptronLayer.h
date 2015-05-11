@@ -34,6 +34,7 @@ private:
 	unique_ptr<OpenCLMemory> weights;
 	unique_ptr<OpenCLMemory> biases;
 	PerceptronLayerConfig config;
+	LayerDataDescription inputDescription;
 
 public:
 	PerceptronLayer(shared_ptr<OpenCLContext> context,
@@ -50,6 +51,14 @@ public:
 	virtual void EnqueueBackPropagation(OpenCLDevice* device, int queueIndex,
 			OpenCLMemory* previousInput, OpenCLMemory* delta,
 			OpenCLMemory* deltaOutput, bool blocking = true) override;
+
+	virtual void GetParameters(T* parameters, OpenCLDevice* device,
+			int queueIndex, bool blocking = true) override;
+
+	virtual void SetParameters(T* parameters, OpenCLDevice* device,
+			int queueIndex, bool blocking = true) override;
+
+	virtual size_t GetParameterCount() override;
 
 	PerceptronLayerConfig GetConfig() const;
 

@@ -9,6 +9,7 @@
 #include "CNN/StandardOutputLayerConfig.h"
 #include "CNN/ConvolutionLayerConfig.h"
 #include "CNN/CNNConfig.h"
+#include "CNN/CNN.h"
 #include "CNN/InterlockHelper.h"
 #include "CNNFactoryVisitorTest.h"
 #include "ForthBackPropLayerTest.h"
@@ -74,6 +75,12 @@ void CNNFactoryVisitorTest::Visit(
 
 	if (!layer->Interlocked())
 		throw runtime_error("The output layer is not interlocked");
+
+	network->InterlockForwardPropDataOutput(layer->InBackPropDataDescription());
+	network->InterlockForwardPropOutput(layer->InBackPropMemoryDescription());
+
+	if (!network->Interlocked())
+		throw runtime_error("The network is not interlocked");
 
 	outputLayer = move(layer);
 }

@@ -10,6 +10,7 @@
 #include "ConvolutionLayer.h"
 #include "StandardOutputLayer.h"
 
+#include "CNN/CNN.h"
 #include "CNN/PerceptronLayerConfig.h"
 #include "CNN/StandardOutputLayerConfig.h"
 #include "CNN/ConvolutionLayerConfig.h"
@@ -96,6 +97,12 @@ void CNNOpenCLFactoryVisitor<T>::Visit(
 		throw runtime_error("The output layer is not interlocked");
 
 	layer->InterlockFinalized();
+
+	network->InterlockForwardPropDataOutput(layer->InBackPropDataDescription());
+	network->InterlockForwardPropOutput(layer->InBackPropMemoryDescription());
+
+	if (!network->Interlocked())
+		throw runtime_error("The network is not interlocked");
 
 	outputLayer = move(layer);
 }

@@ -40,21 +40,25 @@ public:
 	CNNOpenCL(unique_ptr<OpenCLContext> context, unique_ptr<CNNConfig> config);
 	virtual ~CNNOpenCL();
 
-	virtual void FeedForward(const T* input, int formatIndex, T* output)
+	virtual void FeedForward(T* input, int formatIndex, T* output)
 			override;
 
-	virtual T CalculateError(const T* propagatedValue, int formatIndex,
-			const T* target) override;
+	virtual T CalculateError(T* propagatedValue, int formatIndex,
+			T* target) override;
 
-	virtual void CalculateGradient(const T* input, int formatIndex, T* output)
+	virtual void CalculateGradient(T* input, int formatIndex, T* output)
 			override;
 
 	virtual void GetParameters(T* parameters) override;
+
+	virtual void SetParameters(T* parameters) override;
 
 	virtual size_t GetParameterCount() override;
 
 	virtual void TrainNetwork(unique_ptr<CNNTrainer<T>> trainer,
 			unique_ptr<IAlgorithmConfig> algorithm) override;
+
+	vector<OpenCLForwardBackPropLayer<T>*> GetLayers();
 };
 
 } /* namespace MachineLearning */
