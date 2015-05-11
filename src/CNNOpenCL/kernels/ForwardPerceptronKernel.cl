@@ -99,8 +99,8 @@ __kernel void ForwardPerceptronKernel(
      printf("Using tanh\n");
     #else
      printf("Using linear\n");
-    #endif
-    *///END-----------------------
+    #endif*/
+    //END-----------------------
     
     const int outputIndex = get_global_id(0);
     const int rowIndex = INPUT_COUNT * outputIndex;
@@ -112,7 +112,7 @@ __kernel void ForwardPerceptronKernel(
         //printf("Weight(%i,%i): %f \n", rowIndex, i, weights[i + rowIndex]);
         //printf("Input(%i): %f \n", input[i]);
         //END-----------------------
-        sum += input[i] * weights[i + rowIndex];    
+        sum = sum + input[i] * weights[i + rowIndex];    
     }
     
     //TEST-----------------------
