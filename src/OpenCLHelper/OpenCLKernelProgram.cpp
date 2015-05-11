@@ -28,18 +28,5 @@ OpenCLKernelProgram::~OpenCLKernelProgram()
 
 }
 
-string OpenCLKernelProgram::GetTextFromPath(const string& path)
-{
-	ifstream file(path);
-	stringstream stringStream;
-	string temp;
-	while (getline(file, temp))
-		stringStream << temp << endl;
-
-	file.close();
-
-	return stringStream.str();
-}
-
 } /* namespace Helper */
 } /* namespace ATML */

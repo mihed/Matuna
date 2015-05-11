@@ -8,6 +8,7 @@
 #include "ForwardPerceptronKernel.h"
 #include "OpenCLHelper/OpenCLUtility.h"
 #include "Helper/Path.h"
+#include "Helper/FileHelper.h"
 #include <sstream>
 #include <type_traits>
 
@@ -178,8 +179,8 @@ vector<string> ForwardPerceptronKernel<T>::GetProgramCode() const
 {
 	vector<string> result;
 	result.push_back(
-			GetTextFromPath(
-					Path::Combine("kernels", "ForwardPerceptronKernel.cl")));
+			FileHelper::GetTextFromPath(
+					Path::Combine(Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels", "ForwardPerceptronKernel.cl")));
 	return result;
 }
 

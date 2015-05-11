@@ -22,9 +22,6 @@ class OpenCLKernelProgram: public OpenCLKernel
 public:
 	OpenCLKernelProgram();
 	virtual ~OpenCLKernelProgram();
-
-	static string GetTextFromPath(const string& path);
-
 	virtual string GetCompilerOptions() const = 0;
 	virtual vector<string> GetProgramCode() const = 0;
 };

@@ -22,6 +22,7 @@ public:
 	static string Combine(const string& left, const string& middle, const string& right);
 	static string Combine(const vector<string>& strings);
 	static string GetDirectoryName(const string& path);
+	static string GetDirectoryPath(const string& path);
 
 };
 

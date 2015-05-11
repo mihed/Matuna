@@ -68,5 +68,11 @@ string Path::GetDirectoryName(const string& path) {
 		return path.substr(positions[count - 2], positions[count - 1] - positions[count - 2]);
 }
 
+string Path::GetDirectoryPath(const string& path)
+{
+	size_t position = path.find_last_of("/");
+	return path.substr(0, position);
+}
+
 } /* namespace Helper */
 } /* namespace ATML */
