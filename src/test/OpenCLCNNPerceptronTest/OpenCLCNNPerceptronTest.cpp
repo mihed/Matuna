@@ -166,6 +166,8 @@ unique_ptr<OpenCLContext> GetDoubleCapableContext(const OpenCLPlatformInfo& plat
 	return OpenCLDeviceHandler::GetContext(platfomInfo, configAndInfos);
 }
 
+
+
 SCENARIO("Forward propagating an OR CNN network")
 {
 
@@ -506,7 +508,7 @@ SCENARIO("Forward propagating an AND CNN network")
 				INFO("Initializing the CNN config");
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
-				//FIXME: Something strange here
+				//FIXME: the AMD platform fails with the unsafe math
 				//if (contextPointer->GetPlatformInfo().PlatformName().find("AMD") == string::npos)
 				//	continue;
 
@@ -615,5 +617,6 @@ SCENARIO("Forward propagating an AND CNN network")
 		}
 	}
 }
+
 
 
