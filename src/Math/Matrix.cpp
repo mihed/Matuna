@@ -8,6 +8,7 @@
 #include "Matrix.h"
 #include <stdio.h>
 #include <math.h>
+#include <sstream>
 #include <stdexcept>
 #include <random>
 
@@ -208,6 +209,13 @@ namespace ATML
 		}
 
 		template<class T>
+		void Matrix<T>::Transform(function<T(T)> function)
+		{
+			for (int i = 0; i < elementCount; i++)
+				Data[i] = function(Data[i]);
+		}
+
+		template<class T>
 		T Matrix<T>::At(int row, int column) const
 		{
 			return Data[row * columns + column];
@@ -217,6 +225,22 @@ namespace ATML
 		T& Matrix<T>::At(int row, int column)
 		{
 			return Data[row * columns + column];
+		}
+
+		template<class T>
+		string Matrix<T>::GetString()
+		{
+			stringstream stream;
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < columns; j++)
+				{
+					stream << Data[i * columns + j] << " ";
+				}
+				stream << "\n";
+			}
+
+			return stream.str();
 		}
 
 		template<class T>
@@ -240,8 +264,6 @@ namespace ATML
 		template<class T>
 		Matrix<T>& Matrix<T>::operator=(Matrix<T>&& other)
 		{
-			managedData.reset();
-
 			rows = other.rows;
 			columns = other.columns;
 			elementCount = rows * columns;
@@ -403,7 +425,7 @@ namespace ATML
 				for (int j = 0; j < resultColumns; j++)
 				{
 					sum = 0;
-					for (int k = 0; k < rows; k++)
+					for (int k = 0; k < columns; k++)
 						sum += otherBuffer[k * resultColumns + j]
 						* Data[cachedIndex2 + k];
 

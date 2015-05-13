@@ -9,6 +9,8 @@
 #define ATML_MATH_MATRIX_H_
 
 #include <memory>
+#include <string>
+#include <functional>
 
 using namespace std;
 
@@ -47,9 +49,13 @@ public:
 	int RowCount() const;
 	int ElementCount() const;
 	Matrix<T> Transpose() const;
+	void Transform(function<T(T)> function);
 	T Norm2() const;
 	T At(int row, int column) const;
 	T& At(int row, int column);
+
+
+	string GetString();
 
 	Matrix<T>& operator=(const Matrix<T>& other);
 	Matrix<T>& operator=(Matrix<T>&& other);
