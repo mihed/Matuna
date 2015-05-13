@@ -27,15 +27,24 @@ public:
 	TrainableCNN(const CNNConfig& config);
 	virtual ~TrainableCNN();
 
-	virtual void FeedForward(T* input, int formatIndex, T* output) = 0;
+	unique_ptr<T[]> AlignToOutput(T* input, int formatIndex) const;
+	unique_ptr<T[]> AlignToInput(T* input, int formatIndex) const;
+	unique_ptr<T[]> UnalignFromOutput(T* input, int formatIndex) const;
+	unique_ptr<T[]> UnalignFromInput(T* input, int formatIndex) const;
 
-	virtual T CalculateError(T* propagatedValue, int formatIndex,
+	bool RequireInputAlignment(int formatIndex) const;
+	bool RequireOutputAlignment(int formatIndex) const;
+
+	virtual unique_ptr<T[]> FeedForwardAligned(T* input, int formatIndex) = 0;
+	unique_ptr<T[]> FeedForwardUnaligned(T* input, int formatIndex);
+
+	virtual T CalculateErrorAligned(T* propagatedValue, int formatIndex,
 			T* target)= 0;
 
-	virtual void CalculateGradient(T* input, int formatIndex,
-			T* output)= 0;
+	virtual unique_ptr<T[]> CalculateGradientAligned(T* input, int formatIndex)= 0;
+	unique_ptr<T[]> CalculateGradientUnaligned(T* input, int formatIndex);
 
-	virtual void GetParameters(T* parameters)= 0;
+	virtual unique_ptr<T[]> GetParameters()= 0;
 
 	virtual void SetParameters(T* parameters) = 0;
 

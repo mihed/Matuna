@@ -34,6 +34,12 @@ public:
 
 	}
 	;
+
+	int TotalUnits() const
+	{
+		return Width * Height * Units;
+	}
+	;
 };
 
 class LayerMemoryDescription
@@ -60,6 +66,12 @@ public:
 	~LayerMemoryDescription()
 	{
 
+	}
+	;
+
+	int TotalMemory() const
+	{
+		return Width * Height * Units;
 	}
 	;
 };

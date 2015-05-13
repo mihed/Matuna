@@ -76,8 +76,7 @@ void CalculateORPerceptron(unique_ptr<CNNConfig> config, unique_ptr<OpenCLContex
 	CHECK(network.GetParameterCount() == 3);
 
 	INFO("Making sure the read parameters correspond to the set parameters");
-	unique_ptr<T[]> readParameters(new T[network.GetParameterCount()]);
-	network.GetParameters(readParameters.get());
+	unique_ptr<T[]> readParameters = move(network.GetParameters());
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -87,9 +86,8 @@ void CalculateORPerceptron(unique_ptr<CNNConfig> config, unique_ptr<OpenCLContex
 	CHECK(targets.size() == inputs.size());
 	for (int i = 0; i < targets.size(); i++)
 	{
-		T output;
-		network.FeedForward(inputs[i].data(), 0, &output);
-		auto difference = abs(targets[i] - output);
+		auto output = network.FeedForwardUnaligned(inputs[i].data(), 0);
+		auto difference = abs(targets[i] - output[0]);
 		if (difference >= 0.01)
 		{
 			cout << "The failed platform: " << endl << platformInfo.GetString().c_str() << endl;
@@ -129,8 +127,7 @@ void CalculateANDPerceptron(unique_ptr<CNNConfig> config, unique_ptr<OpenCLConte
 	CHECK(network.GetParameterCount() == 3);
 
 	INFO("Making sure the read parameters correspond to the set parameters");
-	unique_ptr<T[]> readParameters(new T[network.GetParameterCount()]);
-	network.GetParameters(readParameters.get());
+	unique_ptr<T[]> readParameters = move(network.GetParameters());
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -140,9 +137,8 @@ void CalculateANDPerceptron(unique_ptr<CNNConfig> config, unique_ptr<OpenCLConte
 	CHECK(targets.size() == inputs.size());
 	for (int i = 0; i < targets.size(); i++)
 	{
-		T output;
-		network.FeedForward(inputs[i].data(), 0, &output);
-		auto difference = abs(targets[i] - output);
+		auto output = network.FeedForwardUnaligned(inputs[i].data(), 0);
+		auto difference = abs(targets[i] - output[0]);
 		if (difference >= 0.01)
 		{
 			cout << "The failed platform: " << endl << platformInfo.GetString().c_str() << endl;
@@ -781,8 +777,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 					CHECK(inputMemoryDesc.Height == inputDataDesc.Height);
 
 					INFO("Forward propagating the network");
-					unique_ptr<float[]> outputPointer(new float[outputDataDesc.Units]);
-					network.FeedForward(input.Data, 0, outputPointer.get());
+					unique_ptr<float[]> outputPointer = move(network.FeedForwardUnaligned(input.Data, 0));
 
 
 					INFO("Comparing the manually calculated perceptron with the OCL version");
