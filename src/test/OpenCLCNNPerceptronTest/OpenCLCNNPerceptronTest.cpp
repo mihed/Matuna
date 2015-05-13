@@ -725,17 +725,10 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 
 					INFO("Fetching all the matrices and biases from the layers");
 					for (auto perceptron : perceptronlayers)
-					{
-						unique_ptr<float[]> rawParameters(new float[perceptron->GetParameterCount()]);
-						perceptron->GetParameters(rawParameters.get(), device, 0, true);
-
-						auto outDataDesc = perceptron->OutForwardPropDataDescription()[0];
-						Matrix<float> weightMatrix(outDataDesc.Units, inputDataDesc.Units, rawParameters.get());
-						Matrix<float> biasVector(outDataDesc.Units, 1, rawParameters.get() + weightMatrix.ElementCount());
-						weights.push_back(weightMatrix);
-						biases.push_back(biasVector);
+					{;
+						weights.push_back(perceptron->GetWeights());
+						biases.push_back(perceptron->GetBias());
 						activationFunctions.push_back(perceptron->GetConfig().ActivationFunction());
-						inputDataDesc = outDataDesc;
 					}
 
 					CHECK(weights.size() == biases.size());
@@ -756,25 +749,12 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 							throw runtime_error("Invalid activation in the test");
 					}
 
-					INFO("Forward propagating the network");
-					LayerMemoryDescription inputMemoryDesc = network.InputMemoryDescriptions()[0];
-					inputDataDesc = network.InputDataDescriptions()[0];
 
 					INFO("Making sure the manually calculated perceptron corresponds to the output dimension of the network");
 					auto outputDataDesc = network.OutputDataDescriptions()[0];
-					auto outputMemoryDesc = network.OutputMemoryDescriptions()[0];
 					CHECK(outputDataDesc.Units == result.RowCount());
 					CHECK(outputDataDesc.Width == 1);
 					CHECK(outputDataDesc.Height == 1);
-					CHECK(outputMemoryDesc.Units == result.RowCount());
-					CHECK(outputMemoryDesc.Width == 1);
-					CHECK(outputMemoryDesc.Height == 1);
-					CHECK(result.ColumnCount() == 1);
-
-					INFO("Assuming no particular memory padding at the moment");
-					CHECK(inputMemoryDesc.Units == inputDataDesc.Units);
-					CHECK(inputMemoryDesc.Width == inputDataDesc.Width);
-					CHECK(inputMemoryDesc.Height == inputDataDesc.Height);
 
 					INFO("Forward propagating the network");
 					unique_ptr<float[]> outputPointer = move(network.FeedForwardUnaligned(input.Data, 0));

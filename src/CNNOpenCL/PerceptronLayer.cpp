@@ -97,6 +97,28 @@ PerceptronLayerConfig PerceptronLayer<T>::GetConfig() const
 }
 
 template<class T>
+Matrix<T> PerceptronLayer<T>::GetWeights()
+{
+	OpenCLDevice* device = this->context->GetDevices()[0];
+	Matrix<T> result(config.Units(), inputDescription.TotalUnits());
+	device->ReadMemory(weights.get(), weights->ByteSize(), result.Data,
+			0, true);
+
+	return result;
+}
+
+template<class T>
+Matrix<T> PerceptronLayer<T>::GetBias()
+{
+	OpenCLDevice* device = this->context->GetDevices()[0];
+	Matrix<T> result(config.Units(), 1);
+	device->ReadMemory(biases.get(), biases->ByteSize(), result.Data,
+			0, true);
+
+	return result;
+}
+
+template<class T>
 void PerceptronLayer<T>::InterlockFinalized()
 {
 	auto inputMemoryDescriptions = this->InForwardPropMemoryDescription();
@@ -119,8 +141,7 @@ void PerceptronLayer<T>::InitializeNormalPerceptron()
 	auto outputDataDescriptions = this->outForwardPropDataDescriptions;
 	auto& firstOutputData = outputDataDescriptions[0];
 
-	int biasCount = firstOutputData.Width * firstOutputData.Height
-			* firstOutputData.Units;
+	int biasCount = firstOutputData.TotalUnits();
 
 	vector<OpenCLDevice*> devices = this->context->GetDevices();
 
@@ -149,10 +170,8 @@ void PerceptronLayer<T>::InitializeNormalPerceptron()
 
 		unique_ptr<ForwardPerceptronKernel<T>> kernel(
 				new ForwardPerceptronKernel<T>(
-						inputDescription.Width * inputDescription.Height
-								* inputDescription.Units,
-						firstOutputData.Width * firstOutputData.Height
-								* firstOutputData.Units));
+						inputDescription.TotalUnits(),
+						firstOutputData.TotalUnits()));
 
 		//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
 		auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
@@ -194,12 +213,9 @@ void PerceptronLayer<T>::InitializeParameters()
 	auto outputDataDescriptions = this->outForwardPropDataDescriptions;
 	auto& firstOutputData = outputDataDescriptions[0];
 
-	int weightCount = inputDescription.Width * inputDescription.Height
-			* inputDescription.Units * firstOutputData.Width
-			* firstOutputData.Height * firstOutputData.Units;
+	int weightCount = inputDescription.TotalUnits() * firstOutputData.TotalUnits();
 
-	int biasCount = firstOutputData.Width * firstOutputData.Height
-			* firstOutputData.Units;
+	int biasCount = firstOutputData.TotalUnits();
 
 	weights = move(
 			this->context->CreateMemory(CL_MEM_READ_WRITE,
@@ -265,8 +281,7 @@ void PerceptronLayer<T>::GetParameters(T* parameters, OpenCLDevice* device,
 	device->ReadMemory(weights.get(), weights->ByteSize(), parameters,
 			queueIndex, blocking);
 	auto biasPosition = parameters
-			+ config.Units() * inputDescription.Width * inputDescription.Height
-					* inputDescription.Units;
+			+ config.Units() * inputDescription.TotalUnits();
 	device->ReadMemory(biases.get(), biases->ByteSize(), biasPosition,
 			queueIndex, blocking);
 }
@@ -278,8 +293,7 @@ void PerceptronLayer<T>::SetParameters(T* parameters,
 	device->WriteMemory(weights.get(), weights->ByteSize(), parameters,
 			queueIndex, blocking);
 	auto biasPosition = parameters
-			+ config.Units() * inputDescription.Width * inputDescription.Height
-					* inputDescription.Units;
+			+ config.Units() * inputDescription.TotalUnits();
 	device->WriteMemory(biases.get(), biases->ByteSize(), biasPosition,
 			queueIndex, blocking);
 }
@@ -287,8 +301,7 @@ void PerceptronLayer<T>::SetParameters(T* parameters,
 template<class T>
 size_t PerceptronLayer<T>::GetParameterCount()
 {
-	return inputDescription.Height * inputDescription.Width
-			* inputDescription.Units * config.Units() + config.Units();
+	return inputDescription.TotalUnits() * config.Units() + config.Units();
 }
 
 } /* namespace MachineLearning */

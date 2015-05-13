@@ -11,6 +11,7 @@
 #include "OpenCLForwardBackPropLayer.h"
 #include "ForwardPerceptronKernel.h"
 #include "CNN/PerceptronLayerConfig.h"
+#include "Math/Matrix.h"
 #include "OpenCLHelper/OpenCLContext.h"
 
 #include <unordered_map>
@@ -19,6 +20,7 @@
 
 using namespace std;
 using namespace ATML::Helper;
+using namespace ATML::Math;
 
 namespace ATML
 {
@@ -61,6 +63,9 @@ public:
 	virtual size_t GetParameterCount() override;
 
 	PerceptronLayerConfig GetConfig() const;
+
+	Matrix<T> GetWeights();
+	Matrix<T> GetBias();
 
 	//TODO: Add some read / write parameters. Now it's all random
 
