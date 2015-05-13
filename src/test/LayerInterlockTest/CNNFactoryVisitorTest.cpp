@@ -71,13 +71,13 @@ void CNNFactoryVisitorTest::Visit(
 
 	//Since this is an output layer, this will define the targets.
 	//We could potentially have some value in the config if we want to do something about this.
-	layer->InterlockBackPropInput(layer->InBackPropMemoryProposal());
+	layer->InterlockBackPropInput(layer->InBackPropMemoryProposals());
 
 	if (!layer->Interlocked())
 		throw runtime_error("The output layer is not interlocked");
 
-	network->InterlockForwardPropDataOutput(layer->InBackPropDataDescription());
-	network->InterlockForwardPropOutput(layer->InBackPropMemoryDescription());
+	network->InterlockForwardPropDataOutput(layer->InBackPropDataDescriptions());
+	network->InterlockForwardPropOutput(layer->InBackPropMemoryDescriptions());
 
 	if (!network->Interlocked())
 		throw runtime_error("The network is not interlocked");

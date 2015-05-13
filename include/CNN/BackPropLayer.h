@@ -58,15 +58,15 @@ public:
 
 	virtual void InterlockFinalized() = 0;
 
-	vector<LayerMemoryDescription> InForwardPropMemoryDescription() const;
-	vector<LayerMemoryDescription> InBackPropMemoryDescription() const;
-	vector<LayerMemoryDescription> OutBackPropMemoryDescription() const;
-	vector<LayerMemoryDescription> InForwardPropMemoryProposal() const;
-	vector<LayerDataDescription> InForwardPropDataDescription() const;
-	vector<LayerDataDescription> InBackPropDataDescription() const;
-	vector<LayerDataDescription> OutBackPropDataDescription() const;
-	vector<LayerMemoryDescription> InBackPropMemoryProposal() const;
-	vector<LayerMemoryDescription> OutBackPropMemoryProposal() const;
+	vector<LayerMemoryDescription> InForwardPropMemoryDescriptions() const;
+	vector<LayerMemoryDescription> InBackPropMemoryDescriptions() const;
+	vector<LayerMemoryDescription> OutBackPropMemoryDescriptions() const;
+	vector<LayerMemoryDescription> InForwardPropMemoryProposals() const;
+	vector<LayerDataDescription> InForwardPropDataDescriptions() const;
+	vector<LayerDataDescription> InBackPropDataDescriptions() const;
+	vector<LayerDataDescription> OutBackPropDataDescriptions() const;
+	vector<LayerMemoryDescription> InBackPropMemoryProposals() const;
+	vector<LayerMemoryDescription> OutBackPropMemoryProposals() const;
 };
 } /* namespace MachineLearning */
 } /* namespace ATML */

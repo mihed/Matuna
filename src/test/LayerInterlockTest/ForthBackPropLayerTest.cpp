@@ -81,7 +81,7 @@ ForthBackPropLayerTest::ForthBackPropLayerTest(
 	inBackPropMemoryProposals.push_back(inBackPropMemoryProposal);
 
 	//Setting the inForwardProp proposal
-	auto forwardInDataDescription = InForwardPropDataDescription();
+	auto forwardInDataDescription = InForwardPropDataDescriptions();
 
 	LayerMemoryDescription inForwardPropMemoryProposal;
 

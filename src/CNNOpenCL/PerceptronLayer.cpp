@@ -75,7 +75,7 @@ PerceptronLayer<T>::PerceptronLayer(shared_ptr<OpenCLContext> context,
 		this->inBackPropMemoryProposals.push_back(outForwardMemProp);
 	}
 
-	auto inputDataDescriptions = this->InForwardPropDataDescription();
+	auto inputDataDescriptions = this->InForwardPropDataDescriptions();
 	inputDescription = inputDataDescriptions[0];
 }
 
@@ -121,7 +121,7 @@ Matrix<T> PerceptronLayer<T>::GetBias()
 template<class T>
 void PerceptronLayer<T>::InterlockFinalized()
 {
-	auto inputMemoryDescriptions = this->InForwardPropMemoryDescription();
+	auto inputMemoryDescriptions = this->InForwardPropMemoryDescriptions();
 	auto& firstMemory = inputMemoryDescriptions[0];
 
 	//IF the memory descriptions doesn't contain any padding or offsets, we may use the standard forward prop kernel.

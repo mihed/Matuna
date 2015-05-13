@@ -234,26 +234,26 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 					CHECK_THROWS(layer2->InterlockForwardPropInput(dummyTest));
 					CHECK_THROWS(layer2->InterlockForwardPropOutput(dummyTest));
 
-					CheckMemoryDescription(layer1->InBackPropMemoryDescription(), layer2->OutBackPropMemoryDescription());
-					CheckMemoryDescription(layer1->OutForwardPropMemoryDescription(), layer2->InForwardPropMemoryDescription());
-					CheckUnitDescription(layer1->InBackPropDataDescription(), layer2->OutBackPropDataDescription());
-					CheckUnitDescription(layer1->OutForwardPropDataDescription(), layer2->InForwardPropDataDescription());
+					CheckMemoryDescription(layer1->InBackPropMemoryDescriptions(), layer2->OutBackPropMemoryDescriptions());
+					CheckMemoryDescription(layer1->OutForwardPropMemoryDescriptions(), layer2->InForwardPropMemoryDescriptions());
+					CheckUnitDescription(layer1->InBackPropDataDescriptions(), layer2->OutBackPropDataDescriptions());
+					CheckUnitDescription(layer1->OutForwardPropDataDescriptions(), layer2->InForwardPropDataDescriptions());
 
-					bool result = InterlockHelper::IsCompatible(layer1->InBackPropMemoryDescription(), layer1->InBackPropMemoryProposal());
+					bool result = InterlockHelper::IsCompatible(layer1->InBackPropMemoryDescriptions(), layer1->InBackPropMemoryProposals());
 					CHECK(result);
-					result = InterlockHelper::IsCompatible(layer1->OutBackPropMemoryDescription(), layer1->OutBackPropMemoryProposal());
+					result = InterlockHelper::IsCompatible(layer1->OutBackPropMemoryDescriptions(), layer1->OutBackPropMemoryProposals());
 					CHECK(result);
-					result = InterlockHelper::IsCompatible(layer1->InForwardPropMemoryDescription(), layer1->InForwardPropMemoryProposal());
+					result = InterlockHelper::IsCompatible(layer1->InForwardPropMemoryDescriptions(), layer1->InForwardPropMemoryProposals());
 					CHECK(result);
-					result = InterlockHelper::IsCompatible(layer1->OutForwardPropMemoryDescription(), layer1->OutForwardPropMemoryProposal());
+					result = InterlockHelper::IsCompatible(layer1->OutForwardPropMemoryDescriptions(), layer1->OutForwardPropMemoryProposals());
 					CHECK(result);
-					result = InterlockHelper::IsCompatible(layer2->InBackPropMemoryDescription(), layer2->InBackPropMemoryProposal());
+					result = InterlockHelper::IsCompatible(layer2->InBackPropMemoryDescriptions(), layer2->InBackPropMemoryProposals());
 					CHECK(result);
-					result = InterlockHelper::IsCompatible(layer2->OutBackPropMemoryDescription(), layer2->OutBackPropMemoryProposal());
+					result = InterlockHelper::IsCompatible(layer2->OutBackPropMemoryDescriptions(), layer2->OutBackPropMemoryProposals());
 					CHECK(result);
-					result = InterlockHelper::IsCompatible(layer2->InForwardPropMemoryDescription(), layer2->InForwardPropMemoryProposal());
+					result = InterlockHelper::IsCompatible(layer2->InForwardPropMemoryDescriptions(), layer2->InForwardPropMemoryProposals());
 					CHECK(result);
-					result = InterlockHelper::IsCompatible(layer2->OutForwardPropMemoryDescription(), layer2->OutForwardPropMemoryProposal());
+					result = InterlockHelper::IsCompatible(layer2->OutForwardPropMemoryDescriptions(), layer2->OutForwardPropMemoryProposals());
 					CHECK(result);
 				}
 
@@ -270,10 +270,10 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 				CHECK_THROWS(outputLayer->InterlockBackPropInput(anotherDummy));
 				CHECK_THROWS(outputLayer->InterlockBackPropOutput(anotherDummy));
 				CHECK_THROWS(outputLayer->InterlockForwardPropInput(anotherDummy));
-				CheckMemoryDescription(lastLayer->InBackPropMemoryDescription(), outputLayer->OutBackPropMemoryDescription());
-				CheckMemoryDescription(lastLayer->OutForwardPropMemoryDescription(), outputLayer->InForwardPropMemoryDescription());
-				CheckUnitDescription(lastLayer->InBackPropDataDescription(), outputLayer->OutBackPropDataDescription());
-				CheckUnitDescription(lastLayer->OutForwardPropDataDescription(), outputLayer->InForwardPropDataDescription());
+				CheckMemoryDescription(lastLayer->InBackPropMemoryDescriptions(), outputLayer->OutBackPropMemoryDescriptions());
+				CheckMemoryDescription(lastLayer->OutForwardPropMemoryDescriptions(), outputLayer->InForwardPropMemoryDescriptions());
+				CheckUnitDescription(lastLayer->InBackPropDataDescriptions(), outputLayer->OutBackPropDataDescriptions());
+				CheckUnitDescription(lastLayer->OutForwardPropDataDescriptions(), outputLayer->InForwardPropDataDescriptions());
 			}
 		}
 

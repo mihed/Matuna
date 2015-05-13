@@ -35,7 +35,7 @@ bool ForwardBackPropLayer::Interlocked() const
 }
 ;
 
-vector<LayerMemoryDescription> ForwardBackPropLayer::OutForwardPropMemoryDescription() const
+vector<LayerMemoryDescription> ForwardBackPropLayer::OutForwardPropMemoryDescriptions() const
 {
 	if (!outputInterlocked)
 		throw runtime_error("The forward-prop out layer is not interlocked");
@@ -43,12 +43,12 @@ vector<LayerMemoryDescription> ForwardBackPropLayer::OutForwardPropMemoryDescrip
 	return outForwardPropMemoryDescriptions;
 }
 
-vector<LayerDataDescription> ForwardBackPropLayer::OutForwardPropDataDescription() const
+vector<LayerDataDescription> ForwardBackPropLayer::OutForwardPropDataDescriptions() const
 {
 	return outForwardPropDataDescriptions;
 }
 
-vector<LayerMemoryDescription> ForwardBackPropLayer::OutForwardPropMemoryProposal() const
+vector<LayerMemoryDescription> ForwardBackPropLayer::OutForwardPropMemoryProposals() const
 {
 	return outForwardPropMemoryProposals;
 }

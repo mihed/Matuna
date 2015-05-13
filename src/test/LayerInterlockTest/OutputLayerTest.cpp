@@ -54,7 +54,7 @@ OutputLayerTest::OutputLayerTest(
 
 	//Setting the inForwardProp proposal
 
-	auto forwardInDataDescriptions = InForwardPropDataDescription();
+	auto forwardInDataDescriptions = InForwardPropDataDescriptions();
 
 	auto forwardInDataDescription = forwardInDataDescriptions[0];
 

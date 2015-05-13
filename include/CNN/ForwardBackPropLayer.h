@@ -38,9 +38,9 @@ public:
 
 	virtual bool Interlocked() const override;
 
-	vector<LayerMemoryDescription> OutForwardPropMemoryDescription() const;
-	vector<LayerDataDescription> OutForwardPropDataDescription() const;
-	vector<LayerMemoryDescription> OutForwardPropMemoryProposal() const;
+	vector<LayerMemoryDescription> OutForwardPropMemoryDescriptions() const;
+	vector<LayerDataDescription> OutForwardPropDataDescriptions() const;
+	vector<LayerMemoryDescription> OutForwardPropMemoryProposals() const;
 };
 
 } /* namespace MachineLearning */

@@ -91,7 +91,7 @@ unique_ptr<T[]> CNNOpenCL<T>::FeedForwardAligned(T* input, int formatIndex)
 	for (auto& layer : layers)
 	{
 		inputMemoryDescription =
-				layer->OutForwardPropMemoryDescription()[formatIndex];
+				layer->OutForwardPropMemoryDescriptions()[formatIndex];
 
 		unique_ptr<OpenCLMemory> outputMemory = context->CreateMemory(
 		CL_MEM_READ_WRITE, sizeof(T) * inputMemoryDescription.TotalMemory());

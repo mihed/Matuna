@@ -35,7 +35,7 @@ bool BackPropLayer::Interlocked() const
 	return inputInterlocked && outputInterlocked && forwardInputInterlocked;
 }
 
-vector<LayerMemoryDescription> BackPropLayer::InForwardPropMemoryDescription() const
+vector<LayerMemoryDescription> BackPropLayer::InForwardPropMemoryDescriptions() const
 {
 	if (!forwardInputInterlocked)
 		throw runtime_error("The forward-prop in layer is not interlocked");
@@ -43,7 +43,7 @@ vector<LayerMemoryDescription> BackPropLayer::InForwardPropMemoryDescription() c
 	return inForwardPropMemoryDescriptions;
 }
 
-vector<LayerMemoryDescription> BackPropLayer::InBackPropMemoryDescription() const
+vector<LayerMemoryDescription> BackPropLayer::InBackPropMemoryDescriptions() const
 {
 	if (!inputInterlocked)
 		throw runtime_error("The back-prop in layer is not interlocked");
@@ -51,7 +51,7 @@ vector<LayerMemoryDescription> BackPropLayer::InBackPropMemoryDescription() cons
 	return inBackPropMemoryDescriptions;
 }
 
-vector<LayerMemoryDescription> BackPropLayer::OutBackPropMemoryDescription() const
+vector<LayerMemoryDescription> BackPropLayer::OutBackPropMemoryDescriptions() const
 {
 	if (!outputInterlocked)
 		throw runtime_error("The back-prop out layer is not interlocked");
@@ -104,32 +104,32 @@ void BackPropLayer::InterlockBackPropOutput(
 	outputInterlocked = true;
 }
 
-vector<LayerMemoryDescription> BackPropLayer::InForwardPropMemoryProposal() const
+vector<LayerMemoryDescription> BackPropLayer::InForwardPropMemoryProposals() const
 {
 	return inForwardPropMemoryProposals;
 }
 
-vector<LayerDataDescription> BackPropLayer::InForwardPropDataDescription() const
+vector<LayerDataDescription> BackPropLayer::InForwardPropDataDescriptions() const
 {
 	return inForwardPropDataDescriptions;
 }
 
-vector<LayerDataDescription> BackPropLayer::InBackPropDataDescription() const
+vector<LayerDataDescription> BackPropLayer::InBackPropDataDescriptions() const
 {
 	return inBackPropDataDescriptions;
 }
 
-vector<LayerDataDescription> BackPropLayer::OutBackPropDataDescription() const
+vector<LayerDataDescription> BackPropLayer::OutBackPropDataDescriptions() const
 {
 	return inForwardPropDataDescriptions; //Must be equal by definition
 }
 
-vector<LayerMemoryDescription> BackPropLayer::InBackPropMemoryProposal() const
+vector<LayerMemoryDescription> BackPropLayer::InBackPropMemoryProposals() const
 {
 	return inBackPropMemoryProposals;
 }
 
-vector<LayerMemoryDescription> BackPropLayer::OutBackPropMemoryProposal() const
+vector<LayerMemoryDescription> BackPropLayer::OutBackPropMemoryProposals() const
 {
 	return outBackPropMemoryProposals;
 }
