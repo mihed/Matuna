@@ -1,12 +1,12 @@
 /*
- * OpenCLDeviceHandler.h
+ * OpenCLHelper.h
  *
  *  Created on: Apr 27, 2015
  *      Author: Mikael
  */
 
-#ifndef ATML_OPENCLHELPER_OPENCLDEVICEHANDLER_H_
-#define ATML_OPENCLHELPER_OPENCLDEVICEHANDLER_H_
+#ifndef ATML_OPENCLHELPER_OPENCLHELPER_H_
+#define ATML_OPENCLHELPER_OPENCLHELPER_H_
 
 #include <CL/cl.h>
 #include <vector>
@@ -26,7 +26,7 @@ namespace Helper
 /**
  *@brief This class may be seen as a static factory class that creates objects necessary in order to create OpenCLDevice.
  */
-class OpenCLDeviceHandler
+class OpenCLHelper
 final
 {
 
@@ -61,4 +61,4 @@ final
 	} /* namespace Helper */
 	} /* namespace ATML */
 
-#endif /* ATML_OPENCLHELPER_OPENCLDEVICEHANDLER_H_ */
+#endif /* ATML_OPENCLHELPER_OpenCLHelper_H_ */

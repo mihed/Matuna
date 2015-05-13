@@ -1,11 +1,11 @@
 /*
- * OpenCLDeviceHandler.cpp
+ * OpenCLHelper.cpp
  *
  *  Created on: Apr 27, 2015
  *      Author: Mikael
  */
 
-#include "OpenCLDeviceHandler.h"
+#include "OpenCLHelper.h"
 #include "OpenCLUtility.h"
 #include <stdexcept>
 
@@ -14,7 +14,7 @@ namespace ATML
 namespace Helper
 {
 
-OpenCLPlatformInfo OpenCLDeviceHandler::GetPlatformInfo(
+OpenCLPlatformInfo OpenCLHelper::GetPlatformInfo(
 		cl_platform_id platformID)
 {
 	const size_t bufferSize = 10000;
@@ -51,7 +51,7 @@ OpenCLPlatformInfo OpenCLDeviceHandler::GetPlatformInfo(
 			platformVersion, platformVendor, platformExtensions);
 }
 
-OpenCLDeviceInfo OpenCLDeviceHandler::GetDeviceInfo(
+OpenCLDeviceInfo OpenCLHelper::GetDeviceInfo(
 		const OpenCLPlatformInfo& platformInfo, cl_device_id deviceID)
 {
 	cl_device_type type;
@@ -278,7 +278,7 @@ OpenCLDeviceInfo OpenCLDeviceHandler::GetDeviceInfo(
 			deviceOpenCLVersion, deviceExtensions);
 }
 
-vector<OpenCLPlatformInfo> OpenCLDeviceHandler::GetPlatformInfos()
+vector<OpenCLPlatformInfo> OpenCLHelper::GetPlatformInfos()
 {
 
 	vector<OpenCLPlatformInfo> result;
@@ -298,7 +298,7 @@ vector<OpenCLPlatformInfo> OpenCLDeviceHandler::GetPlatformInfos()
 	return result;
 }
 
-vector<OpenCLDeviceInfo> OpenCLDeviceHandler::GetDeviceInfos(
+vector<OpenCLDeviceInfo> OpenCLHelper::GetDeviceInfos(
 		const OpenCLPlatformInfo& platformInfo)
 {
 	vector<OpenCLDeviceInfo> result;
@@ -320,7 +320,7 @@ vector<OpenCLDeviceInfo> OpenCLDeviceHandler::GetDeviceInfos(
 	return result;
 }
 
-unique_ptr<OpenCLContext> OpenCLDeviceHandler::GetContext(
+unique_ptr<OpenCLContext> OpenCLHelper::GetContext(
 		const OpenCLPlatformInfo& platformInfo, int queuesPerDevice,
 		cl_command_queue_properties queueType)
 {
@@ -343,7 +343,7 @@ unique_ptr<OpenCLContext> OpenCLDeviceHandler::GetContext(
 	return unique_ptr<OpenCLContext>(new OpenCLContext(platformInfo,deviceConfigs));
 }
 
-unique_ptr<OpenCLContext> OpenCLDeviceHandler::GetContext(const OpenCLPlatformInfo& platformInfo,
+unique_ptr<OpenCLContext> OpenCLHelper::GetContext(const OpenCLPlatformInfo& platformInfo,
 		vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>> deviceConfigs)
 {
 	for (auto& config : deviceConfigs)

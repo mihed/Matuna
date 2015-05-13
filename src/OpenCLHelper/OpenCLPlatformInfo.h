@@ -17,7 +17,7 @@ namespace ATML {
 	namespace Helper {
 
 		/**
-		*@brief A wrapper of the native platform information. See OpenCLDeviceHandler to obtain it.
+		*@brief A wrapper of the native platform information. See OpenCLHelper to obtain it.
 		*/
 		class OpenCLPlatformInfo final{
 
@@ -54,7 +54,7 @@ namespace ATML {
 			/**
 			*@brief The native OpenCL id of the platform.
 			*
-			* This id is used by the OpenCLDeviceHandler in order to fetch corresponding OpenCLDevice that resides on this platform.
+			* This id is used by the OpenCLHelper in order to fetch corresponding OpenCLDevice that resides on this platform.
 			*
 			*@return The native OpenCL id of the platform
 			*/

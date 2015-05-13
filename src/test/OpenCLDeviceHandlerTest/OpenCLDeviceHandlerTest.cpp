@@ -1,12 +1,12 @@
 /*
- * OpenCLDeviceHandlerTest.cpp
+ * OpenCLHelperTest.cpp
  *
  *  Created on: Apr 28, 2015
  *      Author: Mikael
  */
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "OpenCLHelper/OpenCLDeviceHandler.h"
+#include "OpenCLHelper/OpenCLHelper.h"
 #include <stdio.h>
 
 using namespace ATML::Helper;
@@ -14,7 +14,7 @@ using namespace ATML::Helper;
 SCENARIO("Fetching device and platform information", "[PlatformInfo]")
 {
 	WHEN("Getting platform informations"){
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 		if (platformInfos.size() == 0)
 		{
 			WARN("No platforms are detected. "
@@ -31,7 +31,7 @@ SCENARIO("Fetching device and platform information", "[PlatformInfo]")
 
 SCENARIO("Fetching device information", "[DeviceInfo]")
 {
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	if (platformInfos.size() == 0)
 	{
 		WARN(
@@ -45,7 +45,7 @@ SCENARIO("Fetching device information", "[DeviceInfo]")
 		{
 			for (auto& platformInfo : platformInfos)
 			{
-				auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platformInfo);
+				auto deviceInfos = OpenCLHelper::GetDeviceInfos(platformInfo);
 				size1 = deviceInfos.size();
 				for (auto& info : deviceInfos)
 					cout << info.GetString().c_str() << endl;
@@ -54,10 +54,10 @@ SCENARIO("Fetching device information", "[DeviceInfo]")
 	}
 }
 
-SCENARIO("Fetching the context from the devicehandler", "[OpenCLContext][OpenCLDeviceHandler]")
+SCENARIO("Fetching the context from the devicehandler", "[OpenCLContext][OpenCLHelper]")
 {
 	INFO("Fetching the platform infos");
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	if (platformInfos.size() == 0)
 	{
 		WARN(
@@ -68,7 +68,7 @@ SCENARIO("Fetching the context from the devicehandler", "[OpenCLContext][OpenCLD
 	for (auto& platformInfo : platformInfos)
 	{
 		WHEN("Creating the context from a platform info with standard arguments"){
-			auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+			auto context = OpenCLHelper::GetContext(platformInfo);
 			THEN("We should be able to get the devices from the context")
 			{
 				auto devices = context->GetDevices();
@@ -77,7 +77,7 @@ SCENARIO("Fetching the context from the devicehandler", "[OpenCLContext][OpenCLD
 		}
 		WHEN("Creating the context with 2 device queues")
 		{
-			auto context = OpenCLDeviceHandler::GetContext(platformInfo, 2);
+			auto context = OpenCLHelper::GetContext(platformInfo, 2);
 			THEN("We should be able to get the devices from the context")
 			{
 				auto devices = context->GetDevices();
@@ -86,7 +86,7 @@ SCENARIO("Fetching the context from the devicehandler", "[OpenCLContext][OpenCLD
 		}
 		WHEN("Creating the context using custom configurations")
 		{
-			auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platformInfo);
+			auto deviceInfos = OpenCLHelper::GetDeviceInfos(platformInfo);
 			vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>> configs;
 			for (auto& deviceInfo : deviceInfos)
 			{
@@ -94,7 +94,7 @@ SCENARIO("Fetching the context from the devicehandler", "[OpenCLContext][OpenCLD
 				config.AddCommandQueue();
 				configs.push_back(make_tuple(config, deviceInfo));
 			}
-			auto context = OpenCLDeviceHandler::GetContext(platformInfo, configs);
+			auto context = OpenCLHelper::GetContext(platformInfo, configs);
 			THEN("We should be able to get the devices from the context")
 			{
 				auto devices = context->GetDevices();

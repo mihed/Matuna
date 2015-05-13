@@ -6,15 +6,15 @@
  */
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "OpenCLHelper/OpenCLDeviceHandler.h"
+#include "OpenCLHelper/OpenCLHelper.h"
 #include "TestKernel.h"
 #include <memory>
 
 using namespace ATML::Helper;
 
-SCENARIO("Acquiring memory, writing memory, reading memory", "[OpenCLMemory][OpenCLDevice][OpenCLDeviceHandler]")
+SCENARIO("Acquiring memory, writing memory, reading memory", "[OpenCLMemory][OpenCLDevice][OpenCLHelper]")
 {
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	if (platformInfos.size() == 0)
 	{
 		WARN(
@@ -40,7 +40,7 @@ SCENARIO("Acquiring memory, writing memory, reading memory", "[OpenCLMemory][Ope
 				for (auto& platformInfo : platformInfos)
 				{
 					INFO("Creating the context");
-					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					auto context = OpenCLHelper::GetContext(platformInfo);
 					INFO("Creating memory inside the context");
 					auto inputMemory = context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * bufferSize);
 					for (auto device : context->GetDevices())
@@ -61,9 +61,9 @@ SCENARIO("Acquiring memory, writing memory, reading memory", "[OpenCLMemory][Ope
 }
 
 
-SCENARIO("Making sure that we get exception when using memory from different contexts", "[OpenCLMemory][OpenCLDevice][OpenCLDeviceHandler]")
+SCENARIO("Making sure that we get exception when using memory from different contexts", "[OpenCLMemory][OpenCLDevice][OpenCLHelper]")
 {
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	if (platformInfos.size() == 0)
 	{
 		WARN(
@@ -83,7 +83,7 @@ SCENARIO("Making sure that we get exception when using memory from different con
 		INFO("Creating all the available contexts");
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto& platformInfo : platformInfos)
-			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+			contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 		vector<vector<OpenCLDevice*>> devices;
 		for (auto& context : contexts)
@@ -116,9 +116,9 @@ SCENARIO("Making sure that we get exception when using memory from different con
 		}
 	}
 }
-SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLContext][OpenCLKernel][OpenCLKernelProgram]")
+SCENARIO("Creating kernels from the context", "[OpenCLHelper][OpenCLContext][OpenCLKernel][OpenCLKernelProgram]")
 {
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	if (platformInfos.size() == 0)
 	{
 		WARN(
@@ -135,7 +135,7 @@ SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLConte
 			{
 				for (auto& platformInfo : platformInfos)
 				{
-					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					auto context = OpenCLHelper::GetContext(platformInfo);
 					CHECK_THROWS(context->RemoveProgram(kernel.ProgramName()));
 					CHECK_THROWS(context->RemoveProgram(&kernel));
 				}
@@ -147,7 +147,7 @@ SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLConte
 			{
 				for (auto& platformInfo : platformInfos)
 				{
-					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					auto context = OpenCLHelper::GetContext(platformInfo);
 					context->AddProgramFromSource(kernel.ProgramName(), kernel.GetCompilerOptions(), kernel.GetProgramCode(), context->GetDevices());
 					context->RemoveProgram(kernel.ProgramName());
 				}
@@ -160,7 +160,7 @@ SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLConte
 				for (auto& platformInfo : platformInfos)
 				{
 					TestKernel kernel2;
-					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					auto context = OpenCLHelper::GetContext(platformInfo);
 					context->AddProgramFromSource(&kernel2, context->GetDevices());
 					CHECK_FALSE(kernel2.KernelSet());
 					CHECK_FALSE(kernel2.ContextSet());
@@ -179,7 +179,7 @@ SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLConte
 			{
 				for (auto& platformInfo : platformInfos)
 				{
-					auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+					auto context = OpenCLHelper::GetContext(platformInfo);
 					CHECK_THROWS(context->RemoveProgram(kernel.ProgramName()));
 				}
 			}
@@ -193,7 +193,7 @@ SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLConte
 		{
 		cout << platformInfo.GetString().c_str() << endl;
 
-		auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+		auto context = OpenCLHelper::GetContext(platformInfo);
 		vector<OpenCLDevice*> oneDevice;
 		oneDevice.push_back(context->GetDevices()[0]);
 		auto testKernel = context->CreateOpenCLKernelProgram<TestKernel>(oneDevice);
@@ -212,9 +212,9 @@ SCENARIO("Creating kernels from the context", "[OpenCLDeviceHandler][OpenCLConte
 	}
 }
 
-SCENARIO("Executing an OCL kernel", "[OpenCLDevice][OpenCLDeviceHandler][OpenCLKernel][OpenCLMemory]")
+SCENARIO("Executing an OCL kernel", "[OpenCLDevice][OpenCLHelper][OpenCLKernel][OpenCLMemory]")
 {
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	if (platformInfos.size() == 0)
 	{
 		WARN(
@@ -237,7 +237,7 @@ SCENARIO("Executing an OCL kernel", "[OpenCLDevice][OpenCLDeviceHandler][OpenCLK
 	for (auto& platformInfo : platformInfos)
 	{
 		INFO("Creating the context");
-		auto context = OpenCLDeviceHandler::GetContext(platformInfo);
+		auto context = OpenCLHelper::GetContext(platformInfo);
 
 		INFO("Making sure that we get an exception without adding");
 		CHECK_THROWS(context->RemoveProgram(""));

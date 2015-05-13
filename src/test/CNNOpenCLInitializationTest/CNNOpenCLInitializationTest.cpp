@@ -8,7 +8,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "CNNOpenCL/CNNOpenCL.h"
-#include "OpenCLHelper/OpenCLDeviceHandler.h"
+#include "OpenCLHelper/OpenCLHelper.h"
 #include "OpenCLHelper/OpenCLContext.h"
 #include "CNN/PerceptronLayerConfig.h"
 #include "CNN/LayerDescriptions.h"
@@ -23,7 +23,7 @@ using namespace ATML::Helper;
 SCENARIO("Creating a CNNOpenCL network", "[CNNOpenCL][OpenCLContext]")
 {
 	INFO("Getting the platform infos");
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 	if (platformInfos.size() == 0)
 	{
@@ -34,7 +34,7 @@ SCENARIO("Creating a CNNOpenCL network", "[CNNOpenCL][OpenCLContext]")
 	}
 
 	INFO("Creating a OCL Context");
-	auto context = OpenCLDeviceHandler::GetContext(platformInfos[0]);
+	auto context = OpenCLHelper::GetContext(platformInfos[0]);
 
 	INFO("Creating a suitable CNNConfig");
 

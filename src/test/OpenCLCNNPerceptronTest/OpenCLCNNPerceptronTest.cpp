@@ -7,7 +7,7 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "OpenCLHelper/OpenCLDeviceHandler.h"
+#include "OpenCLHelper/OpenCLHelper.h"
 #include "CNNOpenCL/CNNOpenCL.h"
 #include "CNNOpenCL/PerceptronLayer.h"
 #include "CNN/PerceptronLayerConfig.h"
@@ -153,7 +153,7 @@ void CalculateANDPerceptron(unique_ptr<CNNConfig> config, unique_ptr<OpenCLConte
 
 unique_ptr<OpenCLContext> GetDoubleCapableContext(const OpenCLPlatformInfo& platfomInfo)
 {
-	auto deviceInfos = OpenCLDeviceHandler::GetDeviceInfos(platfomInfo);
+	auto deviceInfos = OpenCLHelper::GetDeviceInfos(platfomInfo);
 	vector<OpenCLDeviceInfo> capabaleDevices;
 	for (auto& deviceInfo : deviceInfos)
 		if (deviceInfo.PreferredDoubleVectorWidth() != 0)
@@ -167,7 +167,7 @@ unique_ptr<OpenCLContext> GetDoubleCapableContext(const OpenCLPlatformInfo& plat
 		configAndInfos.push_back(make_tuple(config, deviceInfo));
 	}
 
-	return OpenCLDeviceHandler::GetContext(platfomInfo, configAndInfos);
+	return OpenCLHelper::GetContext(platfomInfo, configAndInfos);
 }
 
 
@@ -201,11 +201,11 @@ SCENARIO("Forward propagating an OR CNN network")
 	WHEN("Creating an OR network with float, standard precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
-			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+			contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 		THEN("We must have correct OR output with the known parameters")
 		{
@@ -226,11 +226,11 @@ SCENARIO("Forward propagating an OR CNN network")
 	WHEN("Creating an OR network with float, native precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
-			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+			contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 		THEN("We must have correct OR output with the known parameters")
 		{
@@ -250,11 +250,11 @@ SCENARIO("Forward propagating an OR CNN network")
 	WHEN("Creating an OR network with float, half precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
-			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+			contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 		THEN("We must have correct OR output with the known parameters")
 		{
@@ -274,11 +274,11 @@ SCENARIO("Forward propagating an OR CNN network")
 	WHEN("Creating an OR network with float, half precision and relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
-			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+			contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 		THEN("We must have correct OR output with the known parameters")
 		{
@@ -300,7 +300,7 @@ SCENARIO("Forward propagating an OR CNN network")
 	WHEN("Creating an OR network with double, standard precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
@@ -324,7 +324,7 @@ SCENARIO("Forward propagating an OR CNN network")
 	WHEN("Creating an OR network with double, native precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
@@ -348,7 +348,7 @@ SCENARIO("Forward propagating an OR CNN network")
 	WHEN("Creating an OR network with double, half precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
@@ -372,7 +372,7 @@ SCENARIO("Forward propagating an OR CNN network")
 	WHEN("Creating an OR network with double, half precision and relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
@@ -425,11 +425,11 @@ SCENARIO("Forward propagating an AND CNN network")
 	WHEN("Creating an AND network with float, standard precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
-			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+			contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 		THEN("We must have correct AND output with the known parameters")
 		{
@@ -450,11 +450,11 @@ SCENARIO("Forward propagating an AND CNN network")
 	WHEN("Creating an AND network with float, native precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
-			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+			contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 		THEN("We must have correct AND output with the known parameters")
 		{
@@ -474,11 +474,11 @@ SCENARIO("Forward propagating an AND CNN network")
 	WHEN("Creating an AND network with float, half precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
-			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+			contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 		THEN("We must have correct AND output with the known parameters")
 		{
@@ -498,11 +498,11 @@ SCENARIO("Forward propagating an AND CNN network")
 	WHEN("Creating an AND network with float, half precision and relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
-			contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+			contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 		THEN("We must have correct AND output with the known parameters")
 		{
@@ -528,7 +528,7 @@ SCENARIO("Forward propagating an AND CNN network")
 	WHEN("Creating an AND network with double, standard precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
@@ -552,7 +552,7 @@ SCENARIO("Forward propagating an AND CNN network")
 	WHEN("Creating an AND network with double, native precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
@@ -576,7 +576,7 @@ SCENARIO("Forward propagating an AND CNN network")
 	WHEN("Creating an AND network with double, half precision and no relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
@@ -600,7 +600,7 @@ SCENARIO("Forward propagating an AND CNN network")
 	WHEN("Creating an AND network with double, half precision and relaxed math")
 	{
 		INFO("Creating the contexts");
-		auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+		auto platformInfos = OpenCLHelper::GetPlatformInfos();
 
 		vector<unique_ptr<OpenCLContext>> contexts;
 		for (auto platformInfo : platformInfos)
@@ -691,7 +691,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 
 SCENARIO("Forward propagating multi-layer perceptron network")
 {
-	auto platformInfos = OpenCLDeviceHandler::GetPlatformInfos();
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
 	uniform_int_distribution<int> dimensionGenerator(1, 500);
@@ -708,7 +708,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 
 				vector<unique_ptr<OpenCLContext>> contexts;
 				for (auto platformInfo : platformInfos)
-					contexts.push_back(move(OpenCLDeviceHandler::GetContext(platformInfo)));
+					contexts.push_back(move(OpenCLHelper::GetContext(platformInfo)));
 
 				for (auto& contextPointer : contexts)
 				{
