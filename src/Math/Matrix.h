@@ -26,6 +26,7 @@ private:
 	unique_ptr<T[]> managedData;
 	int rows;
 	int columns;
+	int elementCount;
 
 public:
 	Matrix();
@@ -36,11 +37,19 @@ public:
 	Matrix(Matrix<T>&& other);
 	~Matrix();
 
+	static Matrix<T> Zeros(int rows, int columns);
+	static Matrix<T> Ones(int rows, int columns);
+	static Matrix<T> Identity(int dimension);
+	static Matrix<T> RandomUniform(int rows, int columns, T min = 0, T max = 1);
+	static Matrix<T> RandomNormal(int rows, int columns, T mean = 0, T deviation = 1);
+
 	int ColumnCount() const;
 	int RowCount() const;
+	int ElementCount() const;
 	Matrix<T> Transpose() const;
 	T Norm2() const;
 	T At(int row, int column) const;
+	T& At(int row, int column);
 
 	Matrix<T>& operator=(const Matrix<T>& other);
 	Matrix<T>& operator=(Matrix<T>&& other);
