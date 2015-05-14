@@ -14,11 +14,15 @@
 #include "CNN/CNNTrainer.h"
 #include "CNN/IAlgorithmConfig.h"
 
+#include "OpenCLHelper/OpenCLDeviceInfo.h"
 #include "OpenCLHelper/OpenCLContext.h"
+#include "OpenCLHelper/OpenCLDevice.h"
+
 #include "OpenCLForwardBackPropLayer.h"
 #include "StandardOutputLayer.h"
 
 #include <memory>
+#include <vector>
 
 using namespace std;
 using namespace ATML::Helper;
@@ -32,12 +36,11 @@ template<class T>
 class CNNOpenCL final: public TrainableCNN<T>
 {
 private:
-	shared_ptr<OpenCLContext> context;
+	vector<shared_ptr<OpenCLContext>> contexts;
 	vector<unique_ptr<OpenCLForwardBackPropLayer<T>>> layers;
 	unique_ptr<StandardOutputLayer<T>> outputLayer;
 public:
-	//TODO: Add a vector of contexts
-	CNNOpenCL(unique_ptr<OpenCLContext> context, unique_ptr<CNNConfig> config);
+	CNNOpenCL(const vector<OpenCLDeviceInfo>& devices, unique_ptr<CNNConfig> config);
 	virtual ~CNNOpenCL();
 
 	virtual unique_ptr<T[]> FeedForwardAligned(T* input, int formatIndex)
@@ -58,8 +61,12 @@ public:
 	virtual void TrainNetwork(unique_ptr<CNNTrainer<T>> trainer,
 			unique_ptr<IAlgorithmConfig> algorithm) override;
 
-	vector<OpenCLForwardBackPropLayer<T>*> GetLayers();
-	StandardOutputLayer<T>* GetOutputLayer();
+	vector<OpenCLForwardBackPropLayer<T>*> GetLayers() const;
+	StandardOutputLayer<T>* GetOutputLayer() const;
+	vector<OpenCLContext*> GetOpenCLContexts() const;
+
+private:
+	void InitializeContexts(const vector<OpenCLDeviceInfo>& devices);
 };
 
 } /* namespace MachineLearning */

@@ -305,13 +305,13 @@ vector<OpenCLDeviceInfo> OpenCLHelper::GetDeviceInfos(
 
 	cl_uint deviceCount;
 	CheckOpenCLError(
-			clGetDeviceIDs(platformInfo.PlatformInfo(), CL_DEVICE_TYPE_ALL, 0,
+			clGetDeviceIDs(platformInfo.PlatformID(), CL_DEVICE_TYPE_ALL, 0,
 			NULL, &deviceCount), "Could not fetch the device count");
 
 	vector<cl_device_id> devices;
 	devices.resize(deviceCount);
 	CheckOpenCLError(
-			clGetDeviceIDs(platformInfo.PlatformInfo(), CL_DEVICE_TYPE_ALL,
+			clGetDeviceIDs(platformInfo.PlatformID(), CL_DEVICE_TYPE_ALL,
 					deviceCount, devices.data(), NULL),
 			"Could not fetch the devices");
 	for (auto device : devices)

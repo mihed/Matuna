@@ -22,7 +22,7 @@ namespace ATML {
 		class OpenCLPlatformInfo final{
 
 		private:
-			cl_platform_id platformInfo;
+			cl_platform_id platformID;
 
 			string platformName;
 			string platformProfile;
@@ -38,7 +38,7 @@ namespace ATML {
 			*@param platformVersion The OpenCL version of the platform. Obtained by the corresponding native call.
 			*@param platformExtensions The extensions supported by the OpenCL platform.
 			*/
-			OpenCLPlatformInfo(const cl_platform_id platformInfo,
+			OpenCLPlatformInfo(const cl_platform_id platformID,
 				const string& platformName, const string& platformProfile,
 				const string& platformVersion, const string& platformVendor,
 				const string& platformExtensions);
@@ -58,9 +58,9 @@ namespace ATML {
 			*
 			*@return The native OpenCL id of the platform
 			*/
-			cl_platform_id PlatformInfo() const
+			cl_platform_id PlatformID() const
 			{
-				return platformInfo;
+				return platformID;
 			}
 			;
 			/**

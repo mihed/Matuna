@@ -11,11 +11,11 @@
 namespace ATML {
 	namespace Helper {
 
-		OpenCLPlatformInfo::OpenCLPlatformInfo(const cl_platform_id platformInfo,
+		OpenCLPlatformInfo::OpenCLPlatformInfo(const cl_platform_id platformID,
 			const string& platformName, const string& platformProfile,
 			const string& platformVersion, const string& platformVendor,
 			const string& platformExtensions) :
-			platformInfo(platformInfo), platformName(platformName), platformProfile(
+				platformID(platformID), platformName(platformName), platformProfile(
 			platformProfile), platformVersion(platformVersion), platformVendor(
 			platformVendor), platformExtensions(platformExtensions) {
 

@@ -34,7 +34,7 @@ SCENARIO("Creating a CNNOpenCL network", "[CNNOpenCL][OpenCLContext]")
 	}
 
 	INFO("Creating a OCL Context");
-	auto context = OpenCLHelper::GetContext(platformInfos[0]);
+	auto deviceInfos = OpenCLHelper::GetDeviceInfos(platformInfos[0]);
 
 	INFO("Creating a suitable CNNConfig");
 
@@ -62,6 +62,6 @@ SCENARIO("Creating a CNNOpenCL network", "[CNNOpenCL][OpenCLContext]")
 	config->AddToBack(move(config3));
 
 	INFO("Creating a CNNOpenCL<cl_float> network from the config");
-	CNNOpenCL<cl_float> network(move(context), move(config));
+	CNNOpenCL<cl_float> network(deviceInfos, move(config));
 	CHECK(network.Interlocked());
 }
