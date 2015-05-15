@@ -23,8 +23,9 @@ template class PerceptronLayer<cl_double> ;
 template<class T>
 PerceptronLayer<T>::PerceptronLayer(shared_ptr<OpenCLContext> context,
 		const vector<LayerDataDescription>& inputLayerDescriptions,
+		ATMLActivationFunction backPropActivation,
 		const PerceptronLayerConfig* config) :
-		OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions, config), config(
+		OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions, backPropActivation,config), config(
 				*config)
 {
 	if (inputLayerDescriptions.size() == 0)

@@ -30,6 +30,7 @@ private:
 public:
 	StandardOutputLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
+			ATMLActivationFunction backPropActivation,
 			const OutputLayerConfig* outputLayerConfig);
 	~StandardOutputLayer();
 

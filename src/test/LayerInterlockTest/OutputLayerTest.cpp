@@ -13,8 +13,9 @@ using namespace std;
 
 OutputLayerTest::OutputLayerTest(
 		const vector<LayerDataDescription>& inputLayerDescriptions,
+		ATMLActivationFunction backPropActivation,
 		const OutputLayerConfig* config) :
-		OutputLayer(inputLayerDescriptions, config)
+		OutputLayer(inputLayerDescriptions, backPropActivation, config)
 {
 	unsigned seed = chrono::system_clock::now().time_since_epoch().count();
 	default_random_engine generator(seed);

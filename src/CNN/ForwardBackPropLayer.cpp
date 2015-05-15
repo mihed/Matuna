@@ -18,8 +18,9 @@ namespace MachineLearning
 
 ForwardBackPropLayer::ForwardBackPropLayer(
 		const vector<LayerDataDescription>& inputLayerDescriptions,
+		ATMLActivationFunction backPropActivation,
 		const ForwardBackPropLayerConfig* config) :
-		BackPropLayer(inputLayerDescriptions)
+		BackPropLayer(inputLayerDescriptions, backPropActivation)
 {
 	outputInterlocked = false;
 }

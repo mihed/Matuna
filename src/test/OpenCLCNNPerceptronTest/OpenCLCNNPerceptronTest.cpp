@@ -622,7 +622,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 	uniform_int_distribution<int> dimensionGenerator(1, 500);
 	uniform_int_distribution<int> layerGenerator(1, 6);
 
-	WHEN("Forward propagating using single precision, sigmoid and standard math")
+	WHEN("Forward propagating using single precision and standard math")
 	{
 
 		THEN("The values must match the hand-calculated values")

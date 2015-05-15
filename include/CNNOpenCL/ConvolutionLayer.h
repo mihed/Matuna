@@ -25,6 +25,7 @@ class ConvolutionLayer: public OpenCLForwardBackPropLayer<T>
 public:
 	ConvolutionLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
+			ATMLActivationFunction backPropActivation,
 			const ConvolutionLayerConfig* config);
 	virtual ~ConvolutionLayer();
 

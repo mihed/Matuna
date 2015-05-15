@@ -57,8 +57,10 @@ void CNNOpenCLFactoryVisitor<T>::Visit(
 		const PerceptronLayerConfig* const perceptronConfig)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new PerceptronLayer<T>(context, inputDataDescriptions,
+			new PerceptronLayer<T>(context, inputDataDescriptions, backPropActivation,
 					perceptronConfig));
+
+	backPropActivation = perceptronConfig->ActivationFunction();
 
 	//The forwardInputProposal, backOutputProposal and inputDataDescription are set here.
 	InterlockLayer(layer.get());
@@ -71,8 +73,10 @@ void CNNOpenCLFactoryVisitor<T>::Visit(
 		const ConvolutionLayerConfig* const convolutionConfig)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new ConvolutionLayer<T>(context, inputDataDescriptions,
+			new ConvolutionLayer<T>(context, inputDataDescriptions, backPropActivation,
 					convolutionConfig));
+
+	backPropActivation = convolutionConfig->ActivationFunction();
 
 	//The forwardInputProposal, backOutputProposal and inputDataDescription are set here.
 	InterlockLayer(layer.get());
@@ -84,8 +88,10 @@ void CNNOpenCLFactoryVisitor<T>::Visit(
 		const StandardOutputLayerConfig* const outputConfig)
 {
 	unique_ptr<OutputLayer> layer(
-			new StandardOutputLayer<T>(context, inputDataDescriptions,
+			new StandardOutputLayer<T>(context, inputDataDescriptions, backPropActivation,
 					outputConfig));
+
+	//TODO: If we end up with more configs after this call we should throw an exception
 
 	InterlockLayer(layer.get());
 

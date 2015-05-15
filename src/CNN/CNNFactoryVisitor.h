@@ -10,6 +10,7 @@
 
 #include "ILayerConfigVisitor.h"
 #include "ForwardBackPropLayer.h"
+#include "ATMLActivationFunctionEnum.h"
 #include "OutputLayer.h"
 #include <vector>
 #include <memory>
@@ -34,6 +35,7 @@ protected:
 	vector<LayerDataDescription> inputDataDescriptions;
 	vector<LayerMemoryDescription> forwardInputProposals;
 	vector<LayerMemoryDescription> backOutputProposals;
+	ATMLActivationFunction backPropActivation;
 
 	void InterlockLayer(ForwardBackPropLayer* layer);
 	void InterlockLayer(BackPropLayer* layer);

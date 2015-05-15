@@ -21,6 +21,7 @@ class OutputLayer: public BackPropLayer
 {
 public:
 	OutputLayer(const vector<LayerDataDescription>& inputLayerDescriptions,
+			ATMLActivationFunction backPropActivation,
 			const OutputLayerConfig* outputLayerConfig);
 	virtual ~OutputLayer();
 };

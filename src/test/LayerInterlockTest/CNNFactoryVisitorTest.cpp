@@ -42,7 +42,9 @@ void CNNFactoryVisitorTest::Visit(
 		const PerceptronLayerConfig* const perceptronConfig)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new ForthBackPropLayerTest(inputDataDescriptions, perceptronConfig));
+			new ForthBackPropLayerTest(inputDataDescriptions, backPropActivation, perceptronConfig));
+
+	backPropActivation = perceptronConfig->ActivationFunction();
 
 	InterlockLayer(layer.get());
 
@@ -54,7 +56,10 @@ void CNNFactoryVisitorTest::Visit(
 {
 	unique_ptr<ForwardBackPropLayer> layer(
 			new ForthBackPropLayerTest(inputDataDescriptions,
+			backPropActivation,
 					convolutionConfig));
+
+	backPropActivation = convolutionConfig->ActivationFunction();
 
 	InterlockLayer(layer.get());
 
@@ -65,7 +70,7 @@ void CNNFactoryVisitorTest::Visit(
 		const StandardOutputLayerConfig* const convolutionConfig)
 {
 	unique_ptr<OutputLayer> layer(
-			new OutputLayerTest(inputDataDescriptions, convolutionConfig));
+		new OutputLayerTest(inputDataDescriptions, backPropActivation, convolutionConfig));
 
 	InterlockLayer(layer.get());
 

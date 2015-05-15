@@ -17,8 +17,9 @@ namespace MachineLearning
 
 OutputLayer::OutputLayer(
 		const vector<LayerDataDescription>& inputLayerDescriptions,
+		ATMLActivationFunction backPropActivation,
 		const OutputLayerConfig* outputLayerConfig) :
-		BackPropLayer(inputLayerDescriptions)
+		BackPropLayer(inputLayerDescriptions, backPropActivation)
 {
 
 }

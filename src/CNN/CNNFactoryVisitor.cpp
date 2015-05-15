@@ -19,7 +19,7 @@ namespace MachineLearning
 CNNFactoryVisitor::CNNFactoryVisitor(CNN* network) :
 		network(network)
 {
-
+	backPropActivation = ATMLLinearActivation;
 }
 
 CNNFactoryVisitor::~CNNFactoryVisitor()

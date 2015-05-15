@@ -17,8 +17,8 @@ namespace MachineLearning
 {
 
 BackPropLayer::BackPropLayer(
-		const vector<LayerDataDescription>& inputLayerDescriptions) :
-		inForwardPropDataDescriptions(inputLayerDescriptions)
+	const vector<LayerDataDescription>& inputLayerDescriptions, ATMLActivationFunction backPropActivation) :
+	inForwardPropDataDescriptions(inputLayerDescriptions), backPropActivation(backPropActivation)
 {
 	inputInterlocked = false;
 	outputInterlocked = false;
@@ -28,6 +28,11 @@ BackPropLayer::BackPropLayer(
 BackPropLayer::~BackPropLayer()
 {
 
+}
+
+ATMLActivationFunction BackPropLayer::BackPropActivationFunction() const
+{
+	return backPropActivation;
 }
 
 bool BackPropLayer::Interlocked() const

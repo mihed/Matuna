@@ -29,6 +29,7 @@ protected:
 public:
 	OpenCLForwardBackPropLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
+			ATMLActivationFunction backPropActivation,
 			const ForwardBackPropLayerConfig* config);
 	virtual ~OpenCLForwardBackPropLayer();
 

@@ -41,6 +41,7 @@ private:
 public:
 	PerceptronLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
+			ATMLActivationFunction backPropActivation,
 			const PerceptronLayerConfig* config);
 	virtual ~PerceptronLayer();
 

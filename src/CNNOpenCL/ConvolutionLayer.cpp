@@ -19,8 +19,9 @@ template class ConvolutionLayer<cl_double> ;
 template<class T>
 ConvolutionLayer<T>::ConvolutionLayer(shared_ptr<OpenCLContext> context,
 		const vector<LayerDataDescription>& inputLayerDescriptions,
+		ATMLActivationFunction backPropActivation,
 		const ConvolutionLayerConfig* config) :
-		OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions, config)
+		OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions, backPropActivation, config)
 {
 
 }

@@ -18,8 +18,9 @@ template class StandardOutputLayer<cl_double> ;
 template<class T>
 StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
 		const vector<LayerDataDescription>& inputLayerDescriptions,
+		ATMLActivationFunction backPropActivation,
 		const OutputLayerConfig* outputLayerConfig) :
-		OutputLayer(inputLayerDescriptions, outputLayerConfig), context(context)
+		OutputLayer(inputLayerDescriptions, backPropActivation, outputLayerConfig), context(context)
 {
 	//The targets must have the same data descriptions as the inputs
 	inBackPropDataDescriptions = inputLayerDescriptions;

@@ -10,6 +10,7 @@
 
 #include "Layer.h"
 #include "LayerDescriptions.h"
+#include "ATMLActivationFunctionEnum.h"
 #include <vector>
 
 using namespace std;
@@ -25,6 +26,7 @@ private:
 	bool forwardInputInterlocked;
 	bool inputInterlocked;
 	bool outputInterlocked;
+	ATMLActivationFunction backPropActivation;
 
 	vector<LayerDataDescription> inForwardPropDataDescriptions;
 
@@ -44,7 +46,7 @@ protected:
 	vector<LayerMemoryDescription> inForwardPropMemoryProposals; //Must be set inside constructor for derived classes
 
 public:
-	BackPropLayer(const vector<LayerDataDescription>& inputLayerDescriptions);
+	BackPropLayer(const vector<LayerDataDescription>& inputLayerDescriptions, ATMLActivationFunction backPropActivation);
 	virtual ~BackPropLayer();
 
 	void InterlockForwardPropInput(
@@ -53,6 +55,8 @@ public:
 			const vector<LayerMemoryDescription>& inputDescriptions);
 	void InterlockBackPropOutput(
 			const vector<LayerMemoryDescription>& outputDescriptions);
+
+	ATMLActivationFunction BackPropActivationFunction() const;
 
 	virtual bool Interlocked() const;
 

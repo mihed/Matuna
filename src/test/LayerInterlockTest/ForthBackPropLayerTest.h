@@ -16,6 +16,7 @@ class ForthBackPropLayerTest: public ForwardBackPropLayer
 {
 public:
 	ForthBackPropLayerTest(const vector<LayerDataDescription>& inputLayerDescriptions,
+			ATMLActivationFunction backPropActivation,
 			const ForwardBackPropLayerConfig* config);
 	~ForthBackPropLayerTest();
 

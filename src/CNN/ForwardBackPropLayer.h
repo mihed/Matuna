@@ -30,6 +30,7 @@ protected:
 public:
 	ForwardBackPropLayer(
 			const vector<LayerDataDescription>& inputLayerDescriptions,
+			ATMLActivationFunction backPropActivation,
 			const ForwardBackPropLayerConfig* config);
 	virtual ~ForwardBackPropLayer();
 

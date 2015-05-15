@@ -21,8 +21,9 @@ template<class T>
 OpenCLForwardBackPropLayer<T>::OpenCLForwardBackPropLayer(
 		shared_ptr<OpenCLContext> context,
 		const vector<LayerDataDescription>& inputLayerDescriptions,
+		ATMLActivationFunction backPropActivation,
 		const ForwardBackPropLayerConfig* config) :
-		ForwardBackPropLayer(inputLayerDescriptions, config), context(context)
+		ForwardBackPropLayer(inputLayerDescriptions, backPropActivation, config), context(context)
 {
 
 }

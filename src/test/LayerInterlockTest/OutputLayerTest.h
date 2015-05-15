@@ -16,6 +16,7 @@ class OutputLayerTest: public OutputLayer
 {
 public:
 	OutputLayerTest(const vector<LayerDataDescription>& inputLayerDescriptions,
+		ATMLActivationFunction backPropActivation,
 			const OutputLayerConfig* config);
 	~OutputLayerTest();
 
