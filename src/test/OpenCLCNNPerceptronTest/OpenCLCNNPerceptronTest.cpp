@@ -560,7 +560,7 @@ double SigmoidActivationDouble(double x)
 
 float TanhActivationFloat(float x)
 {
-	return 1.7159 *  tanh(0.6666666f * x);
+	return 1.7159f *  tanh(0.6666666f * x);
 }
 
 double TanhActivationDouble(double x)
@@ -647,7 +647,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 					vector<Matrix<float>> weights;
 					vector<Matrix<float>> biases;
 					vector<ATMLActivationFunction> activationFunctions;
-					LayerDataDescription inputDataDesc = network.InputDataDescriptions()[0];
+					LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 
 					auto input = Matrix<float>::RandomNormal(inputDataDesc.Units, 1);
 
@@ -679,7 +679,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 
 
 					INFO("Making sure the manually calculated perceptron corresponds to the output dimension of the network");
-					auto outputDataDesc = network.OutputDataDescriptions()[0];
+					auto outputDataDesc = network.OutputForwardDataDescriptions()[0];
 					CHECK(outputDataDesc.Units == result.RowCount());
 					CHECK(outputDataDesc.Width == 1);
 					CHECK(outputDataDesc.Height == 1);

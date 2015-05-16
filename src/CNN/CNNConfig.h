@@ -27,7 +27,6 @@ class CNNConfig: public ILayerConfig
 {
 
 private:
-	vector<LayerMemoryDescription> inputMemoryProposals;
 	vector<LayerDataDescription> inputDataDescriptions;
 
 	vector<unique_ptr<ForwardBackPropLayerConfig>> forwardBackConfigs;
@@ -35,9 +34,6 @@ private:
 
 public:
 	CNNConfig(const vector<LayerDataDescription>& inputDataDescriptions);
-
-	CNNConfig(const vector<LayerDataDescription>& inputDataDescriptions,
-			const vector<LayerMemoryDescription>& inputMemoryProposals);
 
 	~CNNConfig();
 
@@ -53,7 +49,6 @@ public:
 
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 
-	vector<LayerMemoryDescription> InputMemoryProposal() const;
 	vector<LayerDataDescription> InputDataDescription() const;
 };
 

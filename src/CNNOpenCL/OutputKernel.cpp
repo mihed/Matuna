@@ -1,0 +1,224 @@
+/*
+ * OutputKernel.cpp
+ *
+ *  Created on: May 15, 2015
+ *      Author: Mikael
+ */
+
+#include "OutputKernel.h"
+#include "OpenCLHelper/OpenCLUtility.h"
+#include "Helper/FileHelper.h"
+#include "Helper/Path.h"
+
+namespace ATML
+{
+namespace MachineLearning
+{
+
+template class OutputKernel<cl_float> ;
+template class OutputKernel<cl_double> ;
+
+template<class T>
+OutputKernel<T>::OutputKernel(int unitsCount, int inputOffset, int outputOffset) :
+		unitsCount(unitsCount), inputOffset(inputOffset), outputOffset(
+				outputOffset)
+{
+	stringstream stringStream;
+
+	stringStream << "OutputBackPropProgram";
+	stringStream << instanceCounter;
+	programName = stringStream.str();
+	kernelName = "BackPropagation";
+
+	useConstantInput = false;
+	useConstantTarget = false;
+	useRelaxedMath = false;
+	activationFunction = ATMLSigmoidActivation;
+	computationPrecision = ATMLNormalPrecision;
+	errorFunction = ATMLMeanSquareError;
+
+	globalWorkSize.push_back(unitsCount);
+}
+
+template<class T>
+OutputKernel<T>::~OutputKernel()
+{
+
+}
+
+template<class T>
+void OutputKernel<T>::SetConstantInput(bool value)
+{
+	useConstantInput = value;
+}
+
+template<class T>
+void OutputKernel<T>::SetConstantTarget(bool value)
+{
+	useConstantTarget = value;
+}
+
+template<class T>
+void OutputKernel<T>::SetUseRelaxedMath(bool value)
+{
+	useRelaxedMath = value;
+}
+
+template<class T>
+void OutputKernel<T>::SetActivationFunction(
+		ATMLActivationFunction activationFunction)
+{
+	this->activationFunction = activationFunction;
+}
+
+template<class T>
+void OutputKernel<T>::SetComputationPrecision(
+		ATMLComputationPrecision computationPrecision)
+{
+	this->computationPrecision = computationPrecision;
+}
+
+template<class T>
+void OutputKernel<T>::SetErrorFunction(ATMLErrorFunction errorFunction)
+{
+	this->errorFunction = errorFunction;
+}
+
+template<class T>
+void OutputKernel<T>::SetInput(OpenCLMemory* input)
+{
+	auto rawInput = input->GetCLMemory();
+	CheckOpenCLError(
+			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
+			"Could not set the kernel arguments");
+}
+
+template<class T>
+void OutputKernel<T>::SetTarget(OpenCLMemory* target)
+{
+	auto rawTarget = target->GetCLMemory();
+	CheckOpenCLError(
+			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawTarget),
+			"Could not set the kernel arguments");
+}
+
+template<class T>
+void OutputKernel<T>::SetOutput(OpenCLMemory* output)
+{
+	auto rawOutput = output->GetCLMemory();
+	CheckOpenCLError(
+			clSetKernelArg(this->GetKernel(), 2, sizeof(cl_mem), &rawOutput),
+			"Could not set the kernel arguments");
+}
+
+template<class T>
+void OutputKernel<T>::InitializeCompilerOptions()
+{
+	stringstream stringStream;
+
+	if (useConstantInput)
+		stringStream << "-D" << "CONSTANT_INPUT ";
+	if (useConstantTarget)
+		stringStream << "-D" << "CONSTANT_TARGET ";
+
+	//Refer to the notes for this
+	if (errorFunction == ATMLMeanSquareError)
+	{
+		if (activationFunction == ATMLLinearActivation)
+			stringStream << "-D" << "DIFFERENCE ";
+		else
+			stringStream << "-D" << "MSE_ANY ";
+	}
+	else if (errorFunction == ATMLCrossEntropy)
+	{
+		if (unitsCount == 1)
+		{
+			if (activationFunction == ATMLSigmoidActivation)
+				stringStream << "-D" << "DIFFERENCE ";
+			else
+				stringStream << "-D" << "CE_BINARY_ANY ";
+		}
+		else
+		{
+			if (activationFunction == ATMLSoftMaxActivation)
+				stringStream << "-D" << "DIFFERENCE ";
+			else
+				stringStream << "-D" << "CE_ANY ";
+		}
+		stringStream << "-D" << "CONSTANT_TARGET ";
+	}
+	else
+		throw invalid_argument(
+				"The error function is not supported by the output kernel");
+
+	stringStream << "-D" << "INPUT_UNIT_OFFSET=" << inputOffset << " ";
+	stringStream << "-D" << "OUTPUT_UNIT_OFFSET=" << outputOffset << " ";
+
+	if (is_same<cl_double, T>::value)
+		stringStream << "-D" << "DOUBLE_PRECISION ";
+	else if (!is_same<cl_float, T>::value)
+		throw runtime_error(
+				"The template type is not valid. This is an indication of programming error");
+
+	if (activationFunction == ATMLSigmoidActivation)
+		stringStream << "-D" << "SIGMOID ";
+	else if (activationFunction == ATMLTanhActivation)
+		stringStream << "-D" << "TANH ";
+
+	if (computationPrecision == ATMLNativePrecision)
+		stringStream << "-D" << "NATIVE_MATH ";
+	else if (computationPrecision == ATMLHalfPrecision)
+		stringStream << "-D" << "HALF_MATH ";
+
+	if (useRelaxedMath)
+		stringStream << "-cl-fast-relaxed-math";
+
+	compilerOptions = stringStream.str();
+
+}
+
+template<class T>
+string OutputKernel<T>::ProgramName() const
+{
+	return programName;
+}
+
+template<class T>
+string OutputKernel<T>::GetCompilerOptions() const
+{
+	return compilerOptions;
+}
+
+template<class T>
+vector<string> OutputKernel<T>::GetProgramCode() const
+{
+	vector<string> result;
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(
+							Path::GetDirectoryPath(
+									FileHelper::GetExecutablePath()), "kernels",
+							"OutputBackProp.cl")));
+	return result;
+}
+
+template<class T>
+string OutputKernel<T>::KernelName() const
+{
+	return kernelName;
+}
+
+template<class T>
+const vector<size_t>& OutputKernel<T>::GlobalWorkSize() const
+{
+	return globalWorkSize;
+}
+
+template<class T>
+const vector<size_t>& OutputKernel<T>::LocalWorkSize() const
+{
+	return localWorkSize;
+}
+
+} /* namespace MachineLearning */
+} /* namespace ATML */

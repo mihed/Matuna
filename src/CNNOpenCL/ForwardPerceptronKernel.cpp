@@ -66,7 +66,6 @@ void ForwardPerceptronKernel<T>::InitializeArguments()
 template<class T>
 void ForwardPerceptronKernel<T>::InitializeCompilerOptions()
 {
-	//Constructing compiler options string
 	stringstream stringStream;
 
 	if (useConstantBiases)

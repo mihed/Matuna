@@ -32,10 +32,10 @@ TrainableCNN<T>::~TrainableCNN()
 }
 
 template<class T>
-bool TrainableCNN<T>::RequireInputAlignment(int formatIndex) const
+bool TrainableCNN<T>::RequireForwardInputAlignment(int formatIndex) const
 {
-	auto inputDataDesc = this->InputDataDescriptions()[formatIndex];
-	auto inputMemDesc = this->InputMemoryDescriptions()[formatIndex];
+	auto inputDataDesc = this->InputForwardDataDescriptions()[formatIndex];
+	auto inputMemDesc = this->InputForwardMemoryDescriptions()[formatIndex];
 
 	return !(inputDataDesc.Width == inputMemDesc.Width
 			&& inputDataDesc.Height == inputMemDesc.Height
@@ -43,14 +43,25 @@ bool TrainableCNN<T>::RequireInputAlignment(int formatIndex) const
 }
 
 template<class T>
-bool TrainableCNN<T>::RequireOutputAlignment(int formatIndex) const
+bool TrainableCNN<T>::RequireForwardOutputAlignment(int formatIndex) const
 {
-	auto outputDataDesc = this->OutputDataDescriptions()[formatIndex];
-	auto outputMemDesc = this->OutputMemoryDescriptions()[formatIndex];
+	auto outputDataDesc = this->OutputForwardDataDescriptions()[formatIndex];
+	auto outputMemDesc = this->OutputForwardMemoryDescriptions()[formatIndex];
 
 	return !(outputDataDesc.Width == outputMemDesc.Width
 			&& outputDataDesc.Height == outputMemDesc.Height
 			&& outputDataDesc.Units == outputMemDesc.Units);
+}
+
+template<class T>
+bool TrainableCNN<T>::RequireBackOutputAlignment(int formatIndex) const
+{
+	auto inputDataDesc = this->InputForwardDataDescriptions()[formatIndex];
+	auto outBackMemDesc = this->OutputBackMemoryDescriptions()[formatIndex];
+
+	return !(inputDataDesc.Width == outBackMemDesc.Width
+		&& inputDataDesc.Height == outBackMemDesc.Height
+		&& inputDataDesc.Units == outBackMemDesc.Units);
 }
 
 template<class T>
@@ -108,60 +119,119 @@ unique_ptr<T[]> UnalignmentHelper(const LayerDataDescription& inputDataDesc,
 }
 
 template<class T>
-unique_ptr<T[]> TrainableCNN<T>::AlignToOutput(T* output, int formatIndex) const
+unique_ptr<T[]> TrainableCNN<T>::AlignToForwardOutput(T* output, int formatIndex) const
 {
-	auto outputDataDesc = this->OutputDataDescriptions()[formatIndex];
-	auto outputMemDesc = this->OutputMemoryDescriptions()[formatIndex];
+	auto outputDataDesc = this->OutputForwardDataDescriptions()[formatIndex];
+	auto outputMemDesc = this->OutputForwardMemoryDescriptions()[formatIndex];
 
 	return move(AlignmentHelper<T>(outputDataDesc, outputMemDesc, output));
 }
 
 template<class T>
-unique_ptr<T[]> TrainableCNN<T>::AlignToInput(T* input, int formatIndex) const
+unique_ptr<T[]> TrainableCNN<T>::AlignToForwardInput(T* input, int formatIndex) const
 {
-	auto inputDataDesc = this->InputDataDescriptions()[formatIndex];
-	auto inputMemDesc = this->InputMemoryDescriptions()[formatIndex];
+	auto inputDataDesc = this->InputForwardDataDescriptions()[formatIndex];
+	auto inputMemDesc = this->InputForwardMemoryDescriptions()[formatIndex];
 
 	return move(AlignmentHelper<T>(inputDataDesc, inputMemDesc, input));
 }
 
 template<class T>
-unique_ptr<T[]> TrainableCNN<T>::UnalignFromOutput(T* output,
+unique_ptr<T[]> TrainableCNN<T>::UnalignFromForwardOutput(T* output,
 		int formatIndex) const
 {
-	auto outputDataDesc = this->OutputDataDescriptions()[formatIndex];
-	auto outputMemDesc = this->OutputMemoryDescriptions()[formatIndex];
+	auto outputDataDesc = this->OutputForwardDataDescriptions()[formatIndex];
+	auto outputMemDesc = this->OutputForwardMemoryDescriptions()[formatIndex];
 
 	return move(UnalignmentHelper<T>(outputDataDesc, outputMemDesc, output));
 }
 
 template<class T>
-unique_ptr<T[]> TrainableCNN<T>::UnalignFromInput(T* input, int formatIndex) const
+unique_ptr<T[]> TrainableCNN<T>::UnalignFromForwardInput(T* input,
+		int formatIndex) const
 {
-	auto inputDataDesc = this->InputDataDescriptions()[formatIndex];
-	auto inputMemDesc = this->InputMemoryDescriptions()[formatIndex];
+	auto inputDataDesc = this->InputForwardDataDescriptions()[formatIndex];
+	auto inputMemDesc = this->InputForwardMemoryDescriptions()[formatIndex];
 
 	return move(UnalignmentHelper<T>(inputDataDesc, inputMemDesc, input));
 }
 
 template<class T>
+unique_ptr<T[]> TrainableCNN<T>::AlignToBackOutput(T* input, int formatIndex) const
+{
+	auto inputDataDesc = this->InputForwardDataDescriptions()[formatIndex];
+	auto outBackMemDesc = this->OutputBackMemoryDescriptions()[formatIndex];
+
+	return move(AlignmentHelper<T>(inputDataDesc, outBackMemDesc, input));
+}
+
+template<class T>
+unique_ptr<T[]> TrainableCNN<T>::UnalignFromBackOutput(T* input, int formatIndex) const
+{
+	auto inputDataDesc = this->InputForwardDataDescriptions()[formatIndex];
+	auto outBackMemDesc = this->OutputBackMemoryDescriptions()[formatIndex];
+
+	return move(UnalignmentHelper<T>(inputDataDesc, outBackMemDesc, input));
+}
+
+template<class T>
 unique_ptr<T[]> TrainableCNN<T>::FeedForwardUnaligned(T* input, int formatIndex)
 {
-	if (RequireInputAlignment(formatIndex))
+	if (RequireForwardInputAlignment(formatIndex))
 	{
-		unique_ptr<T[]> alignedInput = move(AlignToInput(input, formatIndex));
-		unique_ptr<T[]> alignedOutput = move(FeedForwardAligned(alignedInput.get(), formatIndex));
+		unique_ptr<T[]> alignedInput = move(AlignToForwardInput(input, formatIndex));
+		unique_ptr<T[]> alignedOutput = move(
+				FeedForwardAligned(alignedInput.get(), formatIndex));
 
-		if (RequireOutputAlignment(formatIndex))
-			return move(UnalignFromOutput(alignedOutput.get(), formatIndex));
+		if (RequireForwardOutputAlignment(formatIndex))
+			return move(UnalignFromForwardOutput(alignedOutput.get(), formatIndex));
 		else
 			return move(alignedOutput);
 	}
 	else
 	{
-		unique_ptr<T[]> alignedOutput = move(FeedForwardAligned(input, formatIndex));
-		if (RequireOutputAlignment(formatIndex))
-			return move(UnalignFromOutput(alignedOutput.get(), formatIndex));
+		unique_ptr<T[]> alignedOutput = move(
+				FeedForwardAligned(input, formatIndex));
+		if (RequireForwardOutputAlignment(formatIndex))
+			return move(UnalignFromForwardOutput(alignedOutput.get(), formatIndex));
+		else
+			return move(alignedOutput);
+	}
+}
+
+template<class T>
+unique_ptr<T[]> TrainableCNN<T>::BackPropUnaligned(T* input, int formatIndex, T* target)
+{
+	if (RequireForwardInputAlignment(formatIndex))
+	{
+		unique_ptr<T[]> alignedInput = move(AlignToForwardInput(input, formatIndex));
+		unique_ptr<T[]> alignedOutput;
+		if (RequireForwardOutputAlignment(formatIndex))
+		{
+			unique_ptr<T[]> alignedTarget = move(AlignToForwardOutput(target, formatIndex));
+			alignedOutput = move(BackPropAligned(alignedInput.get(), formatIndex, alignedTarget.get()));
+		}
+		else
+			alignedOutput = move(BackPropAligned(alignedInput.get(), formatIndex, target));
+
+		if (RequireBackOutputAlignment(formatIndex))
+			return move(UnalignFromBackOutput(alignedOutput.get(), formatIndex));
+		else
+			return move(alignedOutput);
+	}
+	else
+	{
+		unique_ptr<T[]> alignedOutput;
+		if (RequireForwardOutputAlignment(formatIndex))
+		{
+			unique_ptr<T[]> alignedTarget = move(AlignToForwardOutput(target, formatIndex));
+			alignedOutput = move(BackPropAligned(input, formatIndex, alignedTarget.get()));
+		}
+		else
+			alignedOutput = move(BackPropAligned(input, formatIndex, target));
+
+		if (RequireBackOutputAlignment(formatIndex))
+			return move(UnalignFromBackOutput(alignedOutput.get(), formatIndex));
 		else
 			return move(alignedOutput);
 	}
@@ -169,15 +239,29 @@ unique_ptr<T[]> TrainableCNN<T>::FeedForwardUnaligned(T* input, int formatIndex)
 
 template<class T>
 unique_ptr<T[]> TrainableCNN<T>::CalculateGradientUnaligned(T* input,
-		int formatIndex)
+	int formatIndex, T* target)
 {
-	if (RequireInputAlignment(formatIndex))
+	if (RequireForwardInputAlignment(formatIndex))
 	{
-		unique_ptr<T[]> alignedInput = move(AlignToInput(input, formatIndex));
-		return move(CalculateGradientAligned(alignedInput.get(), formatIndex));
+		unique_ptr<T[]> alignedInput = move(AlignToForwardInput(input, formatIndex));
+		if (RequireForwardOutputAlignment(formatIndex))
+		{
+			unique_ptr<T[]> alignedTarget = move(AlignToForwardOutput(target, formatIndex));
+			return move(CalculateGradientAligned(alignedInput.get(), formatIndex, alignedTarget.get()));
+		}
+		else
+			return move(CalculateGradientAligned(alignedInput.get(), formatIndex, target));
 	}
 	else
-		return move(CalculateGradientAligned(input, formatIndex));
+	{
+		if (RequireForwardOutputAlignment(formatIndex))
+		{
+			unique_ptr<T[]> alignedTarget = move(AlignToForwardOutput(target, formatIndex));
+			return move(CalculateGradientAligned(input, formatIndex, alignedTarget.get()));
+		}
+		else
+			return move(CalculateGradientAligned(input, formatIndex, target));
+	}
 }
 
 } /* namespace MachineLearning */

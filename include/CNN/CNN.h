@@ -23,16 +23,18 @@ namespace MachineLearning
 class CNN
 {
 private:
-	vector<LayerDataDescription> inputDataDescriptions;
-	vector<LayerMemoryDescription> inputMemoryDescriptions;
-	vector<LayerMemoryDescription> inputMemoryProposals;
+	vector<LayerDataDescription> inputForwardDataDescriptions;
+	vector<LayerMemoryDescription> inputForwardMemoryDescriptions;
+	vector<LayerMemoryDescription> outputBackMemoryDescriptions;
 
-	vector<LayerMemoryDescription> outputMemoryDescriptions;
-	vector<LayerDataDescription> outputDataDescriptions;
+	vector<LayerMemoryDescription> outputForwardMemoryDescriptions;
+	vector<LayerDataDescription> outputForwardDataDescriptions;
+
 
 	bool inputInterlocked;
 	bool outputInterlocked;
 	bool outputDataInterlocked;
+	bool outputBackInterlocked;
 
 public:
 	CNN(const CNNConfig& config);
@@ -44,17 +46,20 @@ public:
 	void InterlockForwardPropOutput(
 			const vector<LayerMemoryDescription>& outputDescriptions);
 
+	void InterlockBackPropOutput(
+		const vector<LayerMemoryDescription>& outputDescriptions);
+
 	void InterlockForwardPropDataOutput(
 			const vector<LayerDataDescription>& outputDescriptions);
 
 	bool Interlocked() const;
 
-	vector<LayerDataDescription> InputDataDescriptions() const;
-	vector<LayerMemoryDescription> InputMemoryDescriptions() const;
-	vector<LayerMemoryDescription> InputMemoryProposals() const;
+	vector<LayerDataDescription> InputForwardDataDescriptions() const;
+	vector<LayerMemoryDescription> InputForwardMemoryDescriptions() const;
+	vector<LayerMemoryDescription> OutputBackMemoryDescriptions() const;
 
-	vector<LayerDataDescription> OutputDataDescriptions() const;
-	vector<LayerMemoryDescription> OutputMemoryDescriptions() const;
+	vector<LayerDataDescription> OutputForwardDataDescriptions() const;
+	vector<LayerMemoryDescription> OutputForwardMemoryDescriptions() const;
 
 };
 

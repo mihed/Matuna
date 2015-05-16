@@ -9,9 +9,14 @@
 #define CNNOPENCL_STANDARDOUTPUTLAYER_H_
 
 #include "CNN/OutputLayer.h"
+#include "CNN/StandardOutputLayerConfig.h"
+#include "OpenCLHelper/OpenCLContext.h"
 #include "OpenCLHelper/OpenCLDevice.h"
 #include "OpenCLHelper/OpenCLMemory.h"
+#include "OutputKernel.h"
+#include "ErrorKernel.h"
 #include <memory>
+#include <unordered_map>
 
 using namespace std;
 using namespace ATML::Helper;
@@ -26,22 +31,34 @@ class StandardOutputLayer final: public OutputLayer
 {
 private:
 	shared_ptr<OpenCLContext> context;
+	unordered_map<OpenCLDevice*, unique_ptr<OutputKernel<T>>> deviceAndOutputKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<ErrorKernel<T>>> deviceAndErrorKernels;
+	StandardOutputLayerConfig config;
+	LayerDataDescription inputDescription;
 
 public:
 	StandardOutputLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
 			ATMLActivationFunction backPropActivation,
-			const OutputLayerConfig* outputLayerConfig);
+			const StandardOutputLayerConfig* outputLayerConfig);
 	~StandardOutputLayer();
 
 	virtual void InterlockFinalized() override;
 
 	void EnqueueBackPropagation(OpenCLDevice* device, int queueIndex,
-			OpenCLMemory* previousInput, OpenCLMemory* delta,
+			OpenCLMemory* previousInput, OpenCLMemory* target,
 			OpenCLMemory* deltaOutput, bool blocking = true);
+
+	T CalculateError(OpenCLDevice* device,
+			int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* target, bool blocking = true);
+
+private:
+	void InitializeErrorKernel();
+	void InitializeOutputKernel();
 };
 
-} /* namespace MachineLearning */
+}
+/* namespace MachineLearning */
 } /* namespace ATML */
 
 #endif /* CNNOPENCL_STANDARDOUTPUTLAYER_H_ */

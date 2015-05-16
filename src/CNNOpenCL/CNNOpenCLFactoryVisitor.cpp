@@ -43,9 +43,20 @@ template<class T>
 void CNNOpenCLFactoryVisitor<T>::Visit(const CNNConfig* const cnnConfig)
 {
 	auto inputData = cnnConfig->InputDataDescription();
-	auto inputMemory = cnnConfig->InputMemoryProposal();
-	if (!InterlockHelper::IsCompatible(inputData, inputMemory))
-		throw runtime_error("Invalid cnn config memory and data description");
+
+	//Initialization. We assume that our data is as slim as possible
+	vector<LayerMemoryDescription> inputMemory;
+	for (auto& data : inputData)
+	{
+		LayerMemoryDescription memory;
+		memory.Width = data.Width;
+		memory.Height = data.Height;
+		memory.Units = data.Units;
+		memory.HeightOffset = 0;
+		memory.WidthOffset = 0;
+		memory.UnitOffset = 0;
+		inputMemory.push_back(memory);
+	}
 
 	forwardInputProposals = inputMemory;
 	backOutputProposals = inputMemory;

@@ -15,11 +15,11 @@ namespace MachineLearning
 
 CNN::CNN(const CNNConfig& config)
 {
-	inputDataDescriptions = config.InputDataDescription();
-	inputMemoryProposals = config.InputMemoryProposal();
+	inputForwardDataDescriptions = config.InputDataDescription();
 	inputInterlocked = false;
 	outputInterlocked = false;
 	outputDataInterlocked = false;
+	outputBackInterlocked = false;
 
 	//It is completely forbidding to call CNNFactoryVisitor here.
 	//However, it will work in any base classes since this constructor is instantiated first.
@@ -36,7 +36,7 @@ void CNN::InterlockForwardPropInput(
 	if (inputInterlocked)
 		throw runtime_error("The input is already interlocked");
 
-	inputMemoryDescriptions = inputDescriptions;
+	inputForwardMemoryDescriptions = inputDescriptions;
 	inputInterlocked = true;
 }
 
@@ -46,8 +46,18 @@ void CNN::InterlockForwardPropOutput(
 	if (outputInterlocked)
 		throw runtime_error("The output is already interlocked");
 
-	outputMemoryDescriptions = outputDescriptions;
+	outputForwardMemoryDescriptions = outputDescriptions;
 	outputInterlocked = true;
+}
+
+void CNN::InterlockBackPropOutput(
+	const vector<LayerMemoryDescription>& outputDescriptions)
+{
+	if (outputBackInterlocked)
+		throw runtime_error("The output data is already interlocked");
+
+	outputBackMemoryDescriptions = outputDescriptions;
+	outputBackInterlocked = true;
 }
 
 void CNN::InterlockForwardPropDataOutput(
@@ -56,37 +66,37 @@ void CNN::InterlockForwardPropDataOutput(
 	if (outputDataInterlocked)
 		throw runtime_error("The output data is already interlocked");
 
-	outputDataDescriptions = outputDescriptions;
+	outputForwardDataDescriptions = outputDescriptions;
 	outputDataInterlocked = true;
 }
 
 bool CNN::Interlocked() const
 {
-	return inputInterlocked && outputDataInterlocked && outputInterlocked;
+	return inputInterlocked && outputDataInterlocked && outputInterlocked && outputBackInterlocked;
 }
 
-vector<LayerDataDescription> CNN::InputDataDescriptions() const
+vector<LayerDataDescription> CNN::InputForwardDataDescriptions() const
 {
-	return inputDataDescriptions;
+	return inputForwardDataDescriptions;
 }
 
-vector<LayerMemoryDescription> CNN::InputMemoryDescriptions() const
+vector<LayerMemoryDescription> CNN::InputForwardMemoryDescriptions() const
 {
-	return inputMemoryDescriptions;
+	return inputForwardMemoryDescriptions;
 }
 
-vector<LayerMemoryDescription> CNN::InputMemoryProposals() const
+vector<LayerDataDescription> CNN::OutputForwardDataDescriptions() const
 {
-	return inputMemoryProposals;
+	return outputForwardDataDescriptions;
+}
+vector<LayerMemoryDescription> CNN::OutputForwardMemoryDescriptions() const
+{
+	return outputForwardMemoryDescriptions;
 }
 
-vector<LayerDataDescription> CNN::OutputDataDescriptions() const
+vector<LayerMemoryDescription> CNN::OutputBackMemoryDescriptions() const
 {
-	return outputDataDescriptions;
-}
-vector<LayerMemoryDescription> CNN::OutputMemoryDescriptions() const
-{
-	return outputMemoryDescriptions;
+	return outputBackMemoryDescriptions;
 }
 
 } /* namespace MachineLearning */

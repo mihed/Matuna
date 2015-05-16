@@ -6,6 +6,9 @@
  */
 
 #include "StandardOutputLayer.h"
+#include "CNN/InterlockHelper.h"
+#include <stdexcept>
+#include <type_traits>
 
 namespace ATML
 {
@@ -19,11 +22,29 @@ template<class T>
 StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
 		const vector<LayerDataDescription>& inputLayerDescriptions,
 		ATMLActivationFunction backPropActivation,
-		const OutputLayerConfig* outputLayerConfig) :
-		OutputLayer(inputLayerDescriptions, backPropActivation, outputLayerConfig), context(context)
+		const StandardOutputLayerConfig* outputLayerConfig) :
+		OutputLayer(inputLayerDescriptions, backPropActivation,
+				outputLayerConfig), context(context), config(*outputLayerConfig)
 {
+
+	if (inputLayerDescriptions.size() == 0)
+		throw invalid_argument(
+				"There's no input data descriptions for the standard output layer.");
+
+	//TODO: Make sure this works for a more general case later on.
+	if (inputLayerDescriptions.size() > 1)
+	{
+		auto count = inputLayerDescriptions.size();
+		for (int i = 1; i < count; i++)
+			if (!InterlockHelper::DataEquals(inputLayerDescriptions[i - 1],
+					inputLayerDescriptions[i]))
+				throw invalid_argument(
+						"We cannot have multiple different input descriptions for a standard output layer");
+	}
+
 	//The targets must have the same data descriptions as the inputs
 	inBackPropDataDescriptions = inputLayerDescriptions;
+	inputDescription = inputLayerDescriptions[0];
 
 	for (auto& inputDescription : inputLayerDescriptions)
 	{
@@ -43,21 +64,131 @@ StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
 template<class T>
 StandardOutputLayer<T>::~StandardOutputLayer()
 {
+	for (auto& deviceAndKernel : deviceAndOutputKernels)
+	{
+		auto& kernelProgram = deviceAndKernel.second;
+		this->context->RemoveKernel(kernelProgram.get());
+		this->context->RemoveProgram(kernelProgram.get());
+	}
 
+	for (auto& deviceAndKernel : deviceAndErrorKernels)
+	{
+		auto& kernelProgram = deviceAndKernel.second;
+		this->context->RemoveKernel(kernelProgram.get());
+		this->context->RemoveProgram(kernelProgram.get());
+	}
 }
 
 template<class T>
 void StandardOutputLayer<T>::InterlockFinalized()
 {
+	//TODO: make sure this layer is not limited to be connected to a perceptron
+
+	auto inBackProp = inBackPropDataDescriptions[0];
+	auto inBackPropMem = this->InBackPropMemoryDescriptions()[0];
+	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
+
+	if (inForwardPropMem.Width != 1 || inForwardPropMem.Height != 1)
+		throw runtime_error(
+				"The standard output layer do not support images as input");
+
+	if (!InterlockHelper::DataEquals(inputDescription, inBackProp))
+		throw runtime_error("The targets are not the same as the inputs");
+
+	if (!InterlockHelper::MemoryEquals(inBackPropMem, inForwardPropMem))
+		throw runtime_error(
+				"The inBackProp memory and the inForwardProp memory doesn't correspond");
+
+	InitializeErrorKernel();
+	InitializeOutputKernel();
+}
+
+template<class T>
+void StandardOutputLayer<T>::InitializeErrorKernel()
+{
 
 }
 
 template<class T>
-void StandardOutputLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
-		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* delta,
-		OpenCLMemory* deltaOutput, bool blocking)
+void StandardOutputLayer<T>::InitializeOutputKernel()
 {
 
+	auto inBackPropMem = this->InBackPropMemoryDescriptions()[0];
+	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
+	auto outBackPropMem = this->OutBackPropMemoryDescriptions()[0];
+	//In the current implementation, I need to make sure the target (inBackProp)
+	//and the (inForwardProp) are the same
+
+	vector<OpenCLDevice*> devices = this->context->GetDevices();
+	for (auto device : devices)
+	{
+		auto deviceInfo = device->DeviceInfo();
+
+		//Make sure the type we want to execute is supported on the device.
+		if (is_same<cl_double, T>::value)
+		{
+			if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+				throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+		}
+		else if (is_same<cl_float, T>::value)
+		{
+			if (deviceInfo.PreferredFloatVectorWidth() == 0)
+				throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+		}
+		else
+			throw runtime_error(
+					"The template argument does not match the supported arguments");
+
+		unique_ptr<OutputKernel<T>> kernel(
+				new OutputKernel<T>(inputDescription.Units,
+						inForwardPropMem.UnitOffset,
+						outBackPropMem.UnitOffset));
+
+		auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+		auto inputTargetBytes = sizeof(T) * inputDescription.Units;
+		if (maximumConstantBufferSize > inputTargetBytes)
+		{
+			kernel->SetConstantInput(true);
+			maximumConstantBufferSize-= inputTargetBytes;
+		}
+		if (maximumConstantBufferSize > inputTargetBytes)
+		{
+			kernel->SetConstantTarget(true);
+			maximumConstantBufferSize-= inputTargetBytes;
+		}
+
+		kernel->SetUseRelaxedMath(config.UseRelaxedMath());
+		kernel->SetComputationPrecision(config.ComputationPrecision());
+		kernel->SetActivationFunction(this->BackPropActivationFunction());
+		kernel->SetErrorFunction(config.ErrorFunction());
+		kernel->InitializeCompilerOptions();
+		vector<OpenCLDevice*> oneDeviceVector;
+		oneDeviceVector.push_back(device);
+		this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
+		this->context->AddKernel(kernel.get());
+		deviceAndOutputKernels.insert(make_pair(device, move(kernel)));
+	}
+}
+
+template<class T>
+T StandardOutputLayer<T>::CalculateError(OpenCLDevice* device, int queueIndex,
+		OpenCLMemory* previousInput, OpenCLMemory* target, bool blocking)
+{
+	return T();
+}
+
+template<class T>
+void StandardOutputLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
+		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* target,
+		OpenCLMemory* deltaOutput, bool blocking)
+{
+	auto& kernel = deviceAndOutputKernels[device];
+	kernel->SetInput(previousInput);
+	kernel->SetTarget(target);
+	kernel->SetOutput(deltaOutput);
+	device->ExecuteKernel(kernel.get(), queueIndex, blocking);
 }
 
 } /* namespace MachineLearning */

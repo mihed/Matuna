@@ -49,7 +49,9 @@ public:
 	virtual T CalculateErrorAligned(T* propagatedValue, int formatIndex,
 			T* target) override;
 
-	virtual unique_ptr<T[]> CalculateGradientAligned(T* input, int formatIndex)
+	virtual unique_ptr<T[]> BackPropAligned(T* input, int formatIndex, T* target) override;
+
+	virtual unique_ptr<T[]> CalculateGradientAligned(T* input, int formatIndex, T* target)
 			override;
 
 	virtual unique_ptr<T[]> GetParameters() override;

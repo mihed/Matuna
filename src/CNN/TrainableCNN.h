@@ -27,13 +27,21 @@ public:
 	TrainableCNN(const CNNConfig& config);
 	virtual ~TrainableCNN();
 
-	unique_ptr<T[]> AlignToOutput(T* input, int formatIndex) const;
-	unique_ptr<T[]> AlignToInput(T* input, int formatIndex) const;
-	unique_ptr<T[]> UnalignFromOutput(T* input, int formatIndex) const;
-	unique_ptr<T[]> UnalignFromInput(T* input, int formatIndex) const;
+	unique_ptr<T[]> AlignToForwardOutput(T* input, int formatIndex) const;
+	unique_ptr<T[]> AlignToForwardInput(T* input, int formatIndex) const;
+	unique_ptr<T[]> UnalignFromForwardOutput(T* input, int formatIndex) const;
+	unique_ptr<T[]> UnalignFromForwardInput(T* input, int formatIndex) const;
 
-	bool RequireInputAlignment(int formatIndex) const;
-	bool RequireOutputAlignment(int formatIndex) const;
+	//Since the input to the back propagation is the output from the forward propagation
+	//we don't have any align to BackInput. (It's AlignToForwardOutput and UnalignFromForwardOutput)
+	//This also implies that the targets are completely determined by the forward output alignment.
+
+	unique_ptr<T[]> AlignToBackOutput(T* input, int formatIndex) const;
+	unique_ptr<T[]> UnalignFromBackOutput(T* input, int formatIndex) const;
+
+	bool RequireForwardInputAlignment(int formatIndex) const;
+	bool RequireForwardOutputAlignment(int formatIndex) const;
+	bool RequireBackOutputAlignment(int formatIndex) const;
 
 	virtual unique_ptr<T[]> FeedForwardAligned(T* input, int formatIndex) = 0;
 	unique_ptr<T[]> FeedForwardUnaligned(T* input, int formatIndex);
@@ -41,8 +49,15 @@ public:
 	virtual T CalculateErrorAligned(T* propagatedValue, int formatIndex,
 			T* target)= 0;
 
-	virtual unique_ptr<T[]> CalculateGradientAligned(T* input, int formatIndex)= 0;
-	unique_ptr<T[]> CalculateGradientUnaligned(T* input, int formatIndex);
+	virtual unique_ptr<T[]> BackPropAligned(T* input, int formatIndex, T* target) = 0;
+
+	//The target is also unaligned
+	unique_ptr<T[]> BackPropUnaligned(T* input, int formatIndex, T* target);
+
+	virtual unique_ptr<T[]> CalculateGradientAligned(T* input, int formatIndex, T* target) = 0;
+
+	//The target is also unaligned
+	unique_ptr<T[]> CalculateGradientUnaligned(T* input, int formatIndex, T* target);
 
 	virtual unique_ptr<T[]> GetParameters()= 0;
 
