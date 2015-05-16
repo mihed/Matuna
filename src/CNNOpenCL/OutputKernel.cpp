@@ -145,7 +145,6 @@ void OutputKernel<T>::InitializeCompilerOptions()
 			else
 				stringStream << "-D" << "CE_ANY ";
 		}
-		stringStream << "-D" << "CONSTANT_TARGET ";
 	}
 	else
 		throw invalid_argument(

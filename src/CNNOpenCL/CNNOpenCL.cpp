@@ -229,10 +229,19 @@ namespace ATML
 		}
 
 		template<class T>
-		T CNNOpenCL<T>::CalculateErrorAligned(T* propagatedValue, int formatIndex,
-			T* target)
+		T CNNOpenCL<T>::CalculateErrorAligned(T* propagatedValue, int formatIndex, T* target)
 		{
-			return T();
+			//TODO: At the moment we only support one context and one device 
+			auto devices = contexts[0]->GetDevices();
+			auto device = devices[0];
+
+			LayerMemoryDescription outputDescription = this->OutputForwardMemoryDescriptions()[formatIndex];
+			unique_ptr<OpenCLMemory> targetMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * outputDescription.TotalMemory());
+			device->WriteMemory(targetMemory.get(), targetMemory->ByteSize(), target, 0, true);
+			unique_ptr<OpenCLMemory> propagatedMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * outputDescription.TotalMemory());
+			device->WriteMemory(propagatedMemory.get(), propagatedMemory->ByteSize(), propagatedValue, 0, true);
+
+			return outputLayer->CalculateError(device, 0, propagatedMemory.get(), targetMemory.get());
 		}
 
 		template<class T>

@@ -67,6 +67,9 @@ final
 		void ExecuteKernel(const OpenCLKernel* kernel, int queueIndex = 0,
 				bool blocking = true);
 
+		void ExecuteTask(const OpenCLKernel* kernel, int queueIndex = 0,
+			bool blocking = true);
+
 		/**
 		 *@brief Waits for the execution of all kernels to finish.
 		 *

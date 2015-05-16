@@ -33,6 +33,29 @@ OpenCLDevice::~OpenCLDevice()
 				"Could not release the command queue");
 }
 
+void OpenCLDevice::ExecuteTask(const OpenCLKernel* kernel, int queueIndex,
+	bool blocking)
+{
+	if (!kernel->ContextSet())
+		throw invalid_argument(
+		"The kernel has not been attached to any context");
+	if (!kernel->KernelSet())
+		throw invalid_argument(
+		"The kernel has not been set. Make sure you have attached the kernel to the correct context");
+	if (kernel->GetContext() != context)
+		throw invalid_argument(
+		"The kernel has not been attached to the same context as the device.");
+
+	auto kernelToExecute = kernel->GetKernel();
+	auto queue = queues[queueIndex];
+
+	CheckOpenCLError(
+		clEnqueueTask(queue, kernelToExecute, 0, nullptr, nullptr), "Could not enqueue the kernel to the device queue");
+
+	if (blocking)
+		clFinish(queue);
+}
+
 void OpenCLDevice::ExecuteKernel(const OpenCLKernel* kernel, int queueIndex,
 		bool blocking)
 {

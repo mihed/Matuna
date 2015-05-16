@@ -10,6 +10,8 @@
 
 #include "OpenCLHelper/OpenCLKernelProgram.h"
 #include "OpenCLHelper/OpenCLMemory.h"
+#include "CNN/ATMLComputationPrecision.h"
+#include "CNN/ATMLErrorFunctionEnum.h"
 #include <string>
 #include <vector>
 
@@ -30,9 +32,31 @@ private:
 	string kernelName;
 	string programName;
 	string compilerOptions;
+	bool useRelaxedMath;
+	bool useConstantInput;
+	bool useConstantTarget;
+	ATMLErrorFunction errorFunction;
+	ATMLComputationPrecision computationPrecision;
+	int units; 
+	int unitOffset;
 public:
-	ErrorKernel();
+	ErrorKernel(int units, int unitOffset);
 	~ErrorKernel();
+
+	void SetConstantInput(bool value);
+	void SetConstantTarget(bool value);
+	void SetUseRelaxedMath(bool value);
+	void SetErrorFunction(ATMLErrorFunction errorFunction);
+	void SetComputationPrecision(ATMLComputationPrecision computationPrecision);
+
+	//Changed for every execution
+	void SetInput(OpenCLMemory* input);
+	//Changed for every execution
+	void SetTarget(OpenCLMemory* target);
+	//Changed for every execution
+	void SetError(OpenCLMemory* error);
+
+	void InitializeCompilerOptions();
 
 	virtual string ProgramName() const override;
 	virtual string GetCompilerOptions() const override;

@@ -50,7 +50,7 @@ public:
 			OpenCLMemory* deltaOutput, bool blocking = true);
 
 	T CalculateError(OpenCLDevice* device,
-			int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* target, bool blocking = true);
+			int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* target);
 
 private:
 	void InitializeErrorKernel();

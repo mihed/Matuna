@@ -209,6 +209,19 @@ namespace ATML
 		}
 
 		template<class T>
+		T Matrix<T>::Norm2Square() const
+		{
+			T result = 0;
+			for (int i = 0; i < elementCount; i++)
+			{
+				T cache = Data[i];
+				result += cache * cache;
+			}
+
+			return result;
+		}
+
+		template<class T>
 		void Matrix<T>::Transform(function<T(T)> function)
 		{
 			for (int i = 0; i < elementCount; i++)

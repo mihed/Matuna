@@ -106,14 +106,61 @@ void StandardOutputLayer<T>::InterlockFinalized()
 template<class T>
 void StandardOutputLayer<T>::InitializeErrorKernel()
 {
+	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
+	vector<OpenCLDevice*> devices = this->context->GetDevices();
+	for (auto device : devices)
+	{
+		auto deviceInfo = device->DeviceInfo();
 
+		//Make sure the type we want to execute is supported on the device.
+		if (is_same<cl_double, T>::value)
+		{
+			if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+				throw invalid_argument(
+				"The template argument is not supported on the chosen devices");
+		}
+		else if (is_same<cl_float, T>::value)
+		{
+			if (deviceInfo.PreferredFloatVectorWidth() == 0)
+				throw invalid_argument(
+				"The template argument is not supported on the chosen devices");
+		}
+		else
+			throw runtime_error(
+			"The template argument does not match the supported arguments");
+
+		unique_ptr<ErrorKernel<T>> kernel(
+			new ErrorKernel<T>(inputDescription.Units,
+			inForwardPropMem.UnitOffset));
+
+		auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+		auto inputTargetBytes = sizeof(T) * inputDescription.Units;
+		if (maximumConstantBufferSize > inputTargetBytes)
+		{
+			kernel->SetConstantInput(true);
+			maximumConstantBufferSize -= inputTargetBytes;
+		}
+		if (maximumConstantBufferSize > inputTargetBytes)
+		{
+			kernel->SetConstantTarget(true);
+			maximumConstantBufferSize -= inputTargetBytes;
+		}
+
+		kernel->SetUseRelaxedMath(config.UseRelaxedMath());
+		kernel->SetComputationPrecision(config.ComputationPrecision());
+		kernel->SetErrorFunction(config.ErrorFunction());
+		kernel->InitializeCompilerOptions();
+		vector<OpenCLDevice*> oneDeviceVector;
+		oneDeviceVector.push_back(device);
+		this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
+		this->context->AddKernel(kernel.get());
+		deviceAndErrorKernels.insert(make_pair(device, move(kernel)));
+	}
 }
 
 template<class T>
 void StandardOutputLayer<T>::InitializeOutputKernel()
 {
-
-	auto inBackPropMem = this->InBackPropMemoryDescriptions()[0];
 	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
 	auto outBackPropMem = this->OutBackPropMemoryDescriptions()[0];
 	//In the current implementation, I need to make sure the target (inBackProp)
@@ -174,9 +221,17 @@ void StandardOutputLayer<T>::InitializeOutputKernel()
 
 template<class T>
 T StandardOutputLayer<T>::CalculateError(OpenCLDevice* device, int queueIndex,
-		OpenCLMemory* previousInput, OpenCLMemory* target, bool blocking)
+		OpenCLMemory* previousInput, OpenCLMemory* target)
 {
-	return T();
+	auto& kernel = deviceAndErrorKernels[device];
+	kernel->SetInput(previousInput);
+	kernel->SetTarget(target);
+	auto errorMemory = context->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(T));
+	kernel->SetError(errorMemory.get());
+	device->ExecuteTask(kernel.get(), queueIndex, true);
+	T result;
+	device->ReadMemory(errorMemory.get(), errorMemory->ByteSize(), &result, queueIndex, true);
+	return result;
 }
 
 template<class T>
