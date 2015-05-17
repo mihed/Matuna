@@ -26,6 +26,13 @@ class CNN;
 
 class CNNFactoryVisitor: public ILayerConfigVisitor
 {
+private:
+	bool outputIsCalled;
+
+
+	void InterlockLayer(ForwardBackPropLayer* layer);
+	void InterlockLayer(BackPropLayer* layer);
+
 protected:
 	CNN* network;
 
@@ -37,8 +44,10 @@ protected:
 	vector<LayerMemoryDescription> backOutputProposals;
 	ATMLActivationFunction backPropActivation;
 
-	void InterlockLayer(ForwardBackPropLayer* layer);
-	void InterlockLayer(BackPropLayer* layer);
+	void InterlockAndAddLayer(const PerceptronLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer);
+	void InterlockAndAddLayer(const ConvolutionLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer);
+	void InterlockAndAddLayer(const StandardOutputLayerConfig* const config, unique_ptr<OutputLayer> layer);
+	void InitializeInterlock(const CNNConfig* const config);
 
 public:
 	CNNFactoryVisitor(CNN* network);

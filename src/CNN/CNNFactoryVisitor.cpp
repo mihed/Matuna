@@ -7,6 +7,10 @@
 
 #include "CNNFactoryVisitor.h"
 #include "InterlockHelper.h"
+#include "PerceptronLayerConfig.h"
+#include "StandardOutputLayerConfig.h"
+#include "ConvolutionLayerConfig.h"
+#include "CNNConfig.h"
 #include "CNN.h"
 #include <stdexcept>
 #include <type_traits>
@@ -20,6 +24,7 @@ CNNFactoryVisitor::CNNFactoryVisitor(CNN* network) :
 		network(network)
 {
 	backPropActivation = ATMLLinearActivation;
+	outputIsCalled = false;
 }
 
 CNNFactoryVisitor::~CNNFactoryVisitor()
@@ -148,6 +153,90 @@ void CNNFactoryVisitor::InterlockLayer(ForwardBackPropLayer* layer)
 	forwardInputProposals = layer->OutForwardPropMemoryProposals();
 	backOutputProposals = layer->InBackPropMemoryProposals();
 	inputDataDescriptions = layer->OutForwardPropDataDescriptions();
+}
+
+void CNNFactoryVisitor::InterlockAndAddLayer(const PerceptronLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer)
+{
+	if (outputIsCalled)
+		throw invalid_argument("The output layer has already been created. We cannot proceed");
+
+	backPropActivation = config->ActivationFunction();
+	InterlockLayer(layer.get());
+	layers.push_back(move(layer));
+}
+
+void CNNFactoryVisitor::InterlockAndAddLayer(const ConvolutionLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer)
+{
+	if (outputIsCalled)
+		throw invalid_argument("The output layer has already been created. We cannot proceed");
+
+	backPropActivation = config->ActivationFunction();
+	InterlockLayer(layer.get());
+	layers.push_back(move(layer));
+}
+
+void CNNFactoryVisitor::InterlockAndAddLayer(const StandardOutputLayerConfig* const config, unique_ptr<OutputLayer> layer)
+{
+	if (outputIsCalled)
+		throw invalid_argument("The output layer has already been created. We cannot proceed");
+
+	InterlockLayer(layer.get());
+
+	//Since this is an output layer, this will define the targets.
+	//We could potentially have some value in the config if we want to do something about this.
+	layer->InterlockBackPropInput(layer->InBackPropMemoryProposals());
+
+	if (!layer->Interlocked())
+		throw runtime_error("The output layer is not interlocked");
+
+	layer->InterlockFinalized();
+
+	network->InterlockForwardPropDataOutput(layer->InBackPropDataDescriptions());
+	network->InterlockForwardPropOutput(layer->InBackPropMemoryDescriptions());
+
+	if (layers.size() != 0)
+	{
+		auto& firstLayer = layers[0];
+		network->InterlockBackPropOutput(firstLayer->InBackPropMemoryDescriptions());
+		network->InterlockBackPropDataOutput(firstLayer->InBackPropDataDescriptions());
+	}
+	else
+	{
+		network->InterlockBackPropOutput(layer->InBackPropMemoryDescriptions());
+		network->InterlockBackPropDataOutput(layer->InBackPropDataDescriptions());
+	}
+
+	if (!network->Interlocked())
+		throw runtime_error("The network is not interlocked");
+
+	outputLayer = move(layer);
+
+	outputIsCalled = true;
+}
+
+void CNNFactoryVisitor::InitializeInterlock(const CNNConfig* const config)
+{
+	if (outputIsCalled)
+		throw invalid_argument("The output layer has already been created. We cannot proceed");
+
+	auto inputData = config->InputDataDescription();
+
+	vector<LayerMemoryDescription> inputMemory;
+	for (auto& data : inputData)
+	{
+		LayerMemoryDescription memory;
+		memory.Width = data.Width;
+		memory.Height = data.Height;
+		memory.Units = data.Units;
+		memory.HeightOffset = 0;
+		memory.WidthOffset = 0;
+		memory.UnitOffset = 0;
+		inputMemory.push_back(memory);
+	}
+
+	forwardInputProposals = inputMemory;
+	backOutputProposals = inputMemory;
+	inputDataDescriptions = inputData;
 }
 
 vector<unique_ptr<ForwardBackPropLayer>> CNNFactoryVisitor::GetLayers()
