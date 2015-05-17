@@ -95,6 +95,19 @@ void CNNFactoryVisitorTest::Visit(
 	network->InterlockForwardPropDataOutput(layer->InBackPropDataDescriptions());
 	network->InterlockForwardPropOutput(layer->InBackPropMemoryDescriptions());
 
+	//FIXME: This is hacky, need fixing!
+	if (layers.size() != 0)
+	{
+		auto& firstLayer = layers[0];
+		network->InterlockBackPropOutput(firstLayer->InBackPropMemoryDescriptions());
+		network->InterlockBackPropDataOutput(firstLayer->InBackPropDataDescriptions());
+	}
+	else
+	{
+		network->InterlockBackPropOutput(layer->InBackPropMemoryDescriptions());
+		network->InterlockBackPropDataOutput(layer->InBackPropDataDescriptions());
+	}
+
 	if (!network->Interlocked())
 		throw runtime_error("The network is not interlocked");
 

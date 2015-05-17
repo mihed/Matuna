@@ -83,7 +83,14 @@ PerceptronLayer<T>::PerceptronLayer(shared_ptr<OpenCLContext> context,
 template<class T>
 PerceptronLayer<T>::~PerceptronLayer()
 {
-	for (auto& deviceAndKernel : deviceAndKernels)
+	for (auto& deviceAndKernel : deviceAndForwardKernels)
+	{
+		auto& kernelProgram = deviceAndKernel.second;
+		this->context->RemoveKernel(kernelProgram.get());
+		this->context->RemoveProgram(kernelProgram.get());
+	}
+
+	for (auto& deviceAndKernel : deviceAndBackKernels)
 	{
 		auto& kernelProgram = deviceAndKernel.second;
 		this->context->RemoveKernel(kernelProgram.get());
@@ -125,20 +132,29 @@ void PerceptronLayer<T>::InterlockFinalized()
 	auto inputMemoryDescriptions = this->InForwardPropMemoryDescriptions();
 	auto& firstMemory = inputMemoryDescriptions[0];
 
+	InitializeParameters();
+
 	//IF the memory descriptions doesn't contain any padding or offsets, we may use the standard forward prop kernel.
 	if (firstMemory.HeightOffset == 0 && firstMemory.UnitOffset == 0
-			&& firstMemory.WidthOffset == 0
-			&& firstMemory.Width == inputDescription.Width
-			&& firstMemory.Height == inputDescription.Height
-			&& firstMemory.Units == inputDescription.Units)
-		InitializeNormalPerceptron();
+		&& firstMemory.WidthOffset == 0
+		&& firstMemory.Width == inputDescription.Width
+		&& firstMemory.Height == inputDescription.Height
+		&& firstMemory.Units == inputDescription.Units)
+	{
+		InitializeNormalForwardPerceptron();
+		InitializeNormalBackPerceptron();
+	}
 	else
-		InitializeImagePerceptron();
+	{
+		InitializeImageForwardPerceptron();
+		InitializeImageBackPerceptron();
+	}
 }
 
 template<class T>
-void PerceptronLayer<T>::InitializeNormalPerceptron()
+void PerceptronLayer<T>::InitializeNormalBackPerceptron()
 {
+	//The memory maps to the data description in this case
 	auto outputDataDescriptions = this->outForwardPropDataDescriptions;
 	auto& firstOutputData = outputDataDescriptions[0];
 
@@ -146,7 +162,78 @@ void PerceptronLayer<T>::InitializeNormalPerceptron()
 
 	vector<OpenCLDevice*> devices = this->context->GetDevices();
 
-	InitializeParameters();
+	for (auto device : devices)
+	{
+		auto deviceInfo = device->DeviceInfo();
+
+		//Make sure the type we want to execute is supported on the device.
+		if (is_same<cl_double, T>::value)
+		{
+			if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+				throw invalid_argument(
+				"The template argument is not supported on the chosen devices");
+		}
+		else if (is_same<cl_float, T>::value)
+		{
+			if (deviceInfo.PreferredFloatVectorWidth() == 0)
+				throw invalid_argument(
+				"The template argument is not supported on the chosen devices");
+		}
+		else
+			throw runtime_error(
+			"The template argument does not match the supported arguments");
+
+		unique_ptr<BackPerceptronKernel<T>> kernel(
+			new BackPerceptronKernel<T>(
+			firstOutputData.TotalUnits(),
+			inputDescription.TotalUnits(), 0, 0, 0));
+
+		//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
+		auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+		if (maximumConstantBufferSize > weights->ByteSize())
+		{
+			kernel->SetUseConstantWeights(true);
+			maximumConstantBufferSize -= weights->ByteSize();
+		}
+		if (maximumConstantBufferSize > firstOutputData.TotalUnits())
+		{
+			kernel->SetUseConstantDeltaInput(true);
+			maximumConstantBufferSize -= firstOutputData.TotalUnits();
+		}
+		if (maximumConstantBufferSize > inputDescription.TotalUnits())
+		{
+			kernel->SetUseConstantInput(true);
+			maximumConstantBufferSize -= inputDescription.TotalUnits();
+		}
+
+		kernel->SetUseRelaxedMath(config.UseRelaxedMath());
+		kernel->SetActivationFunction(this->BackPropActivationFunction());
+		kernel->SetWeights(weights.get());
+		kernel->InitializeCompilerOptions();
+		vector<OpenCLDevice*> oneDeviceVector;
+		oneDeviceVector.push_back(device);
+		this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
+		this->context->AddKernel(kernel.get());
+		kernel->InitializeArguments();
+		deviceAndBackKernels.insert(make_pair(device, move(kernel)));
+	}
+}
+
+template<class T>
+void PerceptronLayer<T>::InitializeImageBackPerceptron()
+{
+	throw runtime_error("Not implemented");
+}
+
+template<class T>
+void PerceptronLayer<T>::InitializeNormalForwardPerceptron()
+{
+	auto outputDataDescriptions = this->outForwardPropDataDescriptions;
+	auto& firstOutputData = outputDataDescriptions[0];
+
+	int biasCount = firstOutputData.TotalUnits();
+
+	vector<OpenCLDevice*> devices = this->context->GetDevices();
 
 	for (auto device : devices)
 	{
@@ -204,7 +291,7 @@ void PerceptronLayer<T>::InitializeNormalPerceptron()
 		this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
 		this->context->AddKernel(kernel.get());
 		kernel->InitializeArguments();
-		deviceAndKernels.insert(make_pair(device, move(kernel)));
+		deviceAndForwardKernels.insert(make_pair(device, move(kernel)));
 	}
 }
 
@@ -251,7 +338,7 @@ void PerceptronLayer<T>::InitializeParameters()
 }
 
 template<class T>
-void PerceptronLayer<T>::InitializeImagePerceptron()
+void PerceptronLayer<T>::InitializeImageForwardPerceptron()
 {
 	throw runtime_error("Not implemented");
 }
@@ -261,7 +348,7 @@ void PerceptronLayer<T>::EnqueueForwardPropagation(OpenCLDevice* device,
 		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* output,
 		bool blocking)
 {
-	auto& kernel = deviceAndKernels[device];
+	auto& kernel = deviceAndForwardKernels[device];
 	kernel->SetInput(previousInput);
 	kernel->SetOutput(output);
 	device->ExecuteKernel(kernel.get(), queueIndex, blocking);
@@ -272,7 +359,11 @@ void PerceptronLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
 		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* delta,
 		OpenCLMemory* deltaOutput, bool blocking)
 {
-	throw runtime_error("Not implemented");
+	auto& kernel = deviceAndBackKernels[device];
+	kernel->SetInput(previousInput);
+	kernel->SetDeltaInput(delta);
+	kernel->SetOutput(deltaOutput);
+	device->ExecuteKernel(kernel.get(), queueIndex, blocking);
 }
 
 template<class T>

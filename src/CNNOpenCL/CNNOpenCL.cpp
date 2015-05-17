@@ -194,8 +194,8 @@ namespace ATML
 
 			int count = layers.size();
 
-			for (int i = 1; i < count; i++)
-				layers[i - 1]->EnqueueForwardPropagation(device, 0, inputMemories[i - 1].get(), inputMemories[i].get(), false);
+			for (int i = 0; i < count; i++)
+				layers[i]->EnqueueForwardPropagation(device, 0, inputMemories[i].get(), inputMemories[i + 1].get(), false);
 
 			device->WaitForDeviceQueue(0);
 
@@ -208,7 +208,7 @@ namespace ATML
 			outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1].get(), targetMemory.get(), backPropOutputMemory.get(), true);
 			targetMemory.reset();
 
-			for (int i = count - 1; i >= 0; i--)
+			for (int i = count - 1; i >= 1; i--)
 			{
 				inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
 				unique_ptr<OpenCLMemory> outputMemory = contexts[0]->CreateMemory(

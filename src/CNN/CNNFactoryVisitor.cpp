@@ -135,7 +135,6 @@ void CNNFactoryVisitor::InterlockLayer(BackPropLayer* layer)
 			"The previous left output description doesn't match the right input description");
 
 		network->InterlockForwardPropInput(layer->InForwardPropMemoryDescriptions());
-		network->InterlockBackPropOutput(layer->OutBackPropMemoryDescriptions());
 	}
 }
 

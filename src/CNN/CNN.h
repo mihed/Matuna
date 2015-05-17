@@ -25,16 +25,18 @@ class CNN
 private:
 	vector<LayerDataDescription> inputForwardDataDescriptions;
 	vector<LayerMemoryDescription> inputForwardMemoryDescriptions;
-	vector<LayerMemoryDescription> outputBackMemoryDescriptions;
 
 	vector<LayerMemoryDescription> outputForwardMemoryDescriptions;
 	vector<LayerDataDescription> outputForwardDataDescriptions;
 
+	vector<LayerMemoryDescription> outputBackMemoryDescriptions;
+	vector<LayerDataDescription> outputBackDataDescriptions;
 
 	bool inputInterlocked;
 	bool outputInterlocked;
 	bool outputDataInterlocked;
 	bool outputBackInterlocked;
+	bool outputBackDataInterlocked;
 
 public:
 	CNN(const CNNConfig& config);
@@ -49,6 +51,9 @@ public:
 	void InterlockBackPropOutput(
 		const vector<LayerMemoryDescription>& outputDescriptions);
 
+	void InterlockBackPropDataOutput(
+		const vector<LayerDataDescription>& outputDescriptions);
+
 	void InterlockForwardPropDataOutput(
 			const vector<LayerDataDescription>& outputDescriptions);
 
@@ -56,7 +61,9 @@ public:
 
 	vector<LayerDataDescription> InputForwardDataDescriptions() const;
 	vector<LayerMemoryDescription> InputForwardMemoryDescriptions() const;
+
 	vector<LayerMemoryDescription> OutputBackMemoryDescriptions() const;
+	vector<LayerDataDescription> OutputBackDataDescriptions() const;
 
 	vector<LayerDataDescription> OutputForwardDataDescriptions() const;
 	vector<LayerMemoryDescription> OutputForwardMemoryDescriptions() const;

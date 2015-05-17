@@ -56,12 +56,12 @@ bool TrainableCNN<T>::RequireForwardOutputAlignment(int formatIndex) const
 template<class T>
 bool TrainableCNN<T>::RequireBackOutputAlignment(int formatIndex) const
 {
-	auto inputDataDesc = this->InputForwardDataDescriptions()[formatIndex];
+	auto outBackDataDesc = this->OutputBackDataDescriptions()[formatIndex];
 	auto outBackMemDesc = this->OutputBackMemoryDescriptions()[formatIndex];
 
-	return !(inputDataDesc.Width == outBackMemDesc.Width
-		&& inputDataDesc.Height == outBackMemDesc.Height
-		&& inputDataDesc.Units == outBackMemDesc.Units);
+	return !(outBackDataDesc.Width == outBackMemDesc.Width
+		&& outBackDataDesc.Height == outBackMemDesc.Height
+		&& outBackDataDesc.Units == outBackMemDesc.Units);
 }
 
 template<class T>
@@ -159,19 +159,19 @@ unique_ptr<T[]> TrainableCNN<T>::UnalignFromForwardInput(T* input,
 template<class T>
 unique_ptr<T[]> TrainableCNN<T>::AlignToBackOutput(T* input, int formatIndex) const
 {
-	auto inputDataDesc = this->InputForwardDataDescriptions()[formatIndex];
+	auto outBackDataDesc = this->OutputBackDataDescriptions()[formatIndex];
 	auto outBackMemDesc = this->OutputBackMemoryDescriptions()[formatIndex];
 
-	return move(AlignmentHelper<T>(inputDataDesc, outBackMemDesc, input));
+	return move(AlignmentHelper<T>(outBackDataDesc, outBackMemDesc, input));
 }
 
 template<class T>
 unique_ptr<T[]> TrainableCNN<T>::UnalignFromBackOutput(T* input, int formatIndex) const
 {
-	auto inputDataDesc = this->InputForwardDataDescriptions()[formatIndex];
+	auto outBackDataDesc = this->OutputBackDataDescriptions()[formatIndex];
 	auto outBackMemDesc = this->OutputBackMemoryDescriptions()[formatIndex];
 
-	return move(UnalignmentHelper<T>(inputDataDesc, outBackMemDesc, input));
+	return move(UnalignmentHelper<T>(outBackDataDesc, outBackMemDesc, input));
 }
 
 template<class T>

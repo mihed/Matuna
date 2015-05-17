@@ -9,6 +9,7 @@
 #define CNNOPENCL_PERCEPTRONLAYER_H_
 
 #include "OpenCLForwardBackPropLayer.h"
+#include "BackPerceptronKernel.h"
 #include "ForwardPerceptronKernel.h"
 #include "CNN/PerceptronLayerConfig.h"
 #include "Math/Matrix.h"
@@ -32,7 +33,8 @@ class PerceptronLayer: public OpenCLForwardBackPropLayer<T>
 {
 
 private:
-	unordered_map<OpenCLDevice*, unique_ptr<ForwardPerceptronKernel<T>>> deviceAndKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<ForwardPerceptronKernel<T>>> deviceAndForwardKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<BackPerceptronKernel<T>>> deviceAndBackKernels;
 	unique_ptr<OpenCLMemory> weights;
 	unique_ptr<OpenCLMemory> biases;
 	PerceptronLayerConfig config;
@@ -71,8 +73,10 @@ public:
 	//TODO: Add some read / write parameters. Now it's all random
 
 private:
-	void InitializeNormalPerceptron();
-	void InitializeImagePerceptron();
+	void InitializeNormalForwardPerceptron();
+	void InitializeImageForwardPerceptron();
+	void InitializeNormalBackPerceptron();
+	void InitializeImageBackPerceptron();
 	void InitializeParameters();
 };
 
