@@ -11,6 +11,7 @@
 #include "OpenCLForwardBackPropLayer.h"
 #include "BackPerceptronKernel.h"
 #include "ForwardPerceptronKernel.h"
+#include "GradientPerceptronKernel.h"
 #include "CNN/PerceptronLayerConfig.h"
 #include "Math/Matrix.h"
 #include "OpenCLHelper/OpenCLContext.h"
@@ -35,6 +36,7 @@ class PerceptronLayer: public OpenCLForwardBackPropLayer<T>
 private:
 	unordered_map<OpenCLDevice*, unique_ptr<ForwardPerceptronKernel<T>>> deviceAndForwardKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<BackPerceptronKernel<T>>> deviceAndBackKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<GradientPerceptronKernel<T>>> deviceAndGradientKernels;
 	unique_ptr<OpenCLMemory> weights;
 	unique_ptr<OpenCLMemory> biases;
 	PerceptronLayerConfig config;
@@ -57,11 +59,16 @@ public:
 			OpenCLMemory* previousInput, OpenCLMemory* delta,
 			OpenCLMemory* deltaOutput, bool blocking = true) override;
 
-	virtual void GetParameters(T* parameters, OpenCLDevice* device,
-			int queueIndex, bool blocking = true) override;
+	virtual void EnqueueCalculateGradient(OpenCLDevice* device, int queueIndex,
+		OpenCLMemory* previousInput, OpenCLMemory* delta, OpenCLMemory* gradient, bool blocking = true) override;
+
+	virtual vector<tuple<OpenCLMemory*, int>> GetParameters() override;
 
 	virtual void SetParameters(T* parameters, OpenCLDevice* device,
-			int queueIndex, bool blocking = true) override;
+		int queueIndex, bool blocking = true) override;
+
+	virtual void GetParameters(T* parameters, OpenCLDevice* device,
+		int queueIndex, bool blocking = true) override;
 
 	virtual size_t GetParameterCount() override;
 
@@ -77,6 +84,8 @@ private:
 	void InitializeImageForwardPerceptron();
 	void InitializeNormalBackPerceptron();
 	void InitializeImageBackPerceptron();
+	void InitializeNormalGradientKernel();
+	void InitializeImageGradientKernel();
 	void InitializeParameters();
 };
 

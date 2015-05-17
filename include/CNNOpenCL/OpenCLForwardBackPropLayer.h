@@ -12,8 +12,11 @@
 #include "OpenCLHelper/OpenCLContext.h"
 #include "OpenCLHelper/OpenCLMemory.h"
 #include <memory>
+#include <tuple>
+#include <vector>
 
 using namespace ATML::Helper;
+using namespace std;
 
 namespace ATML
 {
@@ -40,6 +43,11 @@ public:
 	virtual void EnqueueBackPropagation(OpenCLDevice* device, int queueIndex,
 			OpenCLMemory* previousInput, OpenCLMemory* delta,
 			OpenCLMemory* deltaOutput, bool blocking = true) = 0;
+
+	virtual void EnqueueCalculateGradient(OpenCLDevice* device, int queueIndex,
+		OpenCLMemory* previousInput, OpenCLMemory* delta, OpenCLMemory* gradient, bool blocking = true) = 0;
+
+	virtual vector<tuple<OpenCLMemory*, int>> GetParameters() = 0;
 
 	virtual void GetParameters(T* parameters, OpenCLDevice* device,
 			int queueIndex, bool blocking = true) = 0;

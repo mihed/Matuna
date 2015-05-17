@@ -39,6 +39,11 @@ public:
 			OpenCLMemory* previousInput, OpenCLMemory* delta,
 			OpenCLMemory* deltaOutput, bool blocking = true) override;
 
+	virtual void EnqueueCalculateGradient(OpenCLDevice* device, int queueIndex,
+		OpenCLMemory* previousInput, OpenCLMemory* delta, OpenCLMemory* gradient, bool blocking = true) override;
+
+	virtual vector<tuple<OpenCLMemory*, int>> GetParameters() override;
+
 	virtual void GetParameters(T* parameters, OpenCLDevice* device,
 			int queueIndex, bool blocking = true) override;
 

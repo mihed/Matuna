@@ -248,7 +248,89 @@ namespace ATML
 		unique_ptr<T[]> CNNOpenCL<T>::CalculateGradientAligned(T* input,
 			int formatIndex, T* target)
 		{
-			return nullptr;
+			//TODO: At the moment we only support one context and one device 
+			auto devices = contexts[0]->GetDevices();
+			auto device = devices[0];
+
+
+			vector<unique_ptr<OpenCLMemory>> inputMemories;
+			//First the forward propagation phase, we need to save all the memory.
+			LayerMemoryDescription inputMemoryDescription =
+				this->InputForwardMemoryDescriptions()[formatIndex];
+
+			unique_ptr<OpenCLMemory> inputMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * inputMemoryDescription.TotalMemory());
+			device->WriteMemory(inputMemory.get(), inputMemory->ByteSize(), input, 0, false);
+
+			inputMemories.push_back(move(inputMemory));
+			for (auto& layer : layers)
+			{
+				inputMemoryDescription = layer->OutForwardPropMemoryDescriptions()[formatIndex];
+				unique_ptr<OpenCLMemory> outputMemory = contexts[0]->CreateMemory(
+					CL_MEM_READ_WRITE, sizeof(T) * inputMemoryDescription.TotalMemory());
+				inputMemories.push_back(move(outputMemory));
+			}
+
+			int count = layers.size();
+
+			for (int i = 0; i < count; i++)
+				layers[i]->EnqueueForwardPropagation(device, 0, inputMemories[i].get(), inputMemories[i + 1].get(), false);
+
+			device->WaitForDeviceQueue(0);
+
+			//Allocate the necessary memory for the gradient
+			unique_ptr<T[]> gradient(new T[GetParameterCount()]);
+
+			LayerMemoryDescription inBackPropMemoryDescription = this->OutputForwardMemoryDescriptions()[formatIndex];
+
+			unique_ptr<OpenCLMemory> targetMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
+			device->WriteMemory(targetMemory.get(), targetMemory->ByteSize(), target, 0, true);
+
+			unique_ptr<OpenCLMemory> backPropOutputMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * inBackPropMemoryDescription.TotalMemory());;
+			outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1].get(), targetMemory.get(), backPropOutputMemory.get(), true);
+			targetMemory.reset();
+
+			int gradientMemoryPosition = 0;
+			if (layers.size() != 0)
+			{
+				//Allocate memory for the gradient
+				int parameterCount = layers[count - 1]->GetParameterCount();
+				unique_ptr<OpenCLMemory> gradientMemory = contexts[0]->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+				layers[count - 1]->EnqueueCalculateGradient(device, 0, inputMemories[inputMemories.size() - 2].get(), backPropOutputMemory.get(), gradientMemory.get(), true);
+
+				//Write gradient memory to the host buffer
+				auto rawGradient = gradient.get();
+				rawGradient += gradientMemoryPosition;
+				device->ReadMemory(gradientMemory.get(), gradientMemory->ByteSize(), rawGradient, 0, true);
+				gradientMemoryPosition += parameterCount;
+				gradientMemory.reset();
+			}
+
+			for (int i = count - 1; i >= 1; i--)
+			{
+				inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
+
+				unique_ptr<OpenCLMemory> outputMemory = contexts[0]->CreateMemory(
+					CL_MEM_READ_WRITE, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
+				layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i].get(), backPropOutputMemory.get(), outputMemory.get(), true);
+				backPropOutputMemory.reset();
+				backPropOutputMemory = move(outputMemory);
+
+				//Allocate memory for the gradient
+				int parameterCount = layers[i - 1]->GetParameterCount();
+				unique_ptr<OpenCLMemory> gradientMemory = contexts[0]->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+				layers[i - 1]->EnqueueCalculateGradient(device, 0, inputMemories[i - 1].get(), backPropOutputMemory.get(), gradientMemory.get(), true);
+
+				//Write gradient memory to the host buffer
+				auto rawGradient = gradient.get();
+				rawGradient += gradientMemoryPosition;
+				device->ReadMemory(gradientMemory.get(), gradientMemory->ByteSize(), rawGradient, 0, true);
+				gradientMemoryPosition += parameterCount;
+				gradientMemory.reset();
+			}
+
+			device->WaitForDeviceQueue(0);
+
+			return move(gradient);
 		}
 
 		template<class T>
@@ -259,10 +341,12 @@ namespace ATML
 			auto device = devices[0];
 			unique_ptr<T[]> parameters(new T[GetParameterCount()]);
 			auto pointerPosition = parameters.get();
-			for (auto& layer : layers)
+
+			//The parameters are always given in reverse order since it's easier for the gradient calculation
+			for (int i = layers.size() - 1; i >= 0; i--)
 			{
-				layer->GetParameters(pointerPosition, device, 0, false);
-				pointerPosition += layer->GetParameterCount();
+				layers[i]->GetParameters(pointerPosition, device, 0, false);
+				pointerPosition += layers[i]->GetParameterCount();
 			}
 
 			device->WaitForDeviceQueue(0);
@@ -277,10 +361,12 @@ namespace ATML
 			auto devices = contexts[0]->GetDevices();
 			auto device = devices[0];
 			auto pointerPosition = parameters;
-			for (auto& layer : layers)
+
+			//The parameters are always given in reverse order since it's easier for the gradient calculation
+			for (int i = layers.size() - 1; i >= 0; i--)
 			{
-				layer->SetParameters(pointerPosition, device, 0, false);
-				pointerPosition += layer->GetParameterCount();
+				layers[i]->SetParameters(pointerPosition, device, 0, false);
+				pointerPosition += layers[i]->GetParameterCount();
 			}
 
 			device->WaitForDeviceQueue(0);

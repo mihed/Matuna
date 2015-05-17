@@ -116,6 +116,25 @@ void OpenCLDevice::WaitForDeviceQueue(int queueIndex)
 	clFinish(queues[queueIndex]);
 }
 
+void OpenCLDevice::CopyCLMemory(OpenCLMemory* source, OpenCLMemory* destination, size_t sourceOffset, size_t destinationOffset, size_t bytes,
+	int queueIndex, bool blockingCall)
+{
+	if (source->OwningContext() != context)
+		throw invalid_argument("The OpenCLMemory is not tied to the context");
+
+	if (destination->OwningContext() != context)
+		throw invalid_argument("The OpenCLMemory is not tied to the context");
+
+	auto queue = queues[queueIndex];
+
+	CheckOpenCLError(clEnqueueCopyBuffer(queue, source->GetCLMemory(),
+		destination->GetCLMemory(), sourceOffset, destinationOffset, bytes,
+		0, nullptr, nullptr), "Could not copy the buffer");
+
+	if (blockingCall)
+		clFinish(queue);
+}
+
 void OpenCLDevice::WriteMemory(OpenCLMemory* memory, size_t bytes, void* buffer,
 		int queueIndex, bool blockingCall)
 {

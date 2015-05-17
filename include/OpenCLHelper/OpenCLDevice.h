@@ -67,6 +67,7 @@ final
 		void ExecuteKernel(const OpenCLKernel* kernel, int queueIndex = 0,
 				bool blocking = true);
 
+
 		void ExecuteTask(const OpenCLKernel* kernel, int queueIndex = 0,
 			bool blocking = true);
 
@@ -98,6 +99,9 @@ final
 		 */
 		void ReadMemory(OpenCLMemory* memory, size_t bytes, void* buffer,
 				int queueIndex = 0, bool blockingCall = true);
+
+		void CopyCLMemory(OpenCLMemory* source, OpenCLMemory* destination,
+			size_t sourceOffset, size_t destinationOffset, size_t bytes, int queueIndex = 0, bool blockingCall = true);
 
 		/**
 		 *@brief Returns the OpenCLDeviceInfo describing this device.

@@ -55,6 +55,19 @@ void ConvolutionLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
 }
 
 template<class T>
+void ConvolutionLayer<T>::EnqueueCalculateGradient(OpenCLDevice* device, int queueIndex,
+	OpenCLMemory* previousInput, OpenCLMemory* delta, OpenCLMemory* gradient, bool blocking)
+{
+
+}
+
+template<class T>
+vector<tuple<OpenCLMemory*, int>> ConvolutionLayer<T>::GetParameters()
+{
+	return vector < tuple<OpenCLMemory*, int> > ();
+}
+
+template<class T>
 void ConvolutionLayer<T>::GetParameters(T* parameters, OpenCLDevice* device,
 		int queueIndex, bool blocking)
 {
