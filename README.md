@@ -29,5 +29,7 @@ Furthermore, you need to create a standalone toolchain using the NDK and place i
 I included the android.toolchain.cmake to make life easier. However, you could simply clone https://github.com/taka-no-me/android-cmake to have the latest version - which I highly recommend you to do.
 
 ###Mac OS, iOS
+- Cmake 3.2 (Minimum version)
+- Xcode
 
-TODO
+Since Cmake automatically generates the Xcode project for you, you may simply change the platform to either MAC OS X or iOS. The library is developed using Xcode 6.3 on MAC OS X 10.10. 
