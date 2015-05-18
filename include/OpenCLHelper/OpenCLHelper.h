@@ -8,7 +8,7 @@
 #ifndef ATML_OPENCLHELPER_OPENCLHELPER_H_
 #define ATML_OPENCLHELPER_OPENCLHELPER_H_
 
-#include <CL/cl.h>
+#include "OpenCLInclude.h"
 #include <vector>
 #include <memory>
 

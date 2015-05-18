@@ -12,7 +12,7 @@
 
 #include <vector>
 #include <string>
-#include <CL/cl.h>
+#include "OpenCLInclude.h"
 #include "OpenCLPlatformInfo.h"
 
 using namespace std;

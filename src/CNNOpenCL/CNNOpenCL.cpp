@@ -9,7 +9,6 @@
 #include "CNNOpenCLFactoryVisitor.h"
 #include "OpenCLHelper/OpenCLHelper.h"
 
-#include <CL/cl.h>
 #include <stdexcept>
 #include <tuple>
 #include <unordered_map>

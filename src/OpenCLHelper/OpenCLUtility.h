@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 #include <stdlib.h>
-#include <CL/cl.h>
+#include "OpenCLInclude.h"
 
 using namespace std;
 

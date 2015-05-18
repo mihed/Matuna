@@ -9,7 +9,7 @@
 #define ATML_OPENCLHELPER_OPENCLPLATFORMINFO_H_
 
 #include <string>
-#include <CL/cl.h>
+#include "OpenCLInclude.h"
 
 using namespace std;
 

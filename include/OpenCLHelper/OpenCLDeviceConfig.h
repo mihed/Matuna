@@ -8,7 +8,7 @@
 #ifndef ATML_OPENCLHELPER_OPENCLDEVICECONFIG_H_
 #define ATML_OPENCLHELPER_OPENCLDEVICECONFIG_H_
 
-#include <CL/cl.h>
+#include "OpenCLInclude.h"
 #include <vector>
 
 using namespace std;

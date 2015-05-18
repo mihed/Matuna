@@ -7,7 +7,6 @@
 
 #include "OpenCLForwardBackPropLayer.h"
 #include <stdexcept>
-#include <CL/cl.h>
 
 namespace ATML {
 namespace MachineLearning {

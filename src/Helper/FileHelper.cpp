@@ -28,6 +28,7 @@
 #include <Windows.h>
 #elif defined(__APPLE__)
 #include <mach-o/dyld.h>
+#include <libgen.h>
 #endif
 
 namespace ATML
@@ -51,7 +52,8 @@ namespace ATML
 				throw runtime_error("Could not retrieve the executable path");
 
 #elif defined(__APPLE__)
-			auto size = sizeof(char) * FILENAME_MAX;
+			uint32_t size = sizeof(char) * FILENAME_MAX;
+            //TODO: the path may contain symbolic links. Fix this
 			if (_NSGetExecutablePath(rawPath.get(), &size) == 0)
 				result = string(rawPath.get());
 			else

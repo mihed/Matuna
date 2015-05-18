@@ -6,7 +6,6 @@
  */
 
 #include "ConvolutionLayer.h"
-#include <CL/cl.h>
 
 namespace ATML {
 namespace MachineLearning {

@@ -8,7 +8,6 @@
 #ifndef ATML_TEST_OPENCLDEVICETEST_TESTKERNEL_H_
 #define ATML_TEST_OPENCLDEVICETEST_TESTKERNEL_H_
 
-#include <CL/cl.h>
 #include <OpenCLHelper/OpenCLKernelProgram.h>
 #include <OpenCLHelper/OpenCLMemory.h>
 #include <memory>
