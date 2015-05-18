@@ -53,18 +53,19 @@ namespace ATML
 #elif defined(__APPLE__)
 			auto size = sizeof(char) * FILENAME_MAX;
 			if (_NSGetExecutablePath(rawPath.get(), &size) == 0)
-				result = string(rawPath);
+				result = string(rawPath.get());
 			else
 				throw runtime_error("Could not retrieve the executable path");
 #else	//We assume a linux based system here
 			char szTmp[32];
 			auto size = sizeof(char) * FILENAME_MAX;
 			sprintf(szTmp, "/proc/%d/exe", getpid());
-			int bytes = min(readlink(szTmp, rawPath.get(), size), size - 1);
+			auto linkSize = readlink(szTmp, rawPath.get(), size);
+			int bytes = size - 1 < linkSize ? size - 1 : linkSize;
 			if(bytes >= 0)
 			{
 				rawPath[bytes] = '\0';
-				result = string(rawPath);
+				result = string(rawPath.get());
 			}
 			else
 				throw runtime_error("Could not retrieve the executable path");

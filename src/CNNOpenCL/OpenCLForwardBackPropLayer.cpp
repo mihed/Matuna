@@ -9,13 +9,8 @@
 #include <stdexcept>
 #include <CL/cl.h>
 
-namespace ATML
-{
-namespace MachineLearning
-{
-
-template class OpenCLForwardBackPropLayer<cl_float> ;
-template class OpenCLForwardBackPropLayer<cl_double> ;
+namespace ATML {
+namespace MachineLearning {
 
 template<class T>
 OpenCLForwardBackPropLayer<T>::OpenCLForwardBackPropLayer(
@@ -23,16 +18,18 @@ OpenCLForwardBackPropLayer<T>::OpenCLForwardBackPropLayer(
 		const vector<LayerDataDescription>& inputLayerDescriptions,
 		ATMLActivationFunction backPropActivation,
 		const ForwardBackPropLayerConfig* config) :
-		ForwardBackPropLayer(inputLayerDescriptions, backPropActivation, config), context(context)
-{
+		ForwardBackPropLayer(inputLayerDescriptions, backPropActivation,
+				config), context(context) {
 
 }
 
 template<class T>
-OpenCLForwardBackPropLayer<T>::~OpenCLForwardBackPropLayer()
-{
+OpenCLForwardBackPropLayer<T>::~OpenCLForwardBackPropLayer() {
 
 }
+
+template class OpenCLForwardBackPropLayer<cl_float> ;
+template class OpenCLForwardBackPropLayer<cl_double> ;
 
 } /* namespace MachineLearning */
 } /* namespace ATML */

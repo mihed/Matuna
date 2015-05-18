@@ -16,12 +16,6 @@ namespace ATML
 {
 namespace MachineLearning
 {
-
-//Just add a type if the network is suppose to support more types.
-template class CNNTrainer<float> ;
-template class CNNTrainer<double> ;
-template class CNNTrainer<long double> ;
-
 template<class T>
 CNNTrainer<T>::CNNTrainer()
 {
@@ -33,6 +27,12 @@ CNNTrainer<T>::~CNNTrainer()
 {
 
 }
+
+//Just add a type if the network is suppose to support more types.
+template class CNNTrainer<float> ;
+template class CNNTrainer<double> ;
+template class CNNTrainer<long double> ;
+
 
 }
 /* ATML */

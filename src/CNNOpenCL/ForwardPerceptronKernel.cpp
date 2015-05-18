@@ -12,19 +12,13 @@
 #include <sstream>
 #include <type_traits>
 
-namespace ATML
-{
-namespace MachineLearning
-{
-
-template class ForwardPerceptronKernel<cl_float> ;
-template class ForwardPerceptronKernel<cl_double> ;
+namespace ATML {
+namespace MachineLearning {
 
 template<class T>
 ForwardPerceptronKernel<T>::ForwardPerceptronKernel(int inputUnitsCount,
 		int unitsCount) :
-		inputUnitsCount(inputUnitsCount), unitsCount(unitsCount)
-{
+		inputUnitsCount(inputUnitsCount), unitsCount(unitsCount) {
 	stringstream stringStream;
 
 	stringStream << "ForwardPerceptronProgram";
@@ -45,14 +39,12 @@ ForwardPerceptronKernel<T>::ForwardPerceptronKernel(int inputUnitsCount,
 }
 
 template<class T>
-ForwardPerceptronKernel<T>::~ForwardPerceptronKernel()
-{
+ForwardPerceptronKernel<T>::~ForwardPerceptronKernel() {
 
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::InitializeArguments()
-{
+void ForwardPerceptronKernel<T>::InitializeArguments() {
 	auto rawWeights = weights->GetCLMemory();
 	auto rawBiases = biases->GetCLMemory();
 	CheckOpenCLError(
@@ -64,8 +56,7 @@ void ForwardPerceptronKernel<T>::InitializeArguments()
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::InitializeCompilerOptions()
-{
+void ForwardPerceptronKernel<T>::InitializeCompilerOptions() {
 	stringstream stringStream;
 
 	if (useConstantBiases)
@@ -100,14 +91,12 @@ void ForwardPerceptronKernel<T>::InitializeCompilerOptions()
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::SetUseRelaxedMath(bool value)
-{
+void ForwardPerceptronKernel<T>::SetUseRelaxedMath(bool value) {
 	useRelaxedMath = value;
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::SetInput(OpenCLMemory* input)
-{
+void ForwardPerceptronKernel<T>::SetInput(OpenCLMemory* input) {
 	auto rawInput = input->GetCLMemory();
 	CheckOpenCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -115,8 +104,7 @@ void ForwardPerceptronKernel<T>::SetInput(OpenCLMemory* input)
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::SetOutput(OpenCLMemory* output)
-{
+void ForwardPerceptronKernel<T>::SetOutput(OpenCLMemory* output) {
 	auto rawOutput = output->GetCLMemory();
 	CheckOpenCLError(
 			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawOutput),
@@ -124,88 +112,81 @@ void ForwardPerceptronKernel<T>::SetOutput(OpenCLMemory* output)
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::SetWeights(OpenCLMemory* weights)
-{
+void ForwardPerceptronKernel<T>::SetWeights(OpenCLMemory* weights) {
 	this->weights = weights;
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::SetBiases(OpenCLMemory* biases)
-{
+void ForwardPerceptronKernel<T>::SetBiases(OpenCLMemory* biases) {
 	this->biases = biases;
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::SetUseConstantWeights(bool value)
-{
+void ForwardPerceptronKernel<T>::SetUseConstantWeights(bool value) {
 	useConstantWeights = value;
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::SetUseConstantInput(bool value)
-{
+void ForwardPerceptronKernel<T>::SetUseConstantInput(bool value) {
 	useConstantInput = value;
 }
 
 template<class T>
-void ForwardPerceptronKernel<T>::SetUseConstantBiases(bool value)
-{
+void ForwardPerceptronKernel<T>::SetUseConstantBiases(bool value) {
 	useConstantBiases = value;
 }
 
 template<class T>
 void ForwardPerceptronKernel<T>::SetActivationFunction(
-		ATMLActivationFunction activationFunction)
-{
+		ATMLActivationFunction activationFunction) {
 	this->activationFunction = activationFunction;
 }
 
 template<class T>
 void ForwardPerceptronKernel<T>::SetComputationPrecision(
-		ATMLComputationPrecision computationPrecision)
-{
+		ATMLComputationPrecision computationPrecision) {
 	this->computationPrecision = computationPrecision;
 }
 
 template<class T>
-string ForwardPerceptronKernel<T>::ProgramName() const
-{
+string ForwardPerceptronKernel<T>::ProgramName() const {
 	return programName;
 }
 
 template<class T>
-vector<string> ForwardPerceptronKernel<T>::GetProgramCode() const
-{
+vector<string> ForwardPerceptronKernel<T>::GetProgramCode() const {
 	vector<string> result;
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels", "ForwardPerceptronKernel.cl")));
+					Path::Combine(
+							Path::GetDirectoryPath(
+									FileHelper::GetExecutablePath()), "kernels",
+							"ForwardPerceptronKernel.cl")));
 	return result;
 }
 
 template<class T>
-string ForwardPerceptronKernel<T>::KernelName() const
-{
+string ForwardPerceptronKernel<T>::KernelName() const {
 	return kernelName;
 }
 
 template<class T>
-string ForwardPerceptronKernel<T>::GetCompilerOptions() const
-{
+string ForwardPerceptronKernel<T>::GetCompilerOptions() const {
 	return compilerOptions;
 }
 
 template<class T>
-const vector<size_t>& ForwardPerceptronKernel<T>::GlobalWorkSize() const
-{
+const vector<size_t>& ForwardPerceptronKernel<T>::GlobalWorkSize() const {
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& ForwardPerceptronKernel<T>::LocalWorkSize() const
-{
+const vector<size_t>& ForwardPerceptronKernel<T>::LocalWorkSize() const {
 	return localWorkSize;
 }
+
+template class ForwardPerceptronKernel<cl_float> ;
+template class ForwardPerceptronKernel<cl_double> ;
 
 } /* namespace MachineLearning */
 } /* namespace ATML */

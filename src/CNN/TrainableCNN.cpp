@@ -12,12 +12,6 @@ namespace ATML
 namespace MachineLearning
 {
 
-//Just add a type if the network is suppose to support more types.
-
-template class TrainableCNN<float> ;
-template class TrainableCNN<double> ;
-template class TrainableCNN<long double> ;
-
 template<class T>
 TrainableCNN<T>::TrainableCNN(const CNNConfig& config) :
 		CNN(config)
@@ -289,6 +283,12 @@ unique_ptr<T[]> TrainableCNN<T>::CalculateGradientUnaligned(T* input,
 			return move(CalculateGradientAligned(input, formatIndex, target));
 	}
 }
+
+//Just add a type if the network is suppose to support more types.
+
+template class TrainableCNN<float> ;
+template class TrainableCNN<double> ;
+template class TrainableCNN<long double> ;
 
 } /* namespace MachineLearning */
 } /* namespace ATML */

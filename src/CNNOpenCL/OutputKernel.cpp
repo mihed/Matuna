@@ -10,19 +10,13 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML
-{
-namespace MachineLearning
-{
-
-template class OutputKernel<cl_float> ;
-template class OutputKernel<cl_double> ;
+namespace ATML {
+namespace MachineLearning {
 
 template<class T>
 OutputKernel<T>::OutputKernel(int unitsCount, int inputOffset, int outputOffset) :
 		unitsCount(unitsCount), inputOffset(inputOffset), outputOffset(
-				outputOffset)
-{
+				outputOffset) {
 	stringstream stringStream;
 
 	stringStream << "OutputBackPropProgram";
@@ -41,52 +35,44 @@ OutputKernel<T>::OutputKernel(int unitsCount, int inputOffset, int outputOffset)
 }
 
 template<class T>
-OutputKernel<T>::~OutputKernel()
-{
+OutputKernel<T>::~OutputKernel() {
 
 }
 
 template<class T>
-void OutputKernel<T>::SetConstantInput(bool value)
-{
+void OutputKernel<T>::SetConstantInput(bool value) {
 	useConstantInput = value;
 }
 
 template<class T>
-void OutputKernel<T>::SetConstantTarget(bool value)
-{
+void OutputKernel<T>::SetConstantTarget(bool value) {
 	useConstantTarget = value;
 }
 
 template<class T>
-void OutputKernel<T>::SetUseRelaxedMath(bool value)
-{
+void OutputKernel<T>::SetUseRelaxedMath(bool value) {
 	useRelaxedMath = value;
 }
 
 template<class T>
 void OutputKernel<T>::SetActivationFunction(
-		ATMLActivationFunction activationFunction)
-{
+		ATMLActivationFunction activationFunction) {
 	this->activationFunction = activationFunction;
 }
 
 template<class T>
 void OutputKernel<T>::SetComputationPrecision(
-		ATMLComputationPrecision computationPrecision)
-{
+		ATMLComputationPrecision computationPrecision) {
 	this->computationPrecision = computationPrecision;
 }
 
 template<class T>
-void OutputKernel<T>::SetErrorFunction(ATMLErrorFunction errorFunction)
-{
+void OutputKernel<T>::SetErrorFunction(ATMLErrorFunction errorFunction) {
 	this->errorFunction = errorFunction;
 }
 
 template<class T>
-void OutputKernel<T>::SetInput(OpenCLMemory* input)
-{
+void OutputKernel<T>::SetInput(OpenCLMemory* input) {
 	auto rawInput = input->GetCLMemory();
 	CheckOpenCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -94,8 +80,7 @@ void OutputKernel<T>::SetInput(OpenCLMemory* input)
 }
 
 template<class T>
-void OutputKernel<T>::SetTarget(OpenCLMemory* target)
-{
+void OutputKernel<T>::SetTarget(OpenCLMemory* target) {
 	auto rawTarget = target->GetCLMemory();
 	CheckOpenCLError(
 			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawTarget),
@@ -103,8 +88,7 @@ void OutputKernel<T>::SetTarget(OpenCLMemory* target)
 }
 
 template<class T>
-void OutputKernel<T>::SetOutput(OpenCLMemory* output)
-{
+void OutputKernel<T>::SetOutput(OpenCLMemory* output) {
 	auto rawOutput = output->GetCLMemory();
 	CheckOpenCLError(
 			clSetKernelArg(this->GetKernel(), 2, sizeof(cl_mem), &rawOutput),
@@ -112,8 +96,7 @@ void OutputKernel<T>::SetOutput(OpenCLMemory* output)
 }
 
 template<class T>
-void OutputKernel<T>::InitializeCompilerOptions()
-{
+void OutputKernel<T>::InitializeCompilerOptions() {
 	stringstream stringStream;
 
 	if (useConstantInput)
@@ -122,31 +105,24 @@ void OutputKernel<T>::InitializeCompilerOptions()
 		stringStream << "-D" << "CONSTANT_TARGET ";
 
 	//Refer to the notes for this
-	if (errorFunction == ATMLMeanSquareError)
-	{
+	if (errorFunction == ATMLMeanSquareError) {
 		if (activationFunction == ATMLLinearActivation)
 			stringStream << "-D" << "DIFFERENCE ";
 		else
 			stringStream << "-D" << "MSE_ANY ";
-	}
-	else if (errorFunction == ATMLCrossEntropy)
-	{
-		if (unitsCount == 1)
-		{
+	} else if (errorFunction == ATMLCrossEntropy) {
+		if (unitsCount == 1) {
 			if (activationFunction == ATMLSigmoidActivation)
 				stringStream << "-D" << "DIFFERENCE ";
 			else
 				stringStream << "-D" << "CE_BINARY_ANY ";
-		}
-		else
-		{
+		} else {
 			if (activationFunction == ATMLSoftMaxActivation)
 				stringStream << "-D" << "DIFFERENCE ";
 			else
 				stringStream << "-D" << "CE_ANY ";
 		}
-	}
-	else
+	} else
 		throw invalid_argument(
 				"The error function is not supported by the output kernel");
 
@@ -177,20 +153,17 @@ void OutputKernel<T>::InitializeCompilerOptions()
 }
 
 template<class T>
-string OutputKernel<T>::ProgramName() const
-{
+string OutputKernel<T>::ProgramName() const {
 	return programName;
 }
 
 template<class T>
-string OutputKernel<T>::GetCompilerOptions() const
-{
+string OutputKernel<T>::GetCompilerOptions() const {
 	return compilerOptions;
 }
 
 template<class T>
-vector<string> OutputKernel<T>::GetProgramCode() const
-{
+vector<string> OutputKernel<T>::GetProgramCode() const {
 	vector<string> result;
 	result.push_back(
 			FileHelper::GetTextFromPath(
@@ -202,22 +175,22 @@ vector<string> OutputKernel<T>::GetProgramCode() const
 }
 
 template<class T>
-string OutputKernel<T>::KernelName() const
-{
+string OutputKernel<T>::KernelName() const {
 	return kernelName;
 }
 
 template<class T>
-const vector<size_t>& OutputKernel<T>::GlobalWorkSize() const
-{
+const vector<size_t>& OutputKernel<T>::GlobalWorkSize() const {
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& OutputKernel<T>::LocalWorkSize() const
-{
+const vector<size_t>& OutputKernel<T>::LocalWorkSize() const {
 	return localWorkSize;
 }
+
+template class OutputKernel<cl_float> ;
+template class OutputKernel<cl_double> ;
 
 } /* namespace MachineLearning */
 } /* namespace ATML */

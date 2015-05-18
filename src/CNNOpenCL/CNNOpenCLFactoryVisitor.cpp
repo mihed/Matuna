@@ -17,65 +17,57 @@
 #include "CNN/CNNConfig.h"
 #include "CNN/InterlockHelper.h"
 
-namespace ATML
-{
-namespace MachineLearning
-{
-
-template class CNNOpenCLFactoryVisitor<cl_float> ;
-template class CNNOpenCLFactoryVisitor<cl_double> ;
+namespace ATML {
+namespace MachineLearning {
 
 template<class T>
 CNNOpenCLFactoryVisitor<T>::CNNOpenCLFactoryVisitor(
 		shared_ptr<OpenCLContext> context, CNN* network) :
-		CNNFactoryVisitor(network), context(context)
-{
+		CNNFactoryVisitor(network), context(context) {
 
 }
 
 template<class T>
-CNNOpenCLFactoryVisitor<T>::~CNNOpenCLFactoryVisitor()
-{
+CNNOpenCLFactoryVisitor<T>::~CNNOpenCLFactoryVisitor() {
 
 }
 
 template<class T>
-void CNNOpenCLFactoryVisitor<T>::Visit(const CNNConfig* const cnnConfig)
-{
+void CNNOpenCLFactoryVisitor<T>::Visit(const CNNConfig* const cnnConfig) {
 	this->InitializeInterlock(cnnConfig);
 }
 
 template<class T>
 void CNNOpenCLFactoryVisitor<T>::Visit(
-		const PerceptronLayerConfig* const perceptronConfig)
-{
+		const PerceptronLayerConfig* const perceptronConfig) {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new PerceptronLayer<T>(context, inputDataDescriptions, backPropActivation,
-					perceptronConfig));
+			new PerceptronLayer<T>(context, inputDataDescriptions,
+					backPropActivation, perceptronConfig));
 
 	this->InterlockAndAddLayer(perceptronConfig, move(layer));
 }
 
 template<class T>
 void CNNOpenCLFactoryVisitor<T>::Visit(
-		const ConvolutionLayerConfig* const convolutionConfig)
-{
+		const ConvolutionLayerConfig* const convolutionConfig) {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new ConvolutionLayer<T>(context, inputDataDescriptions, backPropActivation,
-					convolutionConfig));
+			new ConvolutionLayer<T>(context, inputDataDescriptions,
+					backPropActivation, convolutionConfig));
 
 	this->InterlockAndAddLayer(convolutionConfig, move(layer));
 }
 template<class T>
 void CNNOpenCLFactoryVisitor<T>::Visit(
-		const StandardOutputLayerConfig* const outputConfig)
-{
+		const StandardOutputLayerConfig* const outputConfig) {
 	unique_ptr<OutputLayer> layer(
-			new StandardOutputLayer<T>(context, inputDataDescriptions, backPropActivation,
-					outputConfig));
+			new StandardOutputLayer<T>(context, inputDataDescriptions,
+					backPropActivation, outputConfig));
 
 	this->InterlockAndAddLayer(outputConfig, move(layer));
 }
+
+template class CNNOpenCLFactoryVisitor<cl_float> ;
+template class CNNOpenCLFactoryVisitor<cl_double> ;
 
 } /* namespace MachineLearning */
 } /* namespace ATML */

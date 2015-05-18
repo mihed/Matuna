@@ -10,13 +10,8 @@
 #include <stdexcept>
 #include <type_traits>
 
-namespace ATML
-{
-namespace MachineLearning
-{
-
-template class StandardOutputLayer<cl_float> ;
-template class StandardOutputLayer<cl_double> ;
+namespace ATML {
+namespace MachineLearning {
 
 template<class T>
 StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
@@ -24,16 +19,14 @@ StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
 		ATMLActivationFunction backPropActivation,
 		const StandardOutputLayerConfig* outputLayerConfig) :
 		OutputLayer(inputLayerDescriptions, backPropActivation,
-				outputLayerConfig), context(context), config(*outputLayerConfig)
-{
+				outputLayerConfig), context(context), config(*outputLayerConfig) {
 
 	if (inputLayerDescriptions.size() == 0)
 		throw invalid_argument(
 				"There's no input data descriptions for the standard output layer.");
 
 	//TODO: Make sure this works for a more general case later on.
-	if (inputLayerDescriptions.size() > 1)
-	{
+	if (inputLayerDescriptions.size() > 1) {
 		auto count = inputLayerDescriptions.size();
 		for (int i = 1; i < count; i++)
 			if (!InterlockHelper::DataEquals(inputLayerDescriptions[i - 1],
@@ -46,8 +39,7 @@ StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
 	inBackPropDataDescriptions = inputLayerDescriptions;
 	inputDescription = inputLayerDescriptions[0];
 
-	for (auto& inputDescription : inputLayerDescriptions)
-	{
+	for (auto& inputDescription : inputLayerDescriptions) {
 		LayerMemoryDescription inBackPropMemProp;
 		inBackPropMemProp.Height = inputDescription.Height;
 		inBackPropMemProp.Width = inputDescription.Width;
@@ -62,17 +54,14 @@ StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
 }
 
 template<class T>
-StandardOutputLayer<T>::~StandardOutputLayer()
-{
-	for (auto& deviceAndKernel : deviceAndOutputKernels)
-	{
+StandardOutputLayer<T>::~StandardOutputLayer() {
+	for (auto& deviceAndKernel : deviceAndOutputKernels) {
 		auto& kernelProgram = deviceAndKernel.second;
 		this->context->RemoveKernel(kernelProgram.get());
 		this->context->RemoveProgram(kernelProgram.get());
 	}
 
-	for (auto& deviceAndKernel : deviceAndErrorKernels)
-	{
+	for (auto& deviceAndKernel : deviceAndErrorKernels) {
 		auto& kernelProgram = deviceAndKernel.second;
 		this->context->RemoveKernel(kernelProgram.get());
 		this->context->RemoveProgram(kernelProgram.get());
@@ -80,8 +69,7 @@ StandardOutputLayer<T>::~StandardOutputLayer()
 }
 
 template<class T>
-void StandardOutputLayer<T>::InterlockFinalized()
-{
+void StandardOutputLayer<T>::InterlockFinalized() {
 	//TODO: make sure this layer is not limited to be connected to a perceptron
 
 	auto inBackProp = inBackPropDataDescriptions[0];
@@ -104,44 +92,36 @@ void StandardOutputLayer<T>::InterlockFinalized()
 }
 
 template<class T>
-void StandardOutputLayer<T>::InitializeErrorKernel()
-{
+void StandardOutputLayer<T>::InitializeErrorKernel() {
 	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
 	vector<OpenCLDevice*> devices = this->context->GetDevices();
-	for (auto device : devices)
-	{
+	for (auto device : devices) {
 		auto deviceInfo = device->DeviceInfo();
 
 		//Make sure the type we want to execute is supported on the device.
-		if (is_same<cl_double, T>::value)
-		{
+		if (is_same<cl_double, T>::value) {
 			if (deviceInfo.PreferredDoubleVectorWidth() == 0)
 				throw invalid_argument(
-				"The template argument is not supported on the chosen devices");
-		}
-		else if (is_same<cl_float, T>::value)
-		{
+						"The template argument is not supported on the chosen devices");
+		} else if (is_same<cl_float, T>::value) {
 			if (deviceInfo.PreferredFloatVectorWidth() == 0)
 				throw invalid_argument(
-				"The template argument is not supported on the chosen devices");
-		}
-		else
+						"The template argument is not supported on the chosen devices");
+		} else
 			throw runtime_error(
-			"The template argument does not match the supported arguments");
+					"The template argument does not match the supported arguments");
 
 		unique_ptr<ErrorKernel<T>> kernel(
-			new ErrorKernel<T>(inputDescription.Units,
-			inForwardPropMem.UnitOffset));
+				new ErrorKernel<T>(inputDescription.Units,
+						inForwardPropMem.UnitOffset));
 
 		auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
 		auto inputTargetBytes = sizeof(T) * inputDescription.Units;
-		if (maximumConstantBufferSize > inputTargetBytes)
-		{
+		if (maximumConstantBufferSize > inputTargetBytes) {
 			kernel->SetConstantInput(true);
 			maximumConstantBufferSize -= inputTargetBytes;
 		}
-		if (maximumConstantBufferSize > inputTargetBytes)
-		{
+		if (maximumConstantBufferSize > inputTargetBytes) {
 			kernel->SetConstantTarget(true);
 			maximumConstantBufferSize -= inputTargetBytes;
 		}
@@ -159,32 +139,26 @@ void StandardOutputLayer<T>::InitializeErrorKernel()
 }
 
 template<class T>
-void StandardOutputLayer<T>::InitializeOutputKernel()
-{
+void StandardOutputLayer<T>::InitializeOutputKernel() {
 	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
 	auto outBackPropMem = this->OutBackPropMemoryDescriptions()[0];
 	//In the current implementation, I need to make sure the target (inBackProp)
 	//and the (inForwardProp) are the same
 
 	vector<OpenCLDevice*> devices = this->context->GetDevices();
-	for (auto device : devices)
-	{
+	for (auto device : devices) {
 		auto deviceInfo = device->DeviceInfo();
 
 		//Make sure the type we want to execute is supported on the device.
-		if (is_same<cl_double, T>::value)
-		{
+		if (is_same<cl_double, T>::value) {
 			if (deviceInfo.PreferredDoubleVectorWidth() == 0)
 				throw invalid_argument(
 						"The template argument is not supported on the chosen devices");
-		}
-		else if (is_same<cl_float, T>::value)
-		{
+		} else if (is_same<cl_float, T>::value) {
 			if (deviceInfo.PreferredFloatVectorWidth() == 0)
 				throw invalid_argument(
 						"The template argument is not supported on the chosen devices");
-		}
-		else
+		} else
 			throw runtime_error(
 					"The template argument does not match the supported arguments");
 
@@ -195,15 +169,13 @@ void StandardOutputLayer<T>::InitializeOutputKernel()
 
 		auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
 		auto inputTargetBytes = sizeof(T) * inputDescription.Units;
-		if (maximumConstantBufferSize > inputTargetBytes)
-		{
+		if (maximumConstantBufferSize > inputTargetBytes) {
 			kernel->SetConstantInput(true);
-			maximumConstantBufferSize-= inputTargetBytes;
+			maximumConstantBufferSize -= inputTargetBytes;
 		}
-		if (maximumConstantBufferSize > inputTargetBytes)
-		{
+		if (maximumConstantBufferSize > inputTargetBytes) {
 			kernel->SetConstantTarget(true);
-			maximumConstantBufferSize-= inputTargetBytes;
+			maximumConstantBufferSize -= inputTargetBytes;
 		}
 
 		kernel->SetUseRelaxedMath(config.UseRelaxedMath());
@@ -221,8 +193,7 @@ void StandardOutputLayer<T>::InitializeOutputKernel()
 
 template<class T>
 T StandardOutputLayer<T>::CalculateError(OpenCLDevice* device, int queueIndex,
-		OpenCLMemory* previousInput, OpenCLMemory* target)
-{
+		OpenCLMemory* previousInput, OpenCLMemory* target) {
 	auto& kernel = deviceAndErrorKernels[device];
 	kernel->SetInput(previousInput);
 	kernel->SetTarget(target);
@@ -230,21 +201,24 @@ T StandardOutputLayer<T>::CalculateError(OpenCLDevice* device, int queueIndex,
 	kernel->SetError(errorMemory.get());
 	device->ExecuteTask(kernel.get(), queueIndex, true);
 	T result;
-	device->ReadMemory(errorMemory.get(), errorMemory->ByteSize(), &result, queueIndex, true);
+	device->ReadMemory(errorMemory.get(), errorMemory->ByteSize(), &result,
+			queueIndex, true);
 	return result;
 }
 
 template<class T>
 void StandardOutputLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
 		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* target,
-		OpenCLMemory* deltaOutput, bool blocking)
-{
+		OpenCLMemory* deltaOutput, bool blocking) {
 	auto& kernel = deviceAndOutputKernels[device];
 	kernel->SetInput(previousInput);
 	kernel->SetTarget(target);
 	kernel->SetOutput(deltaOutput);
 	device->ExecuteKernel(kernel.get(), queueIndex, blocking);
 }
+
+template class StandardOutputLayer<cl_float> ;
+template class StandardOutputLayer<cl_double> ;
 
 } /* namespace MachineLearning */
 } /* namespace ATML */
