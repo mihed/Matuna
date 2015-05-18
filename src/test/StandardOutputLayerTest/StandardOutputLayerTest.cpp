@@ -62,10 +62,10 @@ SCENARIO("Creating a CNN with an standard output layer")
 					{
 						auto alignedOutput = move(network.AlignToForwardOutput(randomInputs.Data, 0));
 						auto alignedTarget = move(network.AlignToForwardOutput(randomTargets.Data, 0));
-						result = network.CalculateErrorAligned(alignedOutput.get(), 0, alignedTarget.get());
+						result = network.CalculateErrorFromForwardAligned(alignedOutput.get(), 0, alignedTarget.get());
 					}
 					else
-						result = network.CalculateErrorAligned(randomInputs.Data, 0, randomTargets.Data);
+						result = network.CalculateErrorFromForwardAligned(randomInputs.Data, 0, randomTargets.Data);
 
 					auto difference = randomInputs - randomTargets;
 					auto manualResult = 0.5f * difference.Norm2Square();

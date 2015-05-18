@@ -200,6 +200,32 @@ unique_ptr<T[]> TrainableCNN<T>::FeedForwardUnaligned(T* input, int formatIndex)
 }
 
 template<class T>
+T TrainableCNN<T>::CalculateErrorUnaligned(T* input, int formatIndex, T* target)
+{
+	if (RequireForwardInputAlignment(formatIndex))
+	{
+		unique_ptr<T[]> alignedInput = move(AlignToForwardInput(input, formatIndex));
+		if (RequireForwardOutputAlignment(formatIndex))
+		{
+			unique_ptr<T[]> alignedTarget = move(AlignToForwardOutput(target, formatIndex));
+			return CalculateErrorAligned(alignedInput.get(), formatIndex, alignedTarget.get());
+		}
+		else
+			return CalculateErrorAligned(alignedInput.get(), formatIndex, target);
+	}
+	else
+	{
+		if (RequireForwardOutputAlignment(formatIndex))
+		{
+			unique_ptr<T[]> alignedTarget = move(AlignToForwardOutput(target, formatIndex));
+			return CalculateErrorAligned(input, formatIndex, alignedTarget.get());
+		}
+		else
+			return CalculateErrorAligned(input, formatIndex, target);
+	}
+}
+
+template<class T>
 unique_ptr<T[]> TrainableCNN<T>::BackPropUnaligned(T* input, int formatIndex, T* target)
 {
 	if (RequireForwardInputAlignment(formatIndex))

@@ -120,21 +120,14 @@ SCENARIO("Calculating the gradient of a CNN using perceptron layers")
 				Matrix<double> param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;
 				network.SetParameters(param1.Data);
-				auto forward1 = network.FeedForwardUnaligned(input.Data, 0);
-				Matrix<double> forward1Matrix(outputDataDesc.Units, 1, forward1.get());
-				forward1.reset();
 
-				//TODO: Refactor this method so that it requires forward prop
-				auto minusValue = network.CalculateErrorAligned(forward1Matrix.Data, 0, target.Data);
+				auto minusValue = network.CalculateErrorUnaligned(input.Data, 0, target.Data);
 
 				Matrix<double> param2 = parameterMatrix;
 				param2.At(i, 0) = param2.At(i, 0) + h;
 				network.SetParameters(param2.Data);
-				auto forward2 = network.FeedForwardUnaligned(input.Data, 0);
-				Matrix<double> forward2Matrix(outputDataDesc.Units, 1, forward2.get());
-				forward2.reset();
 
-				auto plusValue = network.CalculateErrorAligned(forward2Matrix.Data, 0, target.Data);
+				auto plusValue = network.CalculateErrorUnaligned(input.Data, 0, target.Data);
 
 				finiteDifferenceGradient.At(i, 0) = (plusValue - minusValue) / (2 * h);
 			}
@@ -146,7 +139,7 @@ SCENARIO("Calculating the gradient of a CNN using perceptron layers")
 
 			auto difference = (gradientMatrix - finiteDifferenceGradient).Norm2Square() / parameterCount;
 			cout << "Difference: " << difference << endl;
-			CHECK(difference < 1E-13);
+			CHECK(difference < 1E-11);
 		}
 	}
 }

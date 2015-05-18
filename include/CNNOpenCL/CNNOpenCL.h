@@ -46,8 +46,10 @@ public:
 	virtual unique_ptr<T[]> FeedForwardAligned(T* input, int formatIndex)
 			override;
 
-	virtual T CalculateErrorAligned(T* propagatedValue, int formatIndex,
+	virtual T CalculateErrorFromForwardAligned(T* propagatedValue, int formatIndex,
 			T* target) override;
+
+	virtual T CalculateErrorAligned(T* input, int formatIndex, T* target) override;
 
 	virtual unique_ptr<T[]> BackPropAligned(T* input, int formatIndex, T* target) override;
 

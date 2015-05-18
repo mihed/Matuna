@@ -167,6 +167,36 @@ namespace ATML
 		}
 
 		template<class T>
+		T CNNOpenCL<T>::CalculateErrorAligned(T* input, int formatIndex, T* target)
+		{
+			//TODO: At the moment we only support one context and one device 
+			auto devices = contexts[0]->GetDevices();
+			auto device = devices[0];
+			LayerMemoryDescription inputMemoryDescription =
+				this->InputForwardMemoryDescriptions()[formatIndex];
+
+			unique_ptr<OpenCLMemory> inputMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * inputMemoryDescription.TotalMemory());
+			device->WriteMemory(inputMemory.get(), inputMemory->ByteSize(), input, 0, true);
+
+			//We need some synchronization in order not to use blocking calls. 
+			//We could probably yield some better performance in that case.
+			for (auto& layer : layers)
+			{
+				inputMemoryDescription = layer->OutForwardPropMemoryDescriptions()[formatIndex];
+				unique_ptr<OpenCLMemory> outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inputMemoryDescription.TotalMemory());
+				layer->EnqueueForwardPropagation(device, 0, inputMemory.get(), outputMemory.get(), true);
+				inputMemory.reset();
+				inputMemory = move(outputMemory);
+			}
+
+			LayerMemoryDescription inBackPropMemoryDescription = this->OutputForwardMemoryDescriptions()[formatIndex];
+			unique_ptr<OpenCLMemory> targetMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
+			device->WriteMemory(targetMemory.get(), targetMemory->ByteSize(), target, 0, true);
+
+			return this->outputLayer->CalculateError(device, 0, inputMemory.get(), targetMemory.get());
+		}
+
+		template<class T>
 		unique_ptr<T[]> CNNOpenCL<T>::BackPropAligned(T* input,
 			int formatIndex, T* target)
 		{
@@ -229,7 +259,7 @@ namespace ATML
 		}
 
 		template<class T>
-		T CNNOpenCL<T>::CalculateErrorAligned(T* propagatedValue, int formatIndex, T* target)
+		T CNNOpenCL<T>::CalculateErrorFromForwardAligned(T* propagatedValue, int formatIndex, T* target)
 		{
 			//TODO: At the moment we only support one context and one device 
 			auto devices = contexts[0]->GetDevices();
