@@ -27,6 +27,7 @@ ErrorKernel<T>::ErrorKernel(int units, int unitOffset) :
 	useConstantTarget = false;
 	useRelaxedMath = false;
 	errorFunction = ATMLMeanSquareError;
+	computationPrecision = ATMLNormalPrecision;
 }
 
 template<class T>

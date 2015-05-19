@@ -52,6 +52,7 @@ public:
 	void Transform(function<T(T)> function);
 	T Norm2() const;
 	T Norm2Square() const;
+	T Sum() const;
 	T At(int row, int column) const;
 	T& At(int row, int column);
 
