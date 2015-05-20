@@ -61,7 +61,7 @@ namespace ATML {
 			if (backPropActivation == ATMLSoftMaxActivation)
 				throw invalid_argument("The soft max is currently only supported on the outmost layer");
 
-			if (perceptronConfig->ConnectionType() != ATMLFullConnection)
+			if (convolutionConfig->ConnectionType() != ATMLFullConnection)
 				throw invalid_argument("We only support full connection on the convolution layer at the moment");
 
 			unique_ptr<ForwardBackPropLayer> layer(
