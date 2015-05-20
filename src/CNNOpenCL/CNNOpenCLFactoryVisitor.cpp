@@ -40,6 +40,13 @@ namespace ATML {
 		template<class T>
 		void CNNOpenCLFactoryVisitor<T>::Visit(
 			const PerceptronLayerConfig* const perceptronConfig) {
+
+			if (backPropActivation == ATMLSoftMaxActivation)
+				throw invalid_argument("The soft max is currently only supported on the outmost layer");
+
+			if (perceptronConfig->ConnectionType() != ATMLFullConnection)
+				throw invalid_argument("We only support full connection on the perceptron layer at the moment");
+
 			unique_ptr<ForwardBackPropLayer> layer(
 				new PerceptronLayer<T>(context, inputDataDescriptions,
 				backPropActivation, perceptronConfig));
@@ -53,6 +60,9 @@ namespace ATML {
 
 			if (backPropActivation == ATMLSoftMaxActivation)
 				throw invalid_argument("The soft max is currently only supported on the outmost layer");
+
+			if (perceptronConfig->ConnectionType() != ATMLFullConnection)
+				throw invalid_argument("We only support full connection on the convolution layer at the moment");
 
 			unique_ptr<ForwardBackPropLayer> layer(
 				new ConvolutionLayer<T>(context, inputDataDescriptions,
