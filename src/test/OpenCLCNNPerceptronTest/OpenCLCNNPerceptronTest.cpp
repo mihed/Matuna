@@ -548,6 +548,7 @@ SCENARIO("Forward propagating an AND CNN network")
 }
 
 
+
 float SigmoidActivationFloat(float x)
 {
 	return 1 / (1 + exp(-x));
@@ -571,7 +572,8 @@ double TanhActivationDouble(double x)
 
 unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 	uniform_int_distribution<int>& layerGenerator,
-	uniform_int_distribution<int>& dimensionGenerator)
+	uniform_int_distribution<int>& dimensionGenerator,
+	bool useSoftMax)
 {
 	vector<LayerDataDescription> dataDescriptions;
 	LayerDataDescription dataDescription;
@@ -586,11 +588,11 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 	INFO("Initializing the CNN config");
 	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
+	ATMLActivationFunction activationFunction;
 	INFO("Creating the layers config");
 	for (int i = 0; i < layerCount; i++)
 	{
 		auto activation = activationGenerator(mt);
-		ATMLActivationFunction activationFunction;
 		switch (activation)
 		{
 		case 1:
@@ -604,23 +606,45 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 			break;
 		}
 
-		unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(dimensionGenerator(mt), activationFunction));
+		//Simply to avoid overflow when using softmax
+		if (useSoftMax)
+			if (i == (layerCount - 2) && activationFunction == ATMLLinearActivation)
+				activationFunction = ATMLTanhActivation;
+
+		auto temp = dimensionGenerator(mt);
+		if (useSoftMax)
+		{
+			if (i == (layerCount - 1))
+			{
+				activationFunction = ATMLSoftMaxActivation;
+				temp = temp > 1 ? temp : 2;
+			}
+		}
+
+		unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(temp, activationFunction));
 		config->AddToBack(move(perceptronConfig));
 	}
 
-	unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig());
-	config->SetOutputConfig(move(outputConfig));
-
+	if (useSoftMax)
+	{
+		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig(ATMLCrossEntropy));
+		config->SetOutputConfig(move(outputConfig));
+	}
+	else
+	{
+		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig());
+		config->SetOutputConfig(move(outputConfig));
+	}
 	return move(config);
 }
 
-SCENARIO("Forward propagating multi-layer perceptron network")
+SCENARIO("Forward propagating multi-layer perceptron network using cross entropy and softmax")
 {
 	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
-	uniform_int_distribution<int> dimensionGenerator(1, 500);
-	uniform_int_distribution<int> layerGenerator(1, 6);
+	uniform_int_distribution<int> dimensionGenerator(2, 200);
+	uniform_int_distribution<int> layerGenerator(1, 4);
 
 	WHEN("Forward propagating using single precision and standard math")
 	{
@@ -628,7 +652,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 		THEN("The values must match the hand-calculated values")
 		{
 
-			for (int dummy = 0; dummy < 50; dummy++)
+			for (int dummy = 0; dummy < 10; dummy++)
 			{
 
 				vector<vector<OpenCLDeviceInfo>> deviceInfos;
@@ -637,7 +661,110 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 
 				for (auto& deviceInfo : deviceInfos)
 				{
-					auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator);
+					auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
+					CNNOpenCL<float> network(deviceInfo, move(config));
+					auto layers = network.GetLayers();
+					vector<PerceptronLayer<float>*> perceptronlayers;
+					for (auto layer : layers)
+						perceptronlayers.push_back(dynamic_cast<PerceptronLayer<float>*>(layer));
+
+					vector<Matrix<float>> weights;
+					vector<Matrix<float>> biases;
+					vector<ATMLActivationFunction> activationFunctions;
+					LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
+
+					auto input = Matrix<float>::RandomNormal(inputDataDesc.Units, 1);
+
+					INFO("Fetching all the matrices and biases from the layers");
+					for (auto perceptron : perceptronlayers)
+					{
+						;
+						weights.push_back(perceptron->GetWeights());
+						biases.push_back(perceptron->GetBias());
+						activationFunctions.push_back(perceptron->GetConfig().ActivationFunction());
+					}
+
+					CHECK(weights.size() == biases.size());
+					CHECK(weights.size() == activationFunctions.size());
+
+					INFO("Forward propagating the network by the use of matrices");
+					Matrix<float> result = input;
+					for (int i = 0; i < weights.size(); i++)
+					{
+
+						result = weights[i] * result + biases[i];
+
+						if (activationFunctions[i] == ATMLSigmoidActivation)
+							result.Transform(&SigmoidActivationFloat);
+						else if (activationFunctions[i] == ATMLTanhActivation)
+							result.Transform(&TanhActivationFloat);
+						else if (activationFunctions[i] == ATMLSoftMaxActivation)
+						{
+							if (i != (weights.size() - 1))
+								throw runtime_error("Not supported by the test");
+
+							result.Transform([](float x) { return exp(x); });
+							auto resultSum = result.Sum();
+							result = (1.0f / resultSum) * result;
+						}
+					}
+
+
+					INFO("Making sure the manually calculated perceptron corresponds to the output dimension of the network");
+					auto outputDataDesc = network.OutputForwardDataDescriptions()[0];
+					CHECK(outputDataDesc.Units == result.RowCount());
+					CHECK(outputDataDesc.Width == 1);
+					CHECK(outputDataDesc.Height == 1);
+
+					INFO("Forward propagating the network");
+					unique_ptr<float[]> outputPointer = move(network.FeedForwardUnaligned(input.Data, 0));
+
+
+					float outputSum = 0;
+					INFO("Comparing the manually calculated perceptron with the OCL version");
+					for (int i = 0; i < outputDataDesc.Units; i++)
+					{
+						outputSum += outputPointer[i];
+						float absDifference;
+						if (abs(result.At(i, 0))  > 1E-8)
+							absDifference = abs((outputPointer[i] - result.At(i, 0)) / result.At(i, 0));
+						else
+							absDifference = abs(outputPointer[i] - result.At(i, 0));
+						CHECK(absDifference < 1E-3);
+					}
+
+					cout << "Checksum, should be close to 1: " << outputSum << endl;
+					CHECK(abs(outputSum - 1) < 1E-5);
+				}
+			}
+		}
+	}
+}
+
+SCENARIO("Forward propagating multi-layer perceptron network")
+{
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
+	random_device device;
+	mt19937 mt(device());
+	uniform_int_distribution<int> dimensionGenerator(1, 200);
+	uniform_int_distribution<int> layerGenerator(1, 4);
+
+	WHEN("Forward propagating using single precision and standard math")
+	{
+
+		THEN("The values must match the hand-calculated values")
+		{
+
+			for (int dummy = 0; dummy < 10; dummy++)
+			{
+
+				vector<vector<OpenCLDeviceInfo>> deviceInfos;
+				for (auto platformInfo : platformInfos)
+					deviceInfos.push_back(OpenCLHelper::GetDeviceInfos(platformInfo));
+
+				for (auto& deviceInfo : deviceInfos)
+				{
+					auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
 					CNNOpenCL<float> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<float>*> perceptronlayers;

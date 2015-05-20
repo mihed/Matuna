@@ -15,6 +15,7 @@
 * - CONSTANT_BIASES: If we may put the biases into the constant memory space
 * - SIGMOID: If we are using sigmoid activation
 * - TANH: If we are using tanh activation
+* - SOFTMAX: If we are using the softmax activation
 * - HALF_MATH: If we use half precision math
 * - NATIVE_MATH: If we use native precision math
 */
@@ -133,6 +134,18 @@ __kernel void ForwardPerceptronKernel(
     #endif
 #elif defined(TANH)
     output[outputIndex] = TANH_OUTER * tanh(TANH_INNER * (sum + biases[outputIndex]));
+#elif defined(SOFTMAX)
+    #ifndef DOUBLE_PRECISION
+        #if defined(HALF_MATH)
+	        output[outputIndex] = half_exp(sum + biases[outputIndex]);
+        #elif defined(NATIVE_MATH)
+	        output[outputIndex] = native_exp(sum + biases[outputIndex]);
+        #else
+	        output[outputIndex] = exp(sum + biases[outputIndex]);
+        #endif
+    #else
+	    output[outputIndex] = exp(sum + biases[outputIndex]);
+    #endif
 #else
     output[outputIndex] = sum + biases[outputIndex];
 #endif

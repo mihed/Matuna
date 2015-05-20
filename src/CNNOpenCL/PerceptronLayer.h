@@ -12,6 +12,8 @@
 #include "BackPerceptronKernel.h"
 #include "ForwardPerceptronKernel.h"
 #include "GradientPerceptronKernel.h"
+#include "SimpleSumKernel.h"
+#include "DivideByScalarKernel.h"
 #include "CNN/PerceptronLayerConfig.h"
 #include "Math/Matrix.h"
 #include "OpenCLHelper/OpenCLContext.h"
@@ -37,6 +39,11 @@ private:
 	unordered_map<OpenCLDevice*, unique_ptr<ForwardPerceptronKernel<T>>> deviceAndForwardKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<BackPerceptronKernel<T>>> deviceAndBackKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<GradientPerceptronKernel<T>>> deviceAndGradientKernels;
+
+	unique_ptr<OpenCLMemory> scalarCache;
+	unordered_map<OpenCLDevice*, unique_ptr<DivideByScalarKernel<T>>> deviceAndDivideByScalarKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<SimpleSumKernel<T>>> deviceAndSimpleSumKernels;
+
 	unique_ptr<OpenCLMemory> weights;
 	unique_ptr<OpenCLMemory> biases;
 	PerceptronLayerConfig config;

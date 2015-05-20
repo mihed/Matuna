@@ -78,6 +78,8 @@ void ForwardPerceptronKernel<T>::InitializeCompilerOptions() {
 		stringStream << "-D" << "SIGMOID ";
 	else if (activationFunction == ATMLTanhActivation)
 		stringStream << "-D" << "TANH ";
+	else if (activationFunction == ATMLSoftMaxActivation)
+		stringStream << "-D" << "SOFTMAX ";
 
 	if (computationPrecision == ATMLNativePrecision)
 		stringStream << "-D" << "NATIVE_MATH ";

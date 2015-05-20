@@ -18,56 +18,65 @@
 #include "CNN/InterlockHelper.h"
 
 namespace ATML {
-namespace MachineLearning {
+	namespace MachineLearning {
 
-template<class T>
-CNNOpenCLFactoryVisitor<T>::CNNOpenCLFactoryVisitor(
-		shared_ptr<OpenCLContext> context, CNN* network) :
-		CNNFactoryVisitor(network), context(context) {
+		template<class T>
+		CNNOpenCLFactoryVisitor<T>::CNNOpenCLFactoryVisitor(
+			shared_ptr<OpenCLContext> context, CNN* network) :
+			CNNFactoryVisitor(network), context(context) {
 
-}
+		}
 
-template<class T>
-CNNOpenCLFactoryVisitor<T>::~CNNOpenCLFactoryVisitor() {
+		template<class T>
+		CNNOpenCLFactoryVisitor<T>::~CNNOpenCLFactoryVisitor() {
 
-}
+		}
 
-template<class T>
-void CNNOpenCLFactoryVisitor<T>::Visit(const CNNConfig* const cnnConfig) {
-	this->InitializeInterlock(cnnConfig);
-}
+		template<class T>
+		void CNNOpenCLFactoryVisitor<T>::Visit(const CNNConfig* const cnnConfig) {
+			this->InitializeInterlock(cnnConfig);
+		}
 
-template<class T>
-void CNNOpenCLFactoryVisitor<T>::Visit(
-		const PerceptronLayerConfig* const perceptronConfig) {
-	unique_ptr<ForwardBackPropLayer> layer(
-			new PerceptronLayer<T>(context, inputDataDescriptions,
-					backPropActivation, perceptronConfig));
+		template<class T>
+		void CNNOpenCLFactoryVisitor<T>::Visit(
+			const PerceptronLayerConfig* const perceptronConfig) {
+			unique_ptr<ForwardBackPropLayer> layer(
+				new PerceptronLayer<T>(context, inputDataDescriptions,
+				backPropActivation, perceptronConfig));
 
-	this->InterlockAndAddLayer(perceptronConfig, move(layer));
-}
+			this->InterlockAndAddLayer(perceptronConfig, move(layer));
+		}
 
-template<class T>
-void CNNOpenCLFactoryVisitor<T>::Visit(
-		const ConvolutionLayerConfig* const convolutionConfig) {
-	unique_ptr<ForwardBackPropLayer> layer(
-			new ConvolutionLayer<T>(context, inputDataDescriptions,
-					backPropActivation, convolutionConfig));
+		template<class T>
+		void CNNOpenCLFactoryVisitor<T>::Visit(
+			const ConvolutionLayerConfig* const convolutionConfig) {
 
-	this->InterlockAndAddLayer(convolutionConfig, move(layer));
-}
-template<class T>
-void CNNOpenCLFactoryVisitor<T>::Visit(
-		const StandardOutputLayerConfig* const outputConfig) {
-	unique_ptr<OutputLayer> layer(
-			new StandardOutputLayer<T>(context, inputDataDescriptions,
-					backPropActivation, outputConfig));
+			if (backPropActivation == ATMLSoftMaxActivation)
+				throw invalid_argument("The soft max is currently only supported on the outmost layer");
 
-	this->InterlockAndAddLayer(outputConfig, move(layer));
-}
+			unique_ptr<ForwardBackPropLayer> layer(
+				new ConvolutionLayer<T>(context, inputDataDescriptions,
+				backPropActivation, convolutionConfig));
 
-template class CNNOpenCLFactoryVisitor<cl_float> ;
-template class CNNOpenCLFactoryVisitor<cl_double> ;
+			this->InterlockAndAddLayer(convolutionConfig, move(layer));
+		}
+		template<class T>
+		void CNNOpenCLFactoryVisitor<T>::Visit(
+			const StandardOutputLayerConfig* const outputConfig) {
 
-} /* namespace MachineLearning */
+			for (auto& inputData : inputDataDescriptions)
+				if (backPropActivation == ATMLSoftMaxActivation && inputData.Units == 1)
+					throw invalid_argument("You cannot use Softmax together with only one unit. Use sigmoid instead!");
+
+			unique_ptr<OutputLayer> layer(
+				new StandardOutputLayer<T>(context, inputDataDescriptions,
+				backPropActivation, outputConfig));
+
+			this->InterlockAndAddLayer(outputConfig, move(layer));
+		}
+
+		template class CNNOpenCLFactoryVisitor < cl_float > ;
+		template class CNNOpenCLFactoryVisitor < cl_double > ;
+
+	} /* namespace MachineLearning */
 } /* namespace ATML */
