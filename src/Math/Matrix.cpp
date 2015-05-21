@@ -153,6 +153,29 @@ int Matrix<T>::ElementCount() const {
 }
 
 template<class T>
+Matrix<T> Matrix<T>::GetSubMatrix(int startRow, int startColumn, int rowLength, int columnLength) const
+{
+	if (startRow + rowLength > rows)
+		throw invalid_argument("Index out of range");
+
+	if (startColumn + columnLength > columns)
+		throw invalid_argument("Index out of range");
+
+	Matrix<T> result(rowLength, columnLength);
+	T* temp = Data + startColumn + columns * startRow;
+	T* rowPointer;
+	T* resultPointer;
+	for (int i = 0; i < rowLength; i++)
+	{
+		rowPointer = temp + columns * i;
+		resultPointer = result.Data + i * columnLength;
+		memcpy(resultPointer, rowPointer, columnLength * sizeof(T));
+	}
+
+	return result;
+}
+
+template<class T>
 Matrix<T> Matrix<T>::Transpose() const {
 	Matrix<T> result(columns, rows);
 	auto resultData = result.Data;

@@ -160,10 +160,13 @@ void OpenCLDevice::ReadMemory(OpenCLMemory* memory, size_t bytes, void* buffer,
 		throw invalid_argument("The OpenCLMemory is not tied to the context");
 
 	if (blockingCall)
+	{
 		CheckOpenCLError(
-				clEnqueueReadBuffer(queues[queueIndex], memory->GetCLMemory(),
-				CL_TRUE, 0, bytes, buffer, 0, nullptr, nullptr),
-				"Could not write the buffer to the device");
+			clEnqueueReadBuffer(queues[queueIndex], memory->GetCLMemory(),
+			CL_TRUE, 0, bytes, buffer, 0, nullptr, nullptr),
+			"Could not write the buffer to the device");
+		WaitForDeviceQueue(queueIndex);
+	}
 	else
 		CheckOpenCLError(
 				clEnqueueReadBuffer(queues[queueIndex], memory->GetCLMemory(),

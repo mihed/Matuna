@@ -49,6 +49,7 @@ public:
 	int RowCount() const;
 	int ElementCount() const;
 	Matrix<T> Transpose() const;
+	Matrix<T> GetSubMatrix(int startRow, int startColumn, int rowLength, int columnlength) const;
 	void Transform(function<T(T)> function);
 	T Norm2() const;
 	T Norm2Square() const;

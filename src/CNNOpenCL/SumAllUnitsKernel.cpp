@@ -76,6 +76,8 @@ void SumAllUnitsKernel<T>::InitializeCompilerOptions()
 
 	if (useRelaxedMath)
 		stringStream << "-cl-fast-relaxed-math";
+
+	compilerOptions = stringStream.str();
 }
 
 

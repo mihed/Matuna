@@ -13,6 +13,10 @@
 * - CONSTANT_INPUT: If we put the input into __constant space
 */
 
+//TEST---------------------
+//#pragma OPENCL EXTENSION cl_intel_printf : enable
+//END TEST-----------------
+
 //Offset + the data unit count.
 #ifndef UNIT_COUNT_INC_PADDING
 #define UNIT_COUNT_INC_PADDING -1
@@ -74,6 +78,25 @@ __kernel void SumAllUnitsKernel(
 	__global TYPE* output)
 
 {
+    
+    //TEST---------------------
+    /*#ifdef DOUBLE_PRECISION
+    printf("Double \n");
+    #else
+    printf("Float \n");
+    #endif
+    printf("UNIT_COUNT_INC_PADDING: %i \n", UNIT_COUNT_INC_PADDING);
+     printf("UNIT_INPUT_OFFSET: %i \n", UNIT_INPUT_OFFSET);
+      printf("WIDTH_INPUT_OFFSET: %i \n", WIDTH_INPUT_OFFSET);
+       printf("HEIGHT_INPUT_OFFSET: %i \n", HEIGHT_INPUT_OFFSET);
+        printf("WIDTH_OUTPUT_OFFSET: %i \n", WIDTH_OUTPUT_OFFSET);
+         printf("HEIGHT_OUTPUT_OFFSET: %i \n", HEIGHT_OUTPUT_OFFSET);
+                printf("WIDTH_INPUT: %i \n", WIDTH_INPUT);
+        printf("INPUT_UNIT_ELEMENT_COUNT_INC_PADDING : %i \n", INPUT_UNIT_ELEMENT_COUNT_INC_PADDING );
+         printf("WIDTH_OUTPUT: %i \n", WIDTH_OUTPUT);
+         */
+    //END TEST-----------------
+    
     const int xIndex = get_global_id(0);
     const int yIndex = get_global_id(1);
     
