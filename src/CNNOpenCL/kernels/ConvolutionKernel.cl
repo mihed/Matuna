@@ -29,6 +29,10 @@
 * - NATIVE_MATH: If we use native precision math
 */
 
+//TEST---------------------
+//#pragma OPENCL EXTENSION cl_intel_printf : enable
+//END TEST-----------------
+
 #ifndef MAX_LOCAL_WIDTH_INDEX
 #define MAX_LOCAL_WIDTH_INDEX -1
 #endif
@@ -109,9 +113,6 @@ typedef float TYPE;
 #endif
 
 __kernel void ConvolutionKernel(
-    #ifdef USE_LOCAL_MEMORY
-    __local TYPE* cache,
-    #endif
 	#ifdef CONSTANT_INPUT
 	    __constant TYPE* input,
     #else
@@ -125,16 +126,74 @@ __kernel void ConvolutionKernel(
     #else
         __global const TYPE* filters,
     #endif
-    #ifdef CONSTANT_BIAS
-        __constant TYPE* biases    
+    #ifdef USE_LOCAL_MEMORY
+        #ifdef CONSTANT_BIAS
+        __constant TYPE* biases,    
+        #else
+        __global const TYPE* biases,
+        #endif
+        __local TYPE* cache
     #else
+        #ifdef CONSTANT_BIAS
+        __constant TYPE* biases    
+        #else
         __global const TYPE* biases
+        #endif
     #endif
     )
 {
     const int xIndex = get_global_id(0);
     const int yIndex = get_global_id(1);
     const int zIndex = get_global_id(2);
+    
+    //TEST------------------------------------------------
+    /*
+    if (get_global_id(0) == 0 && get_global_id(1) == 0 && get_global_id(2) == 0)
+    {
+    printf("MAX_LOCAL_WIDTH_INDEX : %i \n", MAX_LOCAL_WIDTH_INDEX );
+    printf("MAX_LOCAL_HEIGHT_INDEX: %i \n", MAX_LOCAL_HEIGHT_INDEX);
+    printf("LOCAL_CACHE_WIDTH: %i \n", LOCAL_CACHE_WIDTH);
+    printf("FILTER_WIDTH: %i \n", FILTER_WIDTH);
+    printf("FILTER_HEIGHT: %i \n", FILTER_HEIGHT);
+    printf("INPUT_OFFSET_WIDTH: %i \n", INPUT_OFFSET_WIDTH);
+    printf("INPUT_OFFSET_HEIGHT: %i \n", INPUT_OFFSET_HEIGHT);
+    printf("OUTPUT_OFFSET_WIDTH: %i \n", OUTPUT_OFFSET_WIDTH);
+    printf("OUTPUT_OFFSET_HEIGHT: %i \n", OUTPUT_OFFSET_HEIGHT);
+    printf("OUTPUT_OFFSET_UNIT: %i \n", OUTPUT_OFFSET_UNIT);
+    printf("OUTPUT_WIDTH: %i \n", OUTPUT_WIDTH);
+    printf("INPUT_WIDTH: %i \n", INPUT_WIDTH);
+    printf("OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING : %i \n", OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING );
+    printf("FILTER_UNIT_ELEMENT_COUNT_INC_PADDING : %i \n", FILTER_UNIT_ELEMENT_COUNT_INC_PADDING );
+    #if defined(SIGMOID)
+        printf("Using sigmoid \n");
+    #elif defined(TANH)
+	    printf("Using tanh \n");
+    #else
+	    printf("Using linear \n");
+    #endif
+    #if defined(HALF_MATH)
+	    printf("Using half math \n");
+    #elif defined(NATIVE_MATH)
+	    printf("Using native math \n");
+    #else
+	    printf("Using normal math \n");
+    #endif
+        
+    #ifdef CONSTANT_INPUT
+	    printf("Constant input \n");
+    #endif
+    #ifdef CONSTANT_BIAS
+        printf("Constant bias \n");
+    #endif
+    #ifdef CONSTANT_FILTERS
+        printf("Constant filters \n");
+    #endif
+    #ifdef USE_LOCAL_MEMORY
+        printf("Using local memory \n");
+    #endif
+    }
+    */
+    //END TEST------------------------------------------------
     
     const int globalInputIndex = xIndex + INPUT_OFFSET_WIDTH + INPUT_WIDTH * (yIndex + INPUT_OFFSET_HEIGHT);
     
@@ -177,6 +236,9 @@ __kernel void ConvolutionKernel(
         
     #endif
     
+     //TEST------------------------------------------------
+    //printf("Input: %f \n", input[globalInputIndex]);
+     //END TEST------------------------------------------------
     const int filterZCache = FILTER_UNIT_ELEMENT_COUNT_INC_PADDING * zIndex;
     
     TYPE sum = 0;
@@ -203,11 +265,17 @@ __kernel void ConvolutionKernel(
         for (int j = 0; j < FILTER_WIDTH; j++)
         {
             sum += input[inputTemp + j] * filters[filterTemp + j];
+             //TEST------------------------------------------------
+             //printf("Filter: %f \n", filters[filterTemp + j]);
+             //END TEST------------------------------------------------
         }
     }
     #endif
     
     const int outputIndex = xIndex + OUTPUT_OFFSET_WIDTH + OUTPUT_WIDTH * (OUTPUT_OFFSET_HEIGHT + yIndex) + OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING * (zIndex + OUTPUT_OFFSET_UNIT);
+     //TEST------------------------------------------------
+     //printf("Bias: %f \n", biases[zIndex]);
+     //END TEST------------------------------------------------
     
 #if defined(SIGMOID)
     #ifndef DOUBLE_PRECISION
@@ -226,5 +294,9 @@ __kernel void ConvolutionKernel(
 #else
 	output[outputIndex] = sum + biases[zIndex];
 #endif
+    
+    //TEST---------------------
+    //printf("Output(%i, %i, %i): %f \n", xIndex, yIndex, zIndex, output[outputIndex]);
+    //END TEST-----------------
     
 }

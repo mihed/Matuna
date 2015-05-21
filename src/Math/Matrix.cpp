@@ -13,11 +13,14 @@
 #include <stdexcept>
 #include <random>
 
-namespace ATML {
-namespace Math {
+namespace ATML
+{
+namespace Math
+{
 
 template<class T>
-Matrix<T>::Matrix() {
+Matrix<T>::Matrix()
+{
 	unique_ptr<T[]> managedData = nullptr;
 	Data = nullptr;
 	elementCount = 0;
@@ -26,7 +29,8 @@ Matrix<T>::Matrix() {
 }
 template<class T>
 Matrix<T>::Matrix(int rows, int columns) :
-		rows(rows), columns(columns), elementCount(rows * columns) {
+		rows(rows), columns(columns), elementCount(rows * columns)
+{
 	if (rows <= 0)
 		throw invalid_argument("The dimensions has to be valid");
 	else if (columns <= 0)
@@ -38,7 +42,8 @@ Matrix<T>::Matrix(int rows, int columns) :
 
 template<class T>
 Matrix<T>::Matrix(int rows, int columns, const T* data) :
-		rows(rows), columns(columns), elementCount(rows * columns) {
+		rows(rows), columns(columns), elementCount(rows * columns)
+{
 	if (rows <= 0)
 		throw invalid_argument("The dimensions has to be valid");
 	else if (columns <= 0)
@@ -51,7 +56,8 @@ Matrix<T>::Matrix(int rows, int columns, const T* data) :
 
 template<class T>
 Matrix<T>::Matrix(int rows, int columns, T initialValue) :
-		rows(rows), columns(columns), elementCount(rows * columns) {
+		rows(rows), columns(columns), elementCount(rows * columns)
+{
 	if (rows <= 0)
 		throw invalid_argument("The dimensions has to be valid");
 	else if (columns <= 0)
@@ -64,7 +70,8 @@ Matrix<T>::Matrix(int rows, int columns, T initialValue) :
 }
 
 template<class T>
-Matrix<T>::Matrix(const Matrix<T>& matrix) {
+Matrix<T>::Matrix(const Matrix<T>& matrix)
+{
 	rows = matrix.rows;
 	columns = matrix.columns;
 	elementCount = rows * columns;
@@ -74,7 +81,8 @@ Matrix<T>::Matrix(const Matrix<T>& matrix) {
 }
 
 template<class T>
-Matrix<T>::Matrix(Matrix<T> && other) {
+Matrix<T>::Matrix(Matrix<T> && other)
+{
 	rows = other.rows;
 	columns = other.columns;
 	elementCount = rows * columns;
@@ -83,22 +91,26 @@ Matrix<T>::Matrix(Matrix<T> && other) {
 }
 
 template<class T>
-Matrix<T>::~Matrix() {
+Matrix<T>::~Matrix()
+{
 
 }
 
 template<class T>
-Matrix<T> Matrix<T>::Zeros(int rows, int columns) {
+Matrix<T> Matrix<T>::Zeros(int rows, int columns)
+{
 	return Matrix<T>(rows, columns, T(0));
 }
 
 template<class T>
-Matrix<T> Matrix<T>::Ones(int rows, int columns) {
+Matrix<T> Matrix<T>::Ones(int rows, int columns)
+{
 	return Matrix<T>(rows, columns, 1);
 }
 
 template<class T>
-Matrix<T> Matrix<T>::Identity(int dimension) {
+Matrix<T> Matrix<T>::Identity(int dimension)
+{
 	Matrix<T> result = Zeros(dimension, dimension);
 	auto buffer = result.Data;
 	for (int i = 0; i < dimension; i++)
@@ -108,7 +120,8 @@ Matrix<T> Matrix<T>::Identity(int dimension) {
 }
 
 template<class T>
-Matrix<T> Matrix<T>::RandomUniform(int rows, int columns, T min, T max) {
+Matrix<T> Matrix<T>::RandomUniform(int rows, int columns, T min, T max)
+{
 	random_device device;
 	mt19937 mersienne(device());
 	uniform_real_distribution<T> distribution(min, max);
@@ -123,7 +136,8 @@ Matrix<T> Matrix<T>::RandomUniform(int rows, int columns, T min, T max) {
 }
 
 template<class T>
-Matrix<T> Matrix<T>::RandomNormal(int rows, int columns, T mean, T deviation) {
+Matrix<T> Matrix<T>::RandomNormal(int rows, int columns, T mean, T deviation)
+{
 	random_device device;
 	mt19937 mersienne(device());
 	normal_distribution<T> distribution(mean, deviation);
@@ -138,22 +152,68 @@ Matrix<T> Matrix<T>::RandomNormal(int rows, int columns, T mean, T deviation) {
 }
 
 template<class T>
-int Matrix<T>::ColumnCount() const {
+int Matrix<T>::ColumnCount() const
+{
 	return columns;
 }
 
 template<class T>
-int Matrix<T>::RowCount() const {
+int Matrix<T>::RowCount() const
+{
 	return rows;
 }
 
 template<class T>
-int Matrix<T>::ElementCount() const {
+int Matrix<T>::ElementCount() const
+{
 	return elementCount;
 }
 
 template<class T>
-Matrix<T> Matrix<T>::GetSubMatrix(int startRow, int startColumn, int rowLength, int columnLength) const
+Matrix<T> Matrix<T>::Convolve(const Matrix<T>& kernel) const
+{
+	int kernelWidth = kernel.ColumnCount();
+	int kernelHeight = kernel.RowCount();
+	int resultWidth = columns - kernelWidth + 1;
+	int resultHeight = rows - kernelHeight + 1;
+	if (resultWidth <= 0)
+		throw invalid_argument("The kernel width is too big");
+
+	if (resultHeight <= 0)
+		throw invalid_argument("The kernel height is too big");
+
+	Matrix<T> result(resultHeight, resultWidth);
+	auto resultBuffer = result.Data;
+	auto kernelBuffer = kernel.Data;
+
+	int temp1, temp2, temp3, temp4, temp5;
+	T sum;
+	for (int y = 0; y < resultHeight; y++)
+	{
+		temp1 = columns * y;
+		temp4 = resultWidth * y;
+		for (int x = 0; x < resultWidth; x++)
+		{
+			temp2 = x + temp1;
+			sum = 0;
+			for (int v = 0; v < kernelHeight; v++)
+			{
+				temp3 = temp2 + columns * v;
+				temp5 = v * kernelWidth;
+				for (int u = 0; u < kernelWidth; u++)
+					sum += Data[temp3 + u] * kernelBuffer[temp5 + u];
+			}
+
+			resultBuffer[x + temp4] = sum;
+		}
+	}
+
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::GetSubMatrix(int startRow, int startColumn, int rowLength,
+		int columnLength) const
 {
 	if (startRow + rowLength > rows)
 		throw invalid_argument("Index out of range");
@@ -176,11 +236,13 @@ Matrix<T> Matrix<T>::GetSubMatrix(int startRow, int startColumn, int rowLength, 
 }
 
 template<class T>
-Matrix<T> Matrix<T>::Transpose() const {
+Matrix<T> Matrix<T>::Transpose() const
+{
 	Matrix<T> result(columns, rows);
 	auto resultData = result.Data;
 	int cachedIndex;
-	for (int i = 0; i < rows; i++) {
+	for (int i = 0; i < rows; i++)
+	{
 		cachedIndex = i * columns;
 		for (int j = 0; j < columns; j++)
 			resultData[j * rows + i] = Data[cachedIndex + j];
@@ -190,9 +252,11 @@ Matrix<T> Matrix<T>::Transpose() const {
 }
 
 template<class T>
-T Matrix<T>::Norm2() const {
+T Matrix<T>::Norm2() const
+{
 	T result = 0;
-	for (int i = 0; i < elementCount; i++) {
+	for (int i = 0; i < elementCount; i++)
+	{
 		T cache = Data[i];
 		result += cache * cache;
 	}
@@ -201,9 +265,11 @@ T Matrix<T>::Norm2() const {
 }
 
 template<class T>
-T Matrix<T>::Norm2Square() const {
+T Matrix<T>::Norm2Square() const
+{
 	T result = 0;
-	for (int i = 0; i < elementCount; i++) {
+	for (int i = 0; i < elementCount; i++)
+	{
 		T cache = Data[i];
 		result += cache * cache;
 	}
@@ -215,33 +281,39 @@ template<class T>
 T Matrix<T>::Sum() const
 {
 	T result = 0;
-	for (int i = 0; i < elementCount; i++) 
+	for (int i = 0; i < elementCount; i++)
 		result += Data[i];
 
 	return result;
 }
 
 template<class T>
-void Matrix<T>::Transform(function<T(T)> function) {
+void Matrix<T>::Transform(function<T(T)> function)
+{
 	for (int i = 0; i < elementCount; i++)
 		Data[i] = function(Data[i]);
 }
 
 template<class T>
-T Matrix<T>::At(int row, int column) const {
+T Matrix<T>::At(int row, int column) const
+{
 	return Data[row * columns + column];
 }
 
 template<class T>
-T& Matrix<T>::At(int row, int column) {
+T& Matrix<T>::At(int row, int column)
+{
 	return Data[row * columns + column];
 }
 
 template<class T>
-string Matrix<T>::GetString() {
+string Matrix<T>::GetString()
+{
 	stringstream stream;
-	for (int i = 0; i < rows; i++) {
-		for (int j = 0; j < columns; j++) {
+	for (int i = 0; i < rows; i++)
+	{
+		for (int j = 0; j < columns; j++)
+		{
 			stream << Data[i * columns + j] << " ";
 		}
 		stream << "\n";
@@ -251,7 +323,8 @@ string Matrix<T>::GetString() {
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator=(const Matrix<T>& matrix) {
+Matrix<T>& Matrix<T>::operator=(const Matrix<T>& matrix)
+{
 	if (this == &matrix)
 		return *this;
 
@@ -268,7 +341,8 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T>& matrix) {
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator=(Matrix<T> && other) {
+Matrix<T>& Matrix<T>::operator=(Matrix<T> && other)
+{
 	rows = other.rows;
 	columns = other.columns;
 	elementCount = rows * columns;
@@ -279,27 +353,32 @@ Matrix<T>& Matrix<T>::operator=(Matrix<T> && other) {
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator+(const Matrix<T>& rightMatrix) const {
+Matrix<T> Matrix<T>::operator+(const Matrix<T>& rightMatrix) const
+{
 	return Matrix<T>(*this) += rightMatrix;
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator*(const Matrix<T>& rightMatrix) const {
+Matrix<T> Matrix<T>::operator*(const Matrix<T>& rightMatrix) const
+{
 	return Matrix<T>(*this) *= rightMatrix;
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator-(const Matrix<T>& rightMatrix) const {
+Matrix<T> Matrix<T>::operator-(const Matrix<T>& rightMatrix) const
+{
 	return Matrix<T>(*this) -= rightMatrix;
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator%(const Matrix<T>& rightMatrix) const {
+Matrix<T> Matrix<T>::operator%(const Matrix<T>& rightMatrix) const
+{
 	return Matrix<T>(*this) %= rightMatrix;
 }
 
 template<class T>
-bool Matrix<T>::operator==(const Matrix<T>& other) {
+bool Matrix<T>::operator==(const Matrix<T>& other)
+{
 	if (other.rows != rows)
 		throw invalid_argument(
 				"The dimensions must agree when comparing a matrix");
@@ -316,12 +395,14 @@ bool Matrix<T>::operator==(const Matrix<T>& other) {
 }
 
 template<class T>
-bool Matrix<T>::operator!=(const Matrix<T>& other) {
+bool Matrix<T>::operator!=(const Matrix<T>& other)
+{
 	return !(*this == other);
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator++() {
+Matrix<T>& Matrix<T>::operator++()
+{
 	if (rows <= 0)
 		throw invalid_argument("The dimensions has to be valid");
 	else if (columns <= 0)
@@ -334,14 +415,16 @@ Matrix<T>& Matrix<T>::operator++() {
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator++(int) {
+Matrix<T> Matrix<T>::operator++(int)
+{
 	Matrix<T> result(*this);
 	++(*this);
 	return result;
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator--() {
+Matrix<T>& Matrix<T>::operator--()
+{
 	if (rows <= 0)
 		throw invalid_argument("The dimensions has to be valid");
 	else if (columns <= 0)
@@ -354,14 +437,16 @@ Matrix<T>& Matrix<T>::operator--() {
 }
 
 template<class T>
-Matrix<T> Matrix<T>::operator--(int) {
+Matrix<T> Matrix<T>::operator--(int)
+{
 	Matrix<T> result(*this);
 	--(*this);
 	return result;
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& other) {
+Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& other)
+{
 	if (other.rows != rows)
 		throw invalid_argument(
 				"The dimensions must agree when adding a matrix");
@@ -377,7 +462,8 @@ Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& other) {
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator+=(const T& scalar) {
+Matrix<T>& Matrix<T>::operator+=(const T& scalar)
+{
 	if (rows <= 0)
 		throw invalid_argument("The dimensions has to be valid");
 	else if (columns <= 0)
@@ -390,7 +476,8 @@ Matrix<T>& Matrix<T>::operator+=(const T& scalar) {
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator*=(const Matrix<T>& other) {
+Matrix<T>& Matrix<T>::operator*=(const Matrix<T>& other)
+{
 	if (other.rows != columns)
 		throw invalid_argument(
 				"The dimensions must agree when multiplying a matrix");
@@ -403,10 +490,12 @@ Matrix<T>& Matrix<T>::operator*=(const Matrix<T>& other) {
 	T sum = 0;
 	int cachedIndex1;
 	int cachedIndex2;
-	for (int i = 0; i < resultRows; i++) {
+	for (int i = 0; i < resultRows; i++)
+	{
 		cachedIndex1 = i * resultColumns;
 		cachedIndex2 = i * columns;
-		for (int j = 0; j < resultColumns; j++) {
+		for (int j = 0; j < resultColumns; j++)
+		{
 			sum = 0;
 			for (int k = 0; k < columns; k++)
 				sum += otherBuffer[k * resultColumns + j]
@@ -426,7 +515,8 @@ Matrix<T>& Matrix<T>::operator*=(const Matrix<T>& other) {
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator*=(const T& scalar) {
+Matrix<T>& Matrix<T>::operator*=(const T& scalar)
+{
 	if (rows <= 0)
 		throw invalid_argument("The dimensions has to be valid");
 	else if (columns <= 0)
@@ -439,7 +529,8 @@ Matrix<T>& Matrix<T>::operator*=(const T& scalar) {
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& other) {
+Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& other)
+{
 	if (other.rows != rows)
 		throw invalid_argument(
 				"The dimensions must agree when subtracting a matrix");
@@ -455,7 +546,8 @@ Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& other) {
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator-=(const T& scalar) {
+Matrix<T>& Matrix<T>::operator-=(const T& scalar)
+{
 	if (rows <= 0)
 		throw invalid_argument("The dimensions has to be valid");
 	else if (columns <= 0)
@@ -468,7 +560,8 @@ Matrix<T>& Matrix<T>::operator-=(const T& scalar) {
 }
 
 template<class T>
-Matrix<T>& Matrix<T>::operator%=(const Matrix<T>& other) {
+Matrix<T>& Matrix<T>::operator%=(const Matrix<T>& other)
+{
 	if (other.rows != rows)
 		throw invalid_argument(
 				"The dimensions must agree when using a Hadamard product on a matrix");

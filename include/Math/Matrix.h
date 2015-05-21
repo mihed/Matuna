@@ -50,6 +50,7 @@ public:
 	int ElementCount() const;
 	Matrix<T> Transpose() const;
 	Matrix<T> GetSubMatrix(int startRow, int startColumn, int rowLength, int columnlength) const;
+	Matrix<T> Convolve(const Matrix<T>& kernel) const;
 	void Transform(function<T(T)> function);
 	T Norm2() const;
 	T Norm2Square() const;
