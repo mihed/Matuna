@@ -194,13 +194,17 @@ __kernel void ConvolutionKernel(
         
         const int localIndex = xIndexLocal + localCacheWidth * yIndexLocal; 
 
+        int localTemp1;
+        int globalTemp1;
         if (xIndexLocal == xMaxIndexLocal && yIndexLocal == yMaxIndexLocal)
         {
             for (int i = 0; i < FILTER_HEIGHT; i++)
             {
+                localTemp1 = localIndex + i * localCacheWidth;
+                globalTemp1 = globalInputIndex + i * INPUT_WIDTH;
                 for (int j = 0; j < FILTER_WIDTH; j++)
                 {
-                    cache[localIndex + i * localCacheWidth + j] = input[globalInputIndex + i * INPUT_WIDTH + j];
+                    cache[localTemp1 + j] = input[globalTemp1 + j];
                 }
             }
         }

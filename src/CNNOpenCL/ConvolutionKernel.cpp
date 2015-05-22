@@ -153,8 +153,7 @@ void ConvolutionKernel<T>::SetLocalWorkGroup(int width, int height)
 
 	CheckOpenCLError(
 			clSetKernelArg(this->GetKernel(), 4,
-					sizeof(T) * width * height * (filterWidth - 1)
-							* (filterHeight - 1), nullptr),
+					sizeof(T) * (width + filterWidth - 1)* (height + filterHeight - 1), nullptr),
 			"Could not set the kernel arguments");
 	localWorkSize.clear();
 	localWorkSize.push_back(width);

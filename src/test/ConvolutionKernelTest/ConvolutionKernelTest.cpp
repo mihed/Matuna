@@ -61,7 +61,7 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 					random_device tempDevice;
 					mt19937 mt(tempDevice());
 					uniform_int_distribution<int> localDimensionGenerator(1, 32); //To this, we need to add the filter width / height
-					uniform_int_distribution<int> imageGenerator(1, 2);
+					uniform_int_distribution<int> imageGenerator(1, 30);
 					uniform_int_distribution<int> filterDimensionGenerator(1, 20);
 					uniform_int_distribution<int> activationGenerator(1, 3);
 					normal_distribution<float> distribution;
@@ -165,6 +165,18 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 
 					if (maximumLocalMemory < ((localWidth + filterWidth - 1)* (localHeight + filterHeight - 1) * sizeof(float)))
 						WARN("We are using too much local memory. This will probably slow down the execution.");
+
+					if (localHeight < 1)
+					{
+						WARN("No fitting local height, skipping");
+						continue;
+					}
+
+					if (localWidth < 1)
+					{
+						WARN("No fitting local height, skipping");
+						continue;
+					}
 
 					auto temp = outputWidth % localWidth;
 					CHECK(temp == 0);
