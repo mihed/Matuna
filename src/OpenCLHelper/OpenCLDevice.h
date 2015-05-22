@@ -17,6 +17,7 @@
 #include "OpenCLDeviceInfo.h"
 #include "OpenCLKernel.h"
 #include "OpenCLMemory.h"
+#include "OpenCLKernelInfo.h"
 #include "OpenCLDeviceConfig.h"
 
 using namespace std;
@@ -70,6 +71,8 @@ final
 
 		void ExecuteTask(const OpenCLKernel* kernel, int queueIndex = 0,
 			bool blocking = true);
+
+		OpenCLKernelInfo GetKernelInfo(const OpenCLKernel* kernel);
 
 		/**
 		 *@brief Waits for the execution of all kernels to finish.

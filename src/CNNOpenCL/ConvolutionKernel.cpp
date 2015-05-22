@@ -44,9 +44,6 @@ ConvolutionKernel<T>::ConvolutionKernel(int dataOutputUnits,
 	useConstantBias = false;
 	useRelaxedMath = false;
 
-	maxLocalWidthIndex = -1;
-	maxLocalHeightIndex = -1;
-
 	activation = ATMLSigmoidActivation;
 	precision = ATMLNormalPrecision;
 
@@ -75,12 +72,7 @@ void ConvolutionKernel<T>::InitializeCompilerOptions()
 		stringStream << "-D" << "CONSTANT_INPUT ";
 
 	if (useLocalMemory)
-	{
 		stringStream << "-D" << "USE_LOCAL_MEMORY ";
-		stringStream << "-D" << "MAX_LOCAL_WIDTH_INDEX=" << maxLocalWidthIndex << " ";
-		stringStream << "-D" << "MAX_LOCAL_HEIGHT_INDEX=" << maxLocalHeightIndex << " ";
-		stringStream << "-D" << "LOCAL_CACHE_WIDTH=" << (maxLocalWidthIndex + 1) * (filterWidth - 1) << " ";
-	}
 
 	stringStream << "-D" << "FILTER_WIDTH=" << filterWidth << " ";
 	stringStream << "-D" << "FILTER_HEIGHT=" << filterHeight << " ";
@@ -164,11 +156,10 @@ void ConvolutionKernel<T>::SetLocalWorkGroup(int width, int height)
 					sizeof(T) * width * height * (filterWidth - 1)
 							* (filterHeight - 1), nullptr),
 			"Could not set the kernel arguments");
-
-	maxLocalHeightIndex = height - 1;
-	maxLocalWidthIndex = width - 1;
+	localWorkSize.clear();
 	localWorkSize.push_back(width);
 	localWorkSize.push_back(height);
+	localWorkSize.push_back(1);
 }
 
 template<class T>

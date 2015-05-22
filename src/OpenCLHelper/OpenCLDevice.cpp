@@ -34,23 +34,23 @@ OpenCLDevice::~OpenCLDevice()
 }
 
 void OpenCLDevice::ExecuteTask(const OpenCLKernel* kernel, int queueIndex,
-	bool blocking)
+		bool blocking)
 {
 	if (!kernel->ContextSet())
 		throw invalid_argument(
-		"The kernel has not been attached to any context");
+				"The kernel has not been attached to any context");
 	if (!kernel->KernelSet())
 		throw invalid_argument(
-		"The kernel has not been set. Make sure you have attached the kernel to the correct context");
+				"The kernel has not been set. Make sure you have attached the kernel to the correct context");
 	if (kernel->GetContext() != context)
 		throw invalid_argument(
-		"The kernel has not been attached to the same context as the device.");
+				"The kernel has not been attached to the same context as the device.");
 
 	auto kernelToExecute = kernel->GetKernel();
 	auto queue = queues[queueIndex];
 
-	CheckOpenCLError(
-		clEnqueueTask(queue, kernelToExecute, 0, nullptr, nullptr), "Could not enqueue the kernel to the device queue");
+	CheckOpenCLError(clEnqueueTask(queue, kernelToExecute, 0, nullptr, nullptr),
+			"Could not enqueue the kernel to the device queue");
 
 	if (blocking)
 		clFinish(queue);
@@ -116,8 +116,47 @@ void OpenCLDevice::WaitForDeviceQueue(int queueIndex)
 	clFinish(queues[queueIndex]);
 }
 
-void OpenCLDevice::CopyCLMemory(OpenCLMemory* source, OpenCLMemory* destination, size_t sourceOffset, size_t destinationOffset, size_t bytes,
-	int queueIndex, bool blockingCall)
+OpenCLKernelInfo OpenCLDevice::GetKernelInfo(const OpenCLKernel* kernel)
+{
+	if (!kernel->ContextSet())
+		throw invalid_argument(
+				"The kernel has not been attached to any context");
+	if (!kernel->KernelSet())
+		throw invalid_argument(
+				"The kernel has not been set. Make sure you have attached the kernel to the correct context");
+	if (kernel->GetContext() != context)
+		throw invalid_argument(
+				"The kernel has not been attached to the same context as the device.");
+
+	size_t workGroupSize;
+	CheckOpenCLError(clGetKernelWorkGroupInfo(kernel->GetKernel(), deviceID,
+	CL_KERNEL_WORK_GROUP_SIZE, sizeof(workGroupSize), &workGroupSize, nullptr),
+			"Could not get the kernel work group info");
+
+	size_t compileWorkGroupSizes[3];
+	CheckOpenCLError(
+			clGetKernelWorkGroupInfo(kernel->GetKernel(), deviceID,
+			CL_KERNEL_COMPILE_WORK_GROUP_SIZE, sizeof(compileWorkGroupSizes),
+					&compileWorkGroupSizes, nullptr),
+			"Could not get the kernel work group info");
+
+	vector<size_t> workGroupSizes;
+	workGroupSizes.push_back(compileWorkGroupSizes[0]);
+	workGroupSizes.push_back(compileWorkGroupSizes[1]);
+	workGroupSizes.push_back(compileWorkGroupSizes[2]);
+
+	cl_ulong localMemorySize;
+	CheckOpenCLError(
+			clGetKernelWorkGroupInfo(kernel->GetKernel(), deviceID,
+			CL_KERNEL_LOCAL_MEM_SIZE, sizeof(localMemorySize), &localMemorySize,
+					nullptr), "Could not get the kernel work group info");
+
+	return OpenCLKernelInfo(workGroupSize, workGroupSizes, localMemorySize);
+}
+
+void OpenCLDevice::CopyCLMemory(OpenCLMemory* source, OpenCLMemory* destination,
+		size_t sourceOffset, size_t destinationOffset, size_t bytes,
+		int queueIndex, bool blockingCall)
 {
 	if (source->OwningContext() != context)
 		throw invalid_argument("The OpenCLMemory is not tied to the context");
@@ -127,9 +166,10 @@ void OpenCLDevice::CopyCLMemory(OpenCLMemory* source, OpenCLMemory* destination,
 
 	auto queue = queues[queueIndex];
 
-	CheckOpenCLError(clEnqueueCopyBuffer(queue, source->GetCLMemory(),
-		destination->GetCLMemory(), sourceOffset, destinationOffset, bytes,
-		0, nullptr, nullptr), "Could not copy the buffer");
+	CheckOpenCLError(
+			clEnqueueCopyBuffer(queue, source->GetCLMemory(),
+					destination->GetCLMemory(), sourceOffset, destinationOffset,
+					bytes, 0, nullptr, nullptr), "Could not copy the buffer");
 
 	if (blockingCall)
 		clFinish(queue);
@@ -162,9 +202,9 @@ void OpenCLDevice::ReadMemory(OpenCLMemory* memory, size_t bytes, void* buffer,
 	if (blockingCall)
 	{
 		CheckOpenCLError(
-			clEnqueueReadBuffer(queues[queueIndex], memory->GetCLMemory(),
-			CL_TRUE, 0, bytes, buffer, 0, nullptr, nullptr),
-			"Could not write the buffer to the device");
+				clEnqueueReadBuffer(queues[queueIndex], memory->GetCLMemory(),
+				CL_TRUE, 0, bytes, buffer, 0, nullptr, nullptr),
+				"Could not write the buffer to the device");
 		WaitForDeviceQueue(queueIndex);
 	}
 	else

@@ -37,9 +37,6 @@ namespace ATML
 			bool useLocalMemory;
 			bool useRelaxedMath;
 
-			int maxLocalWidthIndex;
-			int maxLocalHeightIndex;
-
 			ATMLActivationFunction activation;
 			ATMLComputationPrecision precision;
 

@@ -33,18 +33,6 @@
 //#pragma OPENCL EXTENSION cl_intel_printf : enable
 //END TEST-----------------
 
-#ifndef MAX_LOCAL_WIDTH_INDEX
-#define MAX_LOCAL_WIDTH_INDEX -1
-#endif
-
-#ifndef MAX_LOCAL_HEIGHT_INDEX
-#define MAX_LOCAL_HEIGHT_INDEX -1
-#endif
-
-#ifndef LOCAL_CACHE_WIDTH
-#define LOCAL_CACHE_WIDTH -1
-#endif
-
 #ifndef FILTER_WIDTH
 #define FILTER_WIDTH -1
 #endif
@@ -150,9 +138,6 @@ __kernel void ConvolutionKernel(
     /*
     if (get_global_id(0) == 0 && get_global_id(1) == 0 && get_global_id(2) == 0)
     {
-    printf("MAX_LOCAL_WIDTH_INDEX : %i \n", MAX_LOCAL_WIDTH_INDEX );
-    printf("MAX_LOCAL_HEIGHT_INDEX: %i \n", MAX_LOCAL_HEIGHT_INDEX);
-    printf("LOCAL_CACHE_WIDTH: %i \n", LOCAL_CACHE_WIDTH);
     printf("FILTER_WIDTH: %i \n", FILTER_WIDTH);
     printf("FILTER_HEIGHT: %i \n", FILTER_HEIGHT);
     printf("INPUT_OFFSET_WIDTH: %i \n", INPUT_OFFSET_WIDTH);
@@ -201,30 +186,36 @@ __kernel void ConvolutionKernel(
         const int xIndexLocal = get_local_id(0);
         const int yIndexLocal = get_local_id(1);
         
-        const int localIndex = xIndexLocal + LOCAL_CACHE_WIDTH * yIndexLocal; 
+        //The below three variables cannot be set by macros since we need to create the kernel
+        //before we can query the available local work size.
+        const int xMaxIndexLocal = get_local_size(0) - 1;
+        const int yMaxIndexLocal = get_local_size(1) - 1;
+        const int localCacheWidth =  get_local_size(0) + FILTER_WIDTH - 1;
+        
+        const int localIndex = xIndexLocal + localCacheWidth * yIndexLocal; 
 
-        if (xIndexLocal == MAX_LOCAL_WIDTH_INDEX && yIndexLocal == MAX_LOCAL_HEIGHT_INDEX)
+        if (xIndexLocal == xMaxIndexLocal && yIndexLocal == yMaxIndexLocal)
         {
             for (int i = 0; i < FILTER_HEIGHT; i++)
             {
                 for (int j = 0; j < FILTER_WIDTH; j++)
                 {
-                    cache[localIndex + i * LOCAL_CACHE_WIDTH + j] = input[globalInputIndex + i * INPUT_WIDTH + j];
+                    cache[localIndex + i * localCacheWidth + j] = input[globalInputIndex + i * INPUT_WIDTH + j];
                 }
             }
         }
-        else if (xIndexLocal == MAX_LOCAL_WIDTH_INDEX)
+        else if (xIndexLocal == xMaxIndexLocal)
         {
             for (int i = 0; i < FILTER_WIDTH; i++)
             {
                 cache[localIndex + i] = input[globalInputIndex + i];
             }
         }
-        else if (yIndexLocal == MAX_LOCAL_HEIGHT_INDEX)
+        else if (yIndexLocal == yMaxIndexLocal)
         {
             for (int i = 0; i < FILTER_HEIGHT; i++)
             {
-                cache[localIndex + i * LOCAL_CACHE_WIDTH] = input[globalInputIndex + i * INPUT_WIDTH];
+                cache[localIndex + i * localCacheWidth] = input[globalInputIndex + i * INPUT_WIDTH];
             }
         }
         else
@@ -249,7 +240,7 @@ __kernel void ConvolutionKernel(
     for(int i = 0; i < FILTER_HEIGHT; i++)
     {
         filterTemp = filterZCache + FILTER_WIDTH * i;
-        localTemp = localIndex + LOCAL_CACHE_WIDTH * i;
+        localTemp = localIndex + localCacheWidth * i;
         for (int j = 0; j < FILTER_WIDTH; j++)
         {
             sum += cache[localTemp + j] * filters[filterTemp + j];
