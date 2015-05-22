@@ -42,6 +42,173 @@ double TanhActivationDouble(double x)
 SCENARIO("Performing convolution on a single input with multiple filters")
 {
 
+	WHEN("Convolving with padding and offset, without local memory")
+	{
+		random_device tempDevice;
+		mt19937 mt(tempDevice());
+		uniform_int_distribution<int> dimensionGenerator(30, 1000);
+		uniform_int_distribution<int> paddingGenerator(0, 50);
+		uniform_int_distribution<int> filterDimensionGenerator(1, 30);
+		uniform_int_distribution<int> activationGenerator(1, 3);
+		normal_distribution<float> distribution;
+
+		for (int dummy = 0; dummy < 10; dummy++)
+		{
+			auto platformInfos = OpenCLHelper::GetPlatformInfos();
+			for (auto& platformInfo : platformInfos)
+			{
+				auto context = OpenCLHelper::GetContext(platformInfo);
+				auto devices = context->GetDevices();
+				for (auto device : devices)
+				{
+					vector<OpenCLDevice*> oneDeviceVector;
+					oneDeviceVector.push_back(device);
+
+					int filterWidth = filterDimensionGenerator(mt);
+					int filterHeight = filterDimensionGenerator(mt);
+					int filterUnits = filterDimensionGenerator(mt);
+
+					int imageWidth = dimensionGenerator(mt);
+					int imageHeight = dimensionGenerator(mt);
+
+					int outputWidth = imageWidth - filterWidth + 1;
+					int outputHeight = imageHeight - filterHeight + 1;
+
+					int inputWidthOffset = paddingGenerator(mt);
+					int inputHeightOffset = paddingGenerator(mt);
+					int outputWidthOffset = paddingGenerator(mt);
+					int outputHeightOffset = paddingGenerator(mt);
+					int outputUnitOffset = paddingGenerator(mt);
+
+					int inputWidthPadding = paddingGenerator(mt);
+					int inputHeightPadding = paddingGenerator(mt);
+					int outputWidthPadding = paddingGenerator(mt);
+					int outputHeightPadding = paddingGenerator(mt);
+					int outputUnitPadding = paddingGenerator(mt);
+
+					Matrix<float> input = Matrix<float>::RandomNormal(imageHeight + inputHeightOffset + inputHeightPadding, imageWidth + inputWidthOffset + inputWidthPadding);
+					vector<Matrix<float>> filters;
+					vector<float> biases;
+
+					INFO("Constructing random filters");
+					for (int i = 0; i < filterUnits; i++)
+						filters.push_back(Matrix<float>::RandomNormal(filterHeight, filterWidth));
+
+					auto activation = activationGenerator(mt);
+					ATMLActivationFunction activationFunction;
+					switch (activation)
+					{
+					case 1:
+						activationFunction = ATMLSigmoidActivation;
+						break;
+					case 2:
+						activationFunction = ATMLLinearActivation;
+						break;
+					case 3:
+						activationFunction = ATMLTanhActivation;
+						break;
+					}
+
+					INFO("Constructing random biases");
+					for (int i = 0; i < filterUnits; i++)
+						biases.push_back(distribution(mt));
+
+					INFO("Putting the filters into contiguous memory");
+					unique_ptr<float[]> filterMemoryBuffer(new float[filterWidth * filterHeight * filterUnits]);
+					auto rawPointer = filterMemoryBuffer.get();
+					for (int i = 0; i < filterUnits; i++)
+					{
+						auto& unit = filters[i];
+						memcpy(rawPointer, unit.Data, unit.ElementCount() * sizeof(float));
+						rawPointer += unit.ElementCount();
+					}
+
+					INFO("Putting the biases into contigous memory");
+					unique_ptr<float[]> biasMemoryBuffer(new float[filterUnits]);
+					for (int i = 0; i < filterUnits; i++)
+						biasMemoryBuffer[i] = biases[i];
+
+					INFO("Creating the output memory");
+					unique_ptr<float[]> outputMemoryBuffer(new float[(outputWidth + outputWidthOffset + outputWidthPadding)*
+						(outputHeight + outputHeightOffset + outputHeightPadding)*
+						(filterUnits + outputUnitOffset + outputUnitPadding)]);
+
+					INFO("Calculating the manual result");
+					vector<Matrix<float>> manualResults;
+					for (int i = 0; i < filterUnits; i++)
+					{
+						//cout << "Input: \n" << input.GetString() << endl;
+						//cout << "Filter: \n" << filters[i].GetString() << endl;
+						//cout << "Bias: \n" << biases[i] << endl;
+						auto manualResult = input.GetSubMatrix(inputHeightOffset, inputWidthOffset, imageHeight, imageWidth).Convolve(filters[i]) + biases[i];
+						switch (activationFunction)
+						{
+						case ATMLSigmoidActivation:
+							manualResult.Transform(&SigmoidActivationFloat);
+							break;
+						case ATMLTanhActivation:
+							manualResult.Transform(&TanhActivationFloat);
+							break;
+						}
+
+						manualResults.push_back(manualResult);
+					}
+
+					INFO("Initializing the convolution kernel");
+					ConvolutionKernel<float> convolutionKernel(filterUnits, outputWidth, outputHeight,
+						filterWidth, filterHeight, inputWidthOffset, inputHeightOffset, outputWidthOffset, outputHeightOffset, outputUnitOffset,
+						(outputWidth + outputWidthPadding + outputWidthOffset), (imageWidth + inputWidthOffset + inputWidthPadding), 
+						(outputWidth + outputWidthPadding + outputWidthOffset) * (outputHeight + outputHeightPadding + outputHeightOffset),
+						filterWidth * filterHeight);
+
+					convolutionKernel.SetActivationFunction(activationFunction);
+					convolutionKernel.InitializeCompilerOptions();
+					context->AddProgramFromSource(&convolutionKernel, oneDeviceVector);
+					context->AddKernel(&convolutionKernel);
+
+					auto inputMemory = context->CreateMemory(CL_MEM_READ_ONLY, sizeof(float) * (imageWidth + inputWidthOffset + inputWidthPadding) * (imageHeight + inputHeightOffset + inputHeightPadding));
+					device->WriteMemory(inputMemory.get(), inputMemory->ByteSize(), input.Data);
+
+					auto outputMemory = context->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(float) * (outputWidth + outputWidthPadding + outputWidthOffset) * (outputHeight + outputHeightPadding + outputHeightOffset) 
+						* (filterUnits + outputUnitOffset + outputUnitPadding));
+
+					auto filterMemory = context->CreateMemory(CL_MEM_READ_ONLY, sizeof(float) * filterWidth * filterHeight * filterUnits);
+					device->WriteMemory(filterMemory.get(), filterMemory->ByteSize(), filterMemoryBuffer.get());
+					auto biasMemory = context->CreateMemory(CL_MEM_READ_ONLY, sizeof(float) * filterUnits);
+					device->WriteMemory(biasMemory.get(), biasMemory->ByteSize(), biasMemoryBuffer.get());
+
+					convolutionKernel.SetInput(inputMemory.get());
+					convolutionKernel.SetBiases(biasMemory.get());
+					convolutionKernel.SetFilters(filterMemory.get());
+					convolutionKernel.SetOutput(outputMemory.get());
+
+					INFO("Executing the kernel");
+					device->ExecuteKernel(&convolutionKernel);
+					device->WaitForDeviceQueue(0);
+					device->ReadMemory(outputMemory.get(), outputMemory->ByteSize(), outputMemoryBuffer.get());
+					device->WaitForDeviceQueue(0);
+
+					INFO("Comparing the manual result to the kernel result");
+					auto rawTemp = outputMemoryBuffer.get();
+
+					//We need to increase the raw pointer to account fo the offset
+					rawTemp = rawTemp + (outputHeight + outputHeightPadding + outputHeightOffset) * (outputWidth + outputWidthPadding + outputWidthOffset) * outputUnitOffset;
+
+					for (int i = 0; i < filterUnits; i++)
+					{
+						Matrix<float> tempKernelResult((outputHeight + outputHeightPadding + outputHeightOffset), (outputWidth + outputWidthPadding + outputWidthOffset), rawTemp);
+						rawTemp += tempKernelResult.ElementCount();
+						Matrix<float> kernelResult = tempKernelResult.GetSubMatrix(outputHeightOffset, outputWidthOffset, outputHeight, outputWidth);
+						auto difference = (kernelResult - manualResults[i]).Norm2Square() / kernelResult.ElementCount();
+						cout << "difference: " << difference << endl;
+						CHECK(difference < 1E-7);
+					}
+				}
+			}
+		}
+	}
+
+
 	WHEN("Convolving with local memory and without offset and padding")
 	{
 

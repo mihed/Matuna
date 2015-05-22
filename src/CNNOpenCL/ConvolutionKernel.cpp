@@ -83,8 +83,8 @@ void ConvolutionKernel<T>::InitializeCompilerOptions()
 	stringStream << "-D" << "OUTPUT_OFFSET_UNIT=" << outputOffsetUnit << " ";
 	stringStream << "-D" << "OUTPUT_WIDTH=" << outputStride << " ";
 	stringStream << "-D" << "INPUT_WIDTH=" << inputStride << " ";
-	stringStream << "-D" << "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING=" << (outputStride * (dataOutputHeight + outputOffsetHeight)) << " ";
-	stringStream << "-D" << "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING=" << (filterWidth *  filterHeight) << " ";
+	stringStream << "-D" << "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING=" << outputUnitMemoryCount << " ";
+	stringStream << "-D" << "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING=" << filterUnitElementCount << " ";
 
 	if (is_same<cl_double, T>::value)
 		stringStream << "-D" << "DOUBLE_PRECISION ";
