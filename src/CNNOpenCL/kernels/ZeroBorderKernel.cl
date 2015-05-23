@@ -47,6 +47,10 @@
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
 #endif
 
+#ifndef INPUT_UNIT_OFFSET
+#define INPUT_UNIT_OFFSET -1
+#endif
+
 #ifndef INPUT_DATA_WIDTH
 #define INPUT_DATA_WIDTH -1
 #endif
@@ -79,7 +83,7 @@ typedef float TYPE;
 
 __kernel void ZeroBorderKernel(__global TYPE* input)
 {
-    const int unitIndex = get_global_id(0) * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
+    const int unitIndex = (get_global_id(0) + INPUT_UNIT_OFFSET) * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
         
     //Adding a border in the height direction
     int tempIndex;
