@@ -51,7 +51,10 @@ public:
 	Matrix<T> Transpose() const;
 	Matrix<T> GetSubMatrix(int startRow, int startColumn, int rowLength, int columnlength) const;
 	Matrix<T> Convolve(const Matrix<T>& kernel) const;
+	Matrix<T> AddZeroBorder(int size) const;
+	Matrix<T> AddBorder(int size, T value) const;
 	void Transform(function<T(T)> function);
+	void SetSubMatrix(int startRow, int startColumn, const Matrix<T>& subMatrix);
 	T Norm2() const;
 	T Norm2Square() const;
 	T Sum() const;
@@ -125,6 +128,10 @@ Matrix<T> operator+(Matrix<T> left, const T& scalar)
 {
     return left += scalar;
 }
+
+typedef Matrix<float> Matrixf;
+typedef Matrix<double> Matrixd;
+typedef Matrix<long double> Matrixld;
 
 } /* namespace Math */
 } /* namespace ATML */

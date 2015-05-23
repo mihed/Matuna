@@ -234,6 +234,45 @@ Matrix<T> Matrix<T>::GetSubMatrix(int startRow, int startColumn, int rowLength,
 
 	return result;
 }
+template<class T>
+void Matrix<T>::SetSubMatrix(int startRow, int startColumn, const Matrix<T>& subMatrix)
+{
+
+	auto rowLength = subMatrix.RowCount();
+	auto columnLength = subMatrix.ColumnCount();
+
+	if (startRow + rowLength > rows)
+		throw invalid_argument("Index out of range");
+
+	if (startColumn + columnLength > columns)
+		throw invalid_argument("Index out of range");
+
+	T* temp = Data + startColumn + columns * startRow;
+	T* rowPointer;
+	T* rowPointer2;
+	for (int i = 0; i < rowLength; i++)
+	{
+		rowPointer = temp + columns * i;
+		rowPointer2 = subMatrix.Data + i * columnLength;
+		memcpy(rowPointer, rowPointer2, columnLength * sizeof(T));
+	}
+}
+
+template<class T>
+Matrix<T> Matrix<T>::AddZeroBorder(int size) const
+{
+	Matrix<T> result = Zeros(rows + 2 * size, columns + 2 * size);
+	result.SetSubMatrix(size, size, *this);
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::AddBorder(int size, T value) const
+{
+	Matrix<T> result(rows + 2 * size, columns + 2 * size, value);
+	result.SetSubMatrix(size, size, *this);
+	return result;
+}
 
 template<class T>
 Matrix<T> Matrix<T>::Transpose() const
