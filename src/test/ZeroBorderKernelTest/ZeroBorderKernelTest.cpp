@@ -105,8 +105,8 @@ SCENARIO("Adding a zero border around the data")
 					INFO("Comparing the results");
 					for (int i = unitOffset; i < (unitOffset + unitsCount); i++)
 					{
-						auto& manualResult = units[i].GetSubMatrix(heightOffset, widthOffset, height, width).AddZeroBorder(borderSize);
-						auto& kernelResult = rawKernelResult[i].GetSubMatrix(borderStartUp, borderStartLeft, height + 2 * borderSize, width + 2 * borderSize);
+						auto manualResult = units[i].GetSubMatrix(heightOffset, widthOffset, height, width).AddZeroBorder(borderSize);
+						auto kernelResult = rawKernelResult[i].GetSubMatrix(borderStartUp, borderStartLeft, height + 2 * borderSize, width + 2 * borderSize);
 
 						for (int j = 0; j < manualResult.ElementCount(); j++)
 							CHECK(manualResult.Data[j] == kernelResult.Data[j]);

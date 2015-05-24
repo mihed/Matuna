@@ -82,7 +82,7 @@ __kernel void MultiplyAllUnitsKernel(
     #else
 	    __global const TYPE* input,
     #endif
-    #ifdef CONSTANT_INPUT
+    #ifdef CONSTANT_INPUT_DELTA
 	    __constant TYPE* inputDelta,
     #else
 	    __global const TYPE* inputDelta,
