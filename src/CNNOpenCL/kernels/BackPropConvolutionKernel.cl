@@ -17,6 +17,10 @@
 #define INPUT_UNIT_LIMIT -1
 #endif
 
+#ifndef INPUT_UNIT_COUNT
+#define INPUT_UNIT_COUNT -1
+#endif
+
 #ifndef INPUT_STRIDE
 #define INPUT_STRIDE -1
 #endif
@@ -112,11 +116,13 @@ __kernel void BackPropConvolutionKernel(
     const int localElementCount = localCacheWidth * (get_local_size(1)  + FILTER_HEIGHT - 1);
 
     int localTemp1;
-    int globalTemp1;    
+    int globalTemp1;
+    int localIndexCounter = 0;
     for (int i = INPUT_UNIT_OFFSET; i < INPUT_UNIT_LIMIT; i++)
     {
         globalTemp1 = INPUT_UNIT_ELEMENT_COUNT_INC_PADDING * i + tempYIndex;
-        localTemp1 = localElementCount * i + localIndex; 
+        localTemp1 = localElementCount * localIndexCounter + localIndex; 
+        localIndexCounter++;
         if (xIndexLocal == xMaxIndexLocal && yIndexLocal == yMaxIndexLocal)
         {
             for (int u = 0; u < FILTER_HEIGHT; u++)
@@ -161,7 +167,7 @@ __kernel void BackPropConvolutionKernel(
     
     
     #ifdef USE_LOCAL_MEMORY
-    for (int i = INPUT_UNIT_OFFSET; i < INPUT_UNIT_LIMIT; i++)
+    for (int i = 0; i < INPUT_UNIT_COUNT; i++)
     {
         tempIndex = localElementCount * i + localIndex;
         tempIndex4 = FILTER_UNIT_ELEMENT_COUNT_INC_PADDING * i;
@@ -175,11 +181,13 @@ __kernel void BackPropConvolutionKernel(
             }
         }
     }
-    #else    
+    #else
+    int filterCounter = 0;    
     for (int i = INPUT_UNIT_OFFSET; i < INPUT_UNIT_LIMIT; i++)
     {
         tempIndex = INPUT_UNIT_ELEMENT_COUNT_INC_PADDING * i + tempYIndex;
-        tempIndex4 = FILTER_UNIT_ELEMENT_COUNT_INC_PADDING * i;
+        tempIndex4 = FILTER_UNIT_ELEMENT_COUNT_INC_PADDING * filterCounter;
+        filterCounter++;
         for (int u = 0; u < FILTER_HEIGHT; u++)
         {
             tempIndex2 = tempIndex + INPUT_STRIDE * u;
