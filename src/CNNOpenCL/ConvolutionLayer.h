@@ -12,6 +12,17 @@
 #include "CNN/ConvolutionLayerConfig.h"
 #include "OpenCLHelper/OpenCLContext.h"
 
+#include "ConvolutionKernel.h"
+#include "BackConvolutionKernel.h"
+#include "MultiplyAllUnitsKernel.h"
+#include "ZeroBorderKenel.h"
+#include "SumAllUnitsKernel.h"
+
+#include <unordered_map>
+#include <vector>
+#include <memory>
+
+using namespace std;
 using namespace ATML::Helper;
 
 namespace ATML
@@ -23,9 +34,14 @@ template<class T>
 class ConvolutionLayer: public OpenCLForwardBackPropLayer<T>
 {
 private:
+
+	unordered_map<OpenCLDevice*, unique_ptr<ConvolutionKernel<T>>> deviceAndConvolutionKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<SumAllUnitsKernel<T>>> deviceAndSumKernels;
+
 	ConvolutionLayerConfig convolutionConfig;
 	unique_ptr<OpenCLMemory> filters;
 	unique_ptr<OpenCLMemory> biases;
+	unique_ptr<OpenCLMemory> summaryCache;
 
 public:
 	ConvolutionLayer(shared_ptr<OpenCLContext> context,
@@ -61,6 +77,8 @@ public:
 
 private:
 	void InitializeParameters();
+	void InitializeConvolutionKernel();
+	void InitializeSumAllKernel();
 };
 
 } /* namespace MachineLearning */

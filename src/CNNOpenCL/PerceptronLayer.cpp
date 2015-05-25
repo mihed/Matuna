@@ -191,13 +191,16 @@ namespace ATML {
 
 				//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
 				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-				if (maximumConstantBufferSize > firstOutputData.TotalUnits()) {
+				auto byteSize = firstOutputData.TotalUnits() * sizeof(T);
+				if (maximumConstantBufferSize > byteSize) {
 					kernel->SetConstantInputDelta(true);
-					maximumConstantBufferSize -= firstOutputData.TotalUnits();
+					maximumConstantBufferSize -= byteSize;
 				}
-				if (maximumConstantBufferSize > inputDescription.TotalUnits()) {
+
+				byteSize = inputDescription.TotalUnits() * sizeof(T);
+				if (maximumConstantBufferSize > byteSize) {
 					kernel->SetConstantInput(true);
-					maximumConstantBufferSize -= inputDescription.TotalUnits();
+					maximumConstantBufferSize -= byteSize;
 				}
 
 				kernel->SetUseRelaxedMath(config.UseRelaxedMath());
@@ -253,13 +256,17 @@ namespace ATML {
 					kernel->SetUseConstantWeights(true);
 					maximumConstantBufferSize -= weights->ByteSize();
 				}
-				if (maximumConstantBufferSize > firstOutputData.TotalUnits()) {
+
+				auto byteSize = firstOutputData.TotalUnits() * sizeof(T);
+				if (maximumConstantBufferSize > byteSize) {
 					kernel->SetUseConstantDeltaInput(true);
-					maximumConstantBufferSize -= firstOutputData.TotalUnits();
+					maximumConstantBufferSize -= byteSize;
 				}
-				if (maximumConstantBufferSize > inputDescription.TotalUnits()) {
+				
+				byteSize = inputDescription.TotalUnits() * sizeof(T);
+				if (maximumConstantBufferSize > byteSize) {
 					kernel->SetUseConstantInput(true);
-					maximumConstantBufferSize -= inputDescription.TotalUnits();
+					maximumConstantBufferSize -= byteSize;
 				}
 
 				kernel->SetUseRelaxedMath(config.UseRelaxedMath());
