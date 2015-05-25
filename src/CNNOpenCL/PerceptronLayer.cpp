@@ -9,7 +9,6 @@
 #include "CNN/InterlockHelper.h"
 #include <stdexcept>
 #include <type_traits>
-#include <chrono>
 #include <random>
 
 namespace ATML {
@@ -22,9 +21,13 @@ namespace ATML {
 			const PerceptronLayerConfig* config) :
 			OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions,
 			backPropActivation, config), config(*config) {
+
 			if (inputLayerDescriptions.size() == 0)
 				throw invalid_argument(
 				"There's no input data descriptions for the perceptron layer.");
+
+			if (config->ConnectionType() != ATMLFullConnection)
+				throw runtime_error("Not implemented exception");
 
 			//In a perceptron layer, we cannot have multiple input descriptions for the same network
 			//since it will correspond to a different weight matrix.
@@ -364,6 +367,7 @@ namespace ATML {
 
 			int biasCount = firstOutputData.TotalUnits();
 
+			//TODO: Here's optimization to be made in case the network is read-only and not trainable.
 			weights = move(
 				this->context->CreateMemory(CL_MEM_READ_WRITE,
 				sizeof(T) * weightCount));
@@ -372,20 +376,21 @@ namespace ATML {
 				this->context->CreateMemory(CL_MEM_READ_WRITE,
 				sizeof(T) * biasCount));
 
-			auto seed = chrono::system_clock::now().time_since_epoch().count();
-			default_random_engine generator(seed);
+			random_device tempDevice;
+			mt19937 mt(tempDevice());
 
-			uniform_real_distribution<T> uniformDistribution(0, 0.1);
+			//TODO: The initial weight values could be something to tweak
+			uniform_real_distribution<T> uniformDistribution(-0.1, 0.1);
 
 			vector<T> initialWeightValues;
 			initialWeightValues.resize(weightCount);
 			for (int i = 0; i < weightCount; i++)
-				initialWeightValues[i] = uniformDistribution(generator);
+				initialWeightValues[i] = uniformDistribution(mt);
 
 			vector<T> initialBiasValues;
 			initialBiasValues.resize(biasCount);
 			for (int i = 0; i < biasCount; i++)
-				initialBiasValues[i] = uniformDistribution(generator);
+				initialBiasValues[i] = uniformDistribution(mt);
 
 			//Since this is initialization, we don't really care about which device and device queue we are using
 			OpenCLDevice* device = this->context->GetDevices()[0];

@@ -22,12 +22,19 @@ namespace MachineLearning
 template<class T>
 class ConvolutionLayer: public OpenCLForwardBackPropLayer<T>
 {
+private:
+	ConvolutionLayerConfig convolutionConfig;
+	unique_ptr<OpenCLMemory> filters;
+	unique_ptr<OpenCLMemory> biases;
+
 public:
 	ConvolutionLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
 			ATMLActivationFunction backPropActivation,
 			const ConvolutionLayerConfig* config);
 	virtual ~ConvolutionLayer();
+
+	ConvolutionLayerConfig GetConfig() const;
 
 	virtual void InterlockFinalized() override;
 
@@ -51,6 +58,9 @@ public:
 			int queueIndex, bool blocking = true) override;
 
 	virtual size_t GetParameterCount() override;
+
+private:
+	void InitializeParameters();
 };
 
 } /* namespace MachineLearning */
