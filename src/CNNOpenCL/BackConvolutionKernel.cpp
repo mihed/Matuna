@@ -33,10 +33,10 @@ BackConvolutionKernel<T>::BackConvolutionKernel(int globalWidth,
 	useConstantDeltaInput = false;
 	useConstantFilters = false;
 
-	kernelName = "BackConvolutionKernel";
+	kernelName = "BackPropConvolutionKernel";
 	stringstream stringStream;
 
-	stringStream << "BackConvolutionKernelProgram";
+	stringStream << "BackPropConvolutionKernelProgram";
 	stringStream << instanceCounter;
 	programName = stringStream.str();
 
@@ -127,14 +127,13 @@ void BackConvolutionKernel<T>::SetLocalWorkGroup(int width, int height)
 				"Local memory is not used so you may not set any local memory.");
 
 	CheckOpenCLError(
-			clSetKernelArg(this->GetKernel(), 4,
+			clSetKernelArg(this->GetKernel(), 3,
 					sizeof(T) * (width + filterWidth - 1)
 							* (height + filterHeight - 1) * globalUnits,
 					nullptr), "Could not set the kernel arguments");
 	localWorkSize.clear();
 	localWorkSize.push_back(width);
 	localWorkSize.push_back(height);
-	localWorkSize.push_back(1);
 }
 
 template<class T>
@@ -176,7 +175,7 @@ vector<string> BackConvolutionKernel<T>::GetProgramCode() const
 					Path::Combine(
 							Path::GetDirectoryPath(
 									FileHelper::GetExecutablePath()), "kernels",
-							"BackConvolutionKernel.cl")));
+							"BackPropConvolutionKernel.cl")));
 	return result;
 }
 

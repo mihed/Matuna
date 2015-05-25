@@ -1,6 +1,11 @@
 //This kernel is back propagation for a convolution layer that is fully connected.
 //Futhermore, it is assumed that the inputDelta has zero padding / offset around itself with FILTER_WIDTH - 1 / FILTER_HEIGHT -1 size.
 
+
+//TEST------------
+//#pragma OPENCL EXTENSION cl_intel_printf : enable
+//TEST------------
+
 #ifndef FILTER_WIDTH
 #define FILTER_WIDTH -1
 #endif
@@ -105,18 +110,30 @@ __kernel void BackPropConvolutionKernel(
     const int maxFilterHeightIndex = FILTER_HEIGHT - 1;
     const int maxFilterWidthIndex = FILTER_WIDTH - 1;
    
+   //TEST------------
+   //printf("xIndex: %i \n", xIndex);
+   //printf("yIndex: %i \n", yIndex);
+   //TEST------------
     
     #ifdef USE_LOCAL_MEMORY
     const int xIndexLocal = get_local_id(0);
     const int yIndexLocal = get_local_id(1);
     const int xMaxIndexLocal = get_local_size(0) - 1;
     const int yMaxIndexLocal = get_local_size(1) - 1;
-    const int localCacheWidth =  get_local_size(0) + FILTER_WIDTH - 1;
+    const int localCacheWidth =  xMaxIndexLocal + FILTER_WIDTH;
     const int localIndex = xIndexLocal + localCacheWidth * yIndexLocal;
-    const int localElementCount = localCacheWidth * (get_local_size(1)  + FILTER_HEIGHT - 1);
+    const int localElementCount = localCacheWidth * (yMaxIndexLocal + FILTER_HEIGHT);
+    
+    
+   //TEST------------
+   //printf("xIndex local: %i \n", xIndexLocal);
+   //printf("yIndex local: %i \n", yIndexLocal);
+   //TEST------------
 
     int localTemp1;
+    int localTemp2;
     int globalTemp1;
+    int globalTemp2;
     int localIndexCounter = 0;
     for (int i = INPUT_UNIT_OFFSET; i < INPUT_UNIT_LIMIT; i++)
     {
@@ -127,11 +144,14 @@ __kernel void BackPropConvolutionKernel(
         {
             for (int u = 0; u < FILTER_HEIGHT; u++)
             {
-                localTemp1 = localTemp1 + localIndex + u * localCacheWidth;
-                globalTemp1 = globalTemp1 + u * INPUT_STRIDE;
+                localTemp2 = localTemp1 + u * localCacheWidth;
+                globalTemp2 = globalTemp1 + u * INPUT_STRIDE;
                 for (int v = 0; v < FILTER_WIDTH; v++)
                 {
-                    cache[localTemp1 + v] = inputDelta[globalTemp1 + v];
+                    cache[localTemp2 + v] = inputDelta[globalTemp2 + v];
+                       //TEST------------
+                    //printf("Cache double loop: %f \n", cache[localTemp2 + v]);
+                       //TEST------------
                 }
             }
         }
@@ -140,6 +160,9 @@ __kernel void BackPropConvolutionKernel(
             for (int v = 0; v < FILTER_WIDTH; v++)
             {
                 cache[localTemp1 + v] = inputDelta[globalTemp1 + v];
+                   //TEST------------
+                //printf("Cache width loop: %f \n", cache[localTemp1 + v]);
+                   //TEST------------
             }
         }
         else if (yIndexLocal == yMaxIndexLocal)
@@ -147,11 +170,17 @@ __kernel void BackPropConvolutionKernel(
             for (int u = 0; u < FILTER_HEIGHT; u++)
             {
                 cache[localTemp1 + u * localCacheWidth] = inputDelta[globalTemp1 + u * INPUT_STRIDE];
+                   //TEST------------
+                //printf("Cache height loop: %f \n", cache[localTemp1 + u * localCacheWidth]);
+                   //TEST------------
             }
         }
         else
         {
             cache[localTemp1] = inputDelta[globalTemp1];
+               //TEST------------
+            //printf("Cache assignment: %f \n", cache[localTemp1]);
+               //TEST------------
         }  
     }
     
@@ -163,7 +192,7 @@ __kernel void BackPropConvolutionKernel(
     int tempIndex2;
     int tempIndex3;
     int tempIndex4;
-    int sum = 0;
+    TYPE sum = 0;
     
     
     #ifdef USE_LOCAL_MEMORY
@@ -178,6 +207,9 @@ __kernel void BackPropConvolutionKernel(
             for (int v = 0; v < FILTER_WIDTH; v++)
             {
                 sum += filters[tempIndex3 + maxFilterWidthIndex - v] * cache[tempIndex2 + v];
+                   //TEST------------
+                //printf("Cache: %f \n", cache[tempIndex2 + v]);
+                   //TEST------------
             }
         }
     }
