@@ -13,6 +13,56 @@
 
 using namespace ATML::Math;
 
+SCENARIO("Rotating a matrix")
+{
+	random_device device;
+	mt19937 mt(device());
+	uniform_int_distribution<int> distribution(2, 4);
+
+	WHEN("Rotating 90 degrees four times")
+	{
+		auto test = Matrixf::RandomNormal(distribution(mt), distribution(mt));
+		THEN("Then it should be equal to the original matrix")
+		{
+			Matrixf result = test.Rotate90().Rotate90().Rotate90().Rotate90();
+			CHECK(result.RowCount() == test.RowCount());
+			CHECK(result.ColumnCount() == test.ColumnCount());
+			for (int i = 0; i < result.ElementCount(); i++)
+				CHECK(result.Data[i] == test.Data[i]);
+		}
+	}
+
+	WHEN("Rotating 90 degrees two times")
+	{
+		auto test = Matrixf::RandomNormal(distribution(mt), distribution(mt));
+		THEN("It should be equal to rotating 180 degrees")
+		{
+			Matrixf result1 = test.Rotate90().Rotate90();
+			Matrixf result2 = test.Rotate180();
+			CHECK(result1.RowCount() == result2.RowCount());
+			CHECK(result1.ColumnCount() == result2.ColumnCount());
+			CHECK(result1.ElementCount() == result2.ElementCount());
+			for (int i = 0; i < result1.ElementCount(); i++)
+				CHECK(result1.Data[i] == result2.Data[i]);
+		}
+	}
+
+	WHEN("Rotating 90 degrees three times")
+	{
+		auto test = Matrixf::RandomNormal(distribution(mt), distribution(mt));
+		THEN("Then it should be equal to rotating 270 degrees")
+		{
+			Matrixf result1 = test.Rotate90().Rotate90().Rotate90();
+			Matrixf result2 = test.Rotate270();
+			CHECK(result1.RowCount() == result2.RowCount());
+			CHECK(result1.ColumnCount() == result2.ColumnCount());
+			CHECK(result1.ElementCount() == result2.ElementCount());
+			for (int i = 0; i < result1.ElementCount(); i++)
+				CHECK(result1.Data[i] == result2.Data[i]);
+		}
+	}
+}
+
 SCENARIO("Multiplying a matrix")
 {
 	GIVEN("5x5 matrix and 5x3 matrix")
@@ -60,7 +110,7 @@ SCENARIO("Calculating the L2 norm of a vector")
 	auto randomMatrix = Matrix<float>::RandomNormal(5, 2);
 	auto norm = randomMatrix.Norm2();
 	auto data = randomMatrix.Data;
-	
+
 	float sum = 0;
 	for (int i = 0; i < randomMatrix.ElementCount(); i++)
 		sum += data[i] * data[i];

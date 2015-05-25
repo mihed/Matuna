@@ -53,6 +53,9 @@ public:
 	Matrix<T> Convolve(const Matrix<T>& kernel) const;
 	Matrix<T> AddZeroBorder(int size) const;
 	Matrix<T> AddBorder(int size, T value) const;
+	Matrix<T> Rotate90() const;
+	Matrix<T> Rotate180() const;
+	Matrix<T> Rotate270() const;
 	void Transform(function<T(T)> function);
 	void SetSubMatrix(int startRow, int startColumn, const Matrix<T>& subMatrix);
 	T Norm2() const;

@@ -235,7 +235,8 @@ Matrix<T> Matrix<T>::GetSubMatrix(int startRow, int startColumn, int rowLength,
 	return result;
 }
 template<class T>
-void Matrix<T>::SetSubMatrix(int startRow, int startColumn, const Matrix<T>& subMatrix)
+void Matrix<T>::SetSubMatrix(int startRow, int startColumn,
+		const Matrix<T>& subMatrix)
 {
 
 	auto rowLength = subMatrix.RowCount();
@@ -271,6 +272,43 @@ Matrix<T> Matrix<T>::AddBorder(int size, T value) const
 {
 	Matrix<T> result(rows + 2 * size, columns + 2 * size, value);
 	result.SetSubMatrix(size, size, *this);
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::Rotate90() const
+{
+	Matrix<T> result(columns, rows);
+	int temp = rows - 1;
+	for (int i = 0; i < columns; i++)
+		for (int j = 0; j < rows; j++)
+			result.Data[i * rows + temp - j] = Data[j * columns + i];
+
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::Rotate180() const
+{
+	Matrix<T> result(rows, columns);
+	int temp = rows - 1;
+	int temp2 = columns - 1;
+	for (int j = 0; j < rows; j++)
+		for (int i = 0; i < columns; i++)
+			result.Data[(temp - j) *  columns + temp2 - i] = Data[j * columns + i];
+
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::Rotate270() const
+{
+	Matrix<T> result(columns, rows);
+	int temp2 = columns - 1;
+	for (int i = 0; i < columns; i++)
+		for (int j = 0; j < rows; j++)
+			result.Data[(temp2 - i) * rows + j] = Data[j * columns + i];
+
 	return result;
 }
 
