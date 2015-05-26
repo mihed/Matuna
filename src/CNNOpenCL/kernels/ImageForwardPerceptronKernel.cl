@@ -1,6 +1,6 @@
 /**
 *Macros to define:
-* - INPUT_UNITS: The amount of input units
+* - INPUT_UNITS_LIMIT: The limit in the input units 
 * - INPUT_WIDTH: The input width
 * - INPUT_HEIGHT: The input height
 * - INPUT_UNITS_OFFSET: The offset in the units direction
@@ -20,16 +20,16 @@
 * - NATIVE_MATH: If we use native precision math
 */
 
-#ifndef INPUT_UNITS
-#define INPUT_UNITS -1
+#ifndef INPUT_UNITS_LIMIT
+#define INPUT_UNITS_LIMIT -1
 #endif
 
-#ifndef INPUT_WIDTH
-#define INPUT_WIDTH -1
+#ifndef INPUT_WIDTH_LIMIT
+#define INPUT_WIDTH_LIMIT -1
 #endif
 
-#ifndef INPUT_HEIGHT
-#define INPUT_HEIGHT -1
+#ifndef INPUT_HEIGHT_LIMIT
+#define INPUT_HEIGHT_LIMIT -1
 #endif
 
 #ifndef INPUT_UNITS_OFFSET
@@ -106,13 +106,13 @@ __kernel void ForwardPerceptronKernel(
     int columnIndex = 0;
     int tempZIndex = 0;
     int tempYIndex = 0;
-    for (int unit = INPUT_UNITS_OFFSET; unit < INPUT_UNITS; unit++)
+    for (int unit = INPUT_UNITS_OFFSET; unit < INPUT_UNITS_LIMIT; unit++)
     {
         tempZIndex = unit * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
-        for (int row = INPUT_HEIGHT_OFFSET; row < INPUT_HEIGHT; row++)
+        for (int row = INPUT_HEIGHT_OFFSET; row < INPUT_HEIGHT_LIMIT; row++)
         {
             tempYIndex = row * INPUT_MEMORY_WIDTH + tempZIndex;
-            for(int column = INPUT_WIDTH_OFFSET; column < INPUT_WIDTH; column++)
+            for(int column = INPUT_WIDTH_OFFSET; column < INPUT_WIDTH_LIMIT; column++)
             {
                sum += input[tempYIndex + column] * weights[rowIndex + columnIndex];
 				columnIndex++;
