@@ -15,6 +15,7 @@
 #include "OpenCLHelper/OpenCLMemory.h"
 #include "OutputKernel.h"
 #include "ErrorKernel.h"
+#include "ImageOutputKernel.h"
 #include <memory>
 #include <unordered_map>
 
@@ -33,6 +34,10 @@ private:
 	shared_ptr<OpenCLContext> context;
 	unordered_map<OpenCLDevice*, unique_ptr<OutputKernel<T>>> deviceAndOutputKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<ErrorKernel<T>>> deviceAndErrorKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<ImageOutputKernel<T>>> deviceAndImageOutputKernels;
+
+	bool useImage;
+
 	StandardOutputLayerConfig config;
 	LayerDataDescription inputDescription;
 
@@ -55,6 +60,7 @@ public:
 private:
 	void InitializeErrorKernel();
 	void InitializeOutputKernel();
+	void InitializeImageOutputKernel();
 };
 
 }

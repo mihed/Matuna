@@ -51,11 +51,19 @@ StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
 		outBackPropMemoryProposals.push_back(inBackPropMemProp);
 		inForwardPropMemoryProposals.push_back(inBackPropMemProp);
 	}
+
+	useImage = false;
 }
 
 template<class T>
 StandardOutputLayer<T>::~StandardOutputLayer() {
 	for (auto& deviceAndKernel : deviceAndOutputKernels) {
+		auto& kernelProgram = deviceAndKernel.second;
+		this->context->RemoveKernel(kernelProgram.get());
+		this->context->RemoveProgram(kernelProgram.get());
+	}
+
+	for (auto& deviceAndKernel : deviceAndImageOutputKernels) {
 		auto& kernelProgram = deviceAndKernel.second;
 		this->context->RemoveKernel(kernelProgram.get());
 		this->context->RemoveProgram(kernelProgram.get());
@@ -76,19 +84,23 @@ void StandardOutputLayer<T>::InterlockFinalized() {
 	auto inBackPropMem = this->InBackPropMemoryDescriptions()[0];
 	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
 
-	if (inForwardPropMem.Width != 1 || inForwardPropMem.Height != 1)
-		throw runtime_error(
-				"The standard output layer do not support images as input");
-
 	if (!InterlockHelper::DataEquals(inputDescription, inBackProp))
 		throw runtime_error("The targets are not the same as the inputs");
 
 	if (!InterlockHelper::MemoryEquals(inBackPropMem, inForwardPropMem))
 		throw runtime_error(
-				"The inBackProp memory and the inForwardProp memory doesn't correspond");
+		"The inBackProp memory and the inForwardProp memory doesn't correspond");
 
-	InitializeErrorKernel();
-	InitializeOutputKernel();
+	if (inForwardPropMem.Width != 1 || inForwardPropMem.Height != 1)
+	{
+		InitializeImageOutputKernel();
+		useImage = true;
+	}
+	else
+	{
+		InitializeErrorKernel();
+		InitializeOutputKernel();
+	}
 }
 
 template<class T>
@@ -139,7 +151,67 @@ void StandardOutputLayer<T>::InitializeErrorKernel() {
 }
 
 template<class T>
+void StandardOutputLayer<T>::InitializeImageOutputKernel()
+{
+	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
+	auto inForwardPropData = this->InForwardPropDataDescriptions()[0];
+	auto outBackPropMem = this->OutBackPropMemoryDescriptions()[0];
+	//In the current implementation, I need to make sure the target (inBackProp)
+	//and the (inForwardProp) are the same
+
+	vector<OpenCLDevice*> devices = this->context->GetDevices();
+	for (auto device : devices) {
+		auto deviceInfo = device->DeviceInfo();
+
+		//Make sure the type we want to execute is supported on the device.
+		if (is_same<cl_double, T>::value) {
+			if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+				throw invalid_argument(
+				"The template argument is not supported on the chosen devices");
+		}
+		else if (is_same<cl_float, T>::value) {
+			if (deviceInfo.PreferredFloatVectorWidth() == 0)
+				throw invalid_argument(
+				"The template argument is not supported on the chosen devices");
+		}
+		else
+			throw runtime_error(
+			"The template argument does not match the supported arguments");
+
+		unique_ptr<ImageOutputKernel<T>> kernel(
+			new ImageOutputKernel<T>(inForwardPropData.Width, inForwardPropData.Height, inForwardPropData.Units,
+			inForwardPropMem.WidthOffset, inForwardPropMem.HeightOffset, outBackPropMem.WidthOffset,
+			outBackPropMem.HeightOffset, inForwardPropMem.UnitOffset, outBackPropMem.UnitOffset, inForwardPropMem.Width, outBackPropMem.Width,
+			outBackPropMem.Height, inForwardPropMem.Height));
+
+		auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+		auto inputTargetBytes = sizeof(T) * inputDescription.Units;
+		if (maximumConstantBufferSize > inputTargetBytes) {
+			kernel->SetConstantInput(true);
+			maximumConstantBufferSize -= inputTargetBytes;
+		}
+
+		if (maximumConstantBufferSize > inputTargetBytes) {
+			kernel->SetConstantTarget(true);
+			maximumConstantBufferSize -= inputTargetBytes;
+		}
+
+		kernel->SetUseRelaxedMath(config.UseRelaxedMath());
+		kernel->SetComputationPrecision(config.ComputationPrecision());
+		kernel->SetActivationFunction(this->BackPropActivationFunction());
+		kernel->SetErrorFunction(config.ErrorFunction());
+		kernel->InitializeCompilerOptions();
+		vector<OpenCLDevice*> oneDeviceVector;
+		oneDeviceVector.push_back(device);
+		this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
+		this->context->AddKernel(kernel.get());
+		deviceAndImageOutputKernels.insert(make_pair(device, move(kernel)));
+	}
+}
+
+template<class T>
 void StandardOutputLayer<T>::InitializeOutputKernel() {
+
 	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
 	auto outBackPropMem = this->OutBackPropMemoryDescriptions()[0];
 	//In the current implementation, I need to make sure the target (inBackProp)
@@ -193,7 +265,12 @@ void StandardOutputLayer<T>::InitializeOutputKernel() {
 
 template<class T>
 T StandardOutputLayer<T>::CalculateError(OpenCLDevice* device, int queueIndex,
-		OpenCLMemory* previousInput, OpenCLMemory* target) {
+		OpenCLMemory* previousInput, OpenCLMemory* target) 
+{
+
+	if (useImage)
+		throw invalid_argument("Not implemented");
+
 	auto& kernel = deviceAndErrorKernels[device];
 	kernel->SetInput(previousInput);
 	kernel->SetTarget(target);
@@ -209,12 +286,24 @@ T StandardOutputLayer<T>::CalculateError(OpenCLDevice* device, int queueIndex,
 template<class T>
 void StandardOutputLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
 		int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* target,
-		OpenCLMemory* deltaOutput, bool blocking) {
-	auto& kernel = deviceAndOutputKernels[device];
-	kernel->SetInput(previousInput);
-	kernel->SetTarget(target);
-	kernel->SetOutput(deltaOutput);
-	device->ExecuteKernel(kernel.get(), queueIndex, blocking);
+		OpenCLMemory* deltaOutput, bool blocking) 
+{
+	if (useImage)
+	{
+		auto& kernel = deviceAndImageOutputKernels[device];
+		kernel->SetInput(previousInput);
+		kernel->SetTarget(target);
+		kernel->SetOutput(deltaOutput);
+		device->ExecuteKernel(kernel.get(), queueIndex, blocking);
+	}
+	else
+	{
+		auto& kernel = deviceAndOutputKernels[device];
+		kernel->SetInput(previousInput);
+		kernel->SetTarget(target);
+		kernel->SetOutput(deltaOutput);
+		device->ExecuteKernel(kernel.get(), queueIndex, blocking);
+	}
 }
 
 template class StandardOutputLayer<cl_float> ;
