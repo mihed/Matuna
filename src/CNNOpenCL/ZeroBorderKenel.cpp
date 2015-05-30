@@ -18,12 +18,12 @@ namespace MachineLearning
 template<class T>
 ZeroBorderKenel<T>::ZeroBorderKenel(int dataWidth, int dataHeight,
 		int dataUnits, int borderStartLeft, int borderStartRight,
-		int borderStartUp, int borderStartDown, int borderSize, int inputStride,
+		int borderStartUp, int borderStartDown, int borderHorizontalSize, int borderVerticalSize, int inputStride,
 		int inputMemoryHeight, int inputUnitOffset) :
 		dataWidth(dataWidth), dataHeight(dataHeight), borderStartLeft(
 				borderStartLeft), borderStartRight(borderStartRight), borderStartUp(
-				borderStartUp), borderStartDown(borderStartDown), borderSize(
-				borderSize), inputStride(inputStride), inputMemoryHeight(
+				borderStartUp), borderStartDown(borderStartDown), borderHorizontalSize(borderHorizontalSize),
+				borderVerticalSize(borderVerticalSize), inputStride(inputStride), inputMemoryHeight(
 				inputMemoryHeight), inputUnitOffset(inputUnitOffset)
 {
 	stringstream stringStream;
@@ -61,11 +61,12 @@ void ZeroBorderKenel<T>::InitializeCompilerOptions()
 	stringStream << "-D" << "BORDER_START_RIGHT=" << borderStartRight << " ";
 	stringStream << "-D" << "BORDER_START_UP=" << borderStartUp << " ";
 	stringStream << "-D" << "BORDER_START_DOWN=" << borderStartDown << " ";
-	stringStream << "-D" << "BORDER_LIMIT_LEFT=" << (borderStartLeft + borderSize - 1) << " ";
-	stringStream << "-D" << "BORDER_LIMIT_RIGHT=" << (borderStartRight + borderSize - 1) << " ";
-	stringStream << "-D" << "BORDER_LIMIT_UP=" << (borderStartUp + borderSize - 1) << " ";
-	stringStream << "-D" << "BORDER_LIMIT_DOWN=" << (borderStartDown + borderSize - 1) << " ";
-	stringStream << "-D" << "BORDER_SIZE=" << borderSize << " ";
+	stringStream << "-D" << "BORDER_LIMIT_LEFT=" << (borderStartLeft + borderHorizontalSize - 1) << " ";
+	stringStream << "-D" << "BORDER_LIMIT_RIGHT=" << (borderStartRight + borderHorizontalSize - 1) << " ";
+	stringStream << "-D" << "BORDER_LIMIT_UP=" << (borderStartUp + borderVerticalSize - 1) << " ";
+	stringStream << "-D" << "BORDER_LIMIT_DOWN=" << (borderStartDown + borderVerticalSize - 1) << " ";
+	stringStream << "-D" << "BORDER_SIZE_HORIZONTAL=" << borderHorizontalSize << " ";
+	stringStream << "-D" << "BORDER_SIZE_VERTICAL=" << borderVerticalSize << " ";
 	stringStream << "-D" << "INPUT_UNIT_OFFSET=" << inputUnitOffset << " ";
 	stringStream << "-D" << "INPUT_DATA_WIDTH=" << dataWidth << " ";
 	stringStream << "-D" << "INPUT_DATA_HEIGHT=" << dataHeight << " ";

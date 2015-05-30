@@ -234,18 +234,19 @@ SCENARIO("Back propagating a convolution layer in an OpenCLCNN")
 
 				Matrixf outputDelta;
 				Matrixf tmpOutput = tempInputs[i];
+				Matrixf targetDifference = tempInputs[i] - targets[i];
 				switch (activationFunctions[activationFunctions.size() - 1])
 				{
 				case ATMLSigmoidActivation:
 					tmpOutput.Transform(&SigmoidActivationDerivativeFloat);
-					outputDelta = differenceMatrix % tmpOutput;
+					outputDelta = targetDifference % tmpOutput;
 					break;
 				case ATMLTanhActivation:
 					tmpOutput.Transform(&TanhActivationDerivativeFloat);
-					outputDelta = differenceMatrix % tmpOutput;
+					outputDelta = targetDifference % tmpOutput;
 					break;
 				case ATMLLinearActivation:
-					outputDelta = differenceMatrix;
+					outputDelta = targetDifference;
 					break;
 				default:
 					throw runtime_error("not implemented");
@@ -270,7 +271,16 @@ SCENARIO("Back propagating a convolution layer in an OpenCLCNN")
 			}
 
 			//TODO: Add Zero border kernel to the convolution layer
-			//TODO: Add the manual test and compare the results
+
+			//CHECK(oclBackResult.size() == outputDeltas.size());
+			//for (int i = 0; i < outputDeltas.size(); i++)
+			//{
+			//	//cout << oclBackResult[i].GetString() << endl;
+			//	//cout << outputDeltas[i].GetString() << endl;
+			//	auto difference = (oclBackResult[i] - outputDeltas[i]).Norm2Square() / outputDeltas[i].ElementCount();
+			//	cout << "Back Difference " << difference << endl;
+			//	CHECK(difference < 1E-6f);
+			//}
 		}
 	}
 }

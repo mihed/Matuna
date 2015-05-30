@@ -39,8 +39,12 @@
 #define BORDER_LIMIT_DOWN -1
 #endif
 
-#ifndef BORDER_SIZE
-#define BORDER_SIZE -1
+#ifndef BORDER_SIZE_HORIZONTAL
+#define BORDER_SIZE_HORIZONTAL -1
+#endif
+
+#ifndef BORDER_SIZE_VERTICAL
+#define BORDER_SIZE_VERTICAL -1
 #endif
 
 #ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
@@ -87,7 +91,7 @@ __kernel void ZeroBorderKernel(__global TYPE* input)
         
     //Adding a border in the height direction
     int tempIndex;
-    const int toNextBorder = INPUT_DATA_WIDTH + BORDER_SIZE;
+    const int toNextBorder = INPUT_DATA_WIDTH + BORDER_SIZE_HORIZONTAL;
     for (int j = BORDER_LIMIT_UP + 1; j < BORDER_START_DOWN; j++)
     {
         tempIndex = INPUT_STRIDE * j + unitIndex; 
@@ -99,7 +103,7 @@ __kernel void ZeroBorderKernel(__global TYPE* input)
     }
     
     int tempIndex2;
-    const int toNextBorder2 = INPUT_DATA_HEIGHT + BORDER_SIZE;
+    const int toNextBorder2 = INPUT_DATA_HEIGHT + BORDER_SIZE_VERTICAL;
     for (int j = BORDER_START_UP; j <= BORDER_LIMIT_UP; j++)
     {
         tempIndex = INPUT_STRIDE * j + unitIndex;

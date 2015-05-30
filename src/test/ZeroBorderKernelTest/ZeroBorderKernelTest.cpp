@@ -44,13 +44,14 @@ SCENARIO("Adding a zero border around the data")
 					int height = dimensionGenerator(mt);
 					int unitsCount = unitGenerator(mt);
 
-					int borderSize = paddingGenerator(mt);
-					int widthOffset = borderSize + paddingGenerator(mt);
-					int heightOffset = borderSize + paddingGenerator(mt);
+					int borderHorizontalSize = paddingGenerator(mt);
+					int borderVerticalSize = paddingGenerator(mt);
+					int widthOffset = borderHorizontalSize + paddingGenerator(mt);
+					int heightOffset = borderVerticalSize + paddingGenerator(mt);
 					int unitOffset = paddingGenerator(mt);
 
-					int widthPadding = borderSize + paddingGenerator(mt);
-					int heightPadding = borderSize + paddingGenerator(mt);
+					int widthPadding = borderHorizontalSize + paddingGenerator(mt);
+					int heightPadding = borderVerticalSize + paddingGenerator(mt);
 					int unitPadding = paddingGenerator(mt);
 
 					int totalUnits = unitsCount + unitOffset + unitPadding;
@@ -67,15 +68,15 @@ SCENARIO("Adding a zero border around the data")
 					for (int i = 0; i < totalUnits; i++)
 						memcpy(inputMemory.get() + i * totalElementsPerUnit, units[i].Data, sizeof(float) * totalElementsPerUnit);
 
-					int borderStartUp = heightOffset - borderSize;
+					int borderStartUp = heightOffset - borderVerticalSize;
 					int borderStartDown = heightOffset + height;
-					int borderStartLeft = widthOffset - borderSize;
+					int borderStartLeft = widthOffset - borderHorizontalSize;
 					int borderStartRight = widthOffset + width;
 
 					INFO("Creating the zero border kernel");
 					ZeroBorderKenel<float> kernel(width, height, unitsCount,
 						borderStartLeft, borderStartRight, borderStartUp,
-						borderStartDown, borderSize, totalWidth, totalHeight, unitOffset);
+						borderStartDown, borderHorizontalSize, borderVerticalSize, totalWidth, totalHeight, unitOffset);
 
 					INFO("Initializing the compiler options");
 					kernel.InitializeCompilerOptions();
@@ -105,8 +106,10 @@ SCENARIO("Adding a zero border around the data")
 					INFO("Comparing the results");
 					for (int i = unitOffset; i < (unitOffset + unitsCount); i++)
 					{
-						auto manualResult = units[i].GetSubMatrix(heightOffset, widthOffset, height, width).AddZeroBorder(borderSize);
-						auto kernelResult = rawKernelResult[i].GetSubMatrix(borderStartUp, borderStartLeft, height + 2 * borderSize, width + 2 * borderSize);
+						auto manualResult = units[i].GetSubMatrix(heightOffset, widthOffset, height, width).AddZeroBorder(borderHorizontalSize,
+							borderHorizontalSize, borderVerticalSize, borderVerticalSize);
+						auto kernelResult = rawKernelResult[i].GetSubMatrix(borderStartUp, borderStartLeft,
+							height + 2 * borderVerticalSize, width + 2 * borderHorizontalSize);
 
 						for (int j = 0; j < manualResult.ElementCount(); j++)
 							CHECK(manualResult.Data[j] == kernelResult.Data[j]);

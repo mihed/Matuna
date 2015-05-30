@@ -37,7 +37,8 @@ private:
 	int borderStartRight;
 	int borderStartUp;
 	int borderStartDown;
-	int borderSize;
+	int borderHorizontalSize;
+	int borderVerticalSize;
 	int inputStride;
 	int inputMemoryHeight;
 	int inputUnitOffset;
@@ -45,7 +46,7 @@ private:
 public:
 	ZeroBorderKenel(int dataWidth, int dataHeight, int dataUnits,
 			int borderStartLeft, int borderStartRight, int borderStartUp,
-			int borderStartDown, int borderSize, int inputStride,
+			int borderStartDown, int borderHorizontalSize, int borderVerticalSize, int inputStride,
 			int inputMemoryHeight, int inputUnitOffset);
 	~ZeroBorderKenel();
 
