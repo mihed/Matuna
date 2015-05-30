@@ -52,6 +52,8 @@ public:
 	Matrix<T> GetSubMatrix(int startRow, int startColumn, int rowLength, int columnlength) const;
 	Matrix<T> Convolve(const Matrix<T>& kernel) const;
 	Matrix<T> AddZeroBorder(int size) const;
+	Matrix<T> AddZeroBorder(int leftSize, int rightSize, int upSize, int downSize) const;
+	Matrix<T> AddBorder(int leftSize, int rightSize, int upSize, int downSize, T value) const;
 	Matrix<T> AddBorder(int size, T value) const;
 	Matrix<T> Rotate90() const;
 	Matrix<T> Rotate180() const;

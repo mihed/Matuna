@@ -10,6 +10,7 @@
 
 #include "OpenCLForwardBackPropLayer.h"
 #include "CNN/ConvolutionLayerConfig.h"
+#include "Math/Matrix.h"
 #include "OpenCLHelper/OpenCLContext.h"
 
 #include "ConvolutionKernel.h"
@@ -24,6 +25,7 @@
 
 using namespace std;
 using namespace ATML::Helper;
+using namespace ATML::Math;
 
 namespace ATML
 {
@@ -37,6 +39,8 @@ private:
 
 	unordered_map<OpenCLDevice*, unique_ptr<ConvolutionKernel<T>>> deviceAndConvolutionKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<SumAllUnitsKernel<T>>> deviceAndSumKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<BackConvolutionKernel<T>>> deviceAndBackConvolutionKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<MultiplyAllUnitsKernel<T>>> deviceAndMultiplyKernels;
 
 	ConvolutionLayerConfig convolutionConfig;
 	unique_ptr<OpenCLMemory> filters;
@@ -51,6 +55,8 @@ public:
 	virtual ~ConvolutionLayer();
 
 	ConvolutionLayerConfig GetConfig() const;
+	vector<Matrix<T>> GetFilters() const;
+	vector<T> GetBiases() const;
 
 	virtual void InterlockFinalized() override;
 
@@ -79,6 +85,8 @@ private:
 	void InitializeParameters();
 	void InitializeConvolutionKernel();
 	void InitializeSumAllKernel();
+	void InitializeBackConvolutionKernel();
+	void InitializeMultiplyKernel();
 };
 
 } /* namespace MachineLearning */

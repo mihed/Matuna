@@ -1,9 +1,10 @@
 /*
- * OpenCLCNNForwardConvolutionTest.cpp
+ * OpenCLCNNBackConvolutionTest.cpp
  *
- *  Created on: May 25, 2015
+ *  Created on: May 29, 2015
  *      Author: Mikael
  */
+
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
@@ -21,6 +22,7 @@ using namespace std;
 using namespace ATML::MachineLearning;
 using namespace ATML::Math;
 using namespace ATML::Helper;
+
 
 float SigmoidActivationFloat(float x)
 {
@@ -42,6 +44,26 @@ double TanhActivationDouble(double x)
 	return 1.7159 *  tanh(0.666666666666666 * x);
 }
 
+float SigmoidActivationDerivativeFloat(float x)
+{
+	return x * (1 - x);
+}
+
+double SigmoidActivationDerivativeDouble(double x)
+{
+	return  x * (1 - x);
+}
+
+float TanhActivationDerivativeFloat(float x)
+{
+	return 0.6666666f * (1.7159f - (x * x) / 1.7159f);
+}
+
+double TanhActivationDerivativeDouble(double x)
+{
+	return 0.666666666666666 * (1.7159 - (x * x) / 1.7159);
+}
+
 unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 	uniform_int_distribution<int>& layerGenerator,
 	uniform_int_distribution<int>& dimensionGenerator,
@@ -56,7 +78,7 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 	dataDescriptions.push_back(dataDescription);
 
 	int layerCount = layerGenerator(mt);
-	uniform_int_distribution<int> activationGenerator(1, 3);
+	uniform_int_distribution<int> activationGenerator(2, 2);
 
 	INFO("Initializing the CNN config");
 	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
@@ -90,16 +112,15 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 	return move(config);
 }
 
-
-SCENARIO("Forward propagating a convolution layer in an OpenCLCNN")
+SCENARIO("Back propagating a convolution layer in an OpenCLCNN")
 {
 	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
-	uniform_int_distribution<int> dimensionGenerator(80, 400);
+	uniform_int_distribution<int> dimensionGenerator(40, 300);
 	uniform_int_distribution<int> filterGenerator(1, 20);
-	uniform_int_distribution<int> unitGenerator(1, 16);
-	uniform_int_distribution<int> layerGenerator(1, 4);
+	uniform_int_distribution<int> unitGenerator(1, 20);
+	uniform_int_distribution<int> layerGenerator(1, 1);
 
 	for (int dummy = 0; dummy < 10; dummy++)
 	{
@@ -111,17 +132,23 @@ SCENARIO("Forward propagating a convolution layer in an OpenCLCNN")
 		for (auto& deviceInfo : deviceInfos)
 		{
 
+			//if (deviceInfo[0].PlatformInfo().GetString().find("Experimental") != string::npos)
+			//	continue;
+
 			unique_ptr<CNNConfig> config = CreateRandomCNNConvolutionConfig(mt, layerGenerator, dimensionGenerator, unitGenerator, filterGenerator);
 			CNNOpenCL<float> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDescription = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDescription = network.OutputForwardDataDescriptions()[0];
+			LayerDataDescription outBackDescription = network.OutputBackDataDescriptions()[0];
 			int inputUnits = inputDescription.Units;
 			int inputHeight = inputDescription.Height;
 			int inputWidth = inputDescription.Width;
 
 			vector<Matrixf> inputs;
+			vector<Matrixf> targets;
 			unique_ptr<float[]> rawInputs(new float[inputDescription.TotalUnits()]);
+			unique_ptr<float[]> rawTargets(new float[outputDescription.TotalUnits()]);
 			for (int i = 0; i < inputUnits; i++)
 			{
 				inputs.push_back(Matrixf::RandomNormal(inputHeight, inputWidth));
@@ -130,13 +157,16 @@ SCENARIO("Forward propagating a convolution layer in an OpenCLCNN")
 
 			auto tempResult = network.FeedForwardUnaligned(rawInputs.get(), 0);
 
-			vector<Matrixf> oclResult;
+			vector<Matrixf> oclForwardResult;
 			for (int i = 0; i < outputDescription.Units; i++)
 			{
 				Matrixf tempMatrix(outputDescription.Height, outputDescription.Width);
 				memcpy(tempMatrix.Data, tempResult.get() + i * outputDescription.Height * outputDescription.Width, outputDescription.Height * outputDescription.Width * sizeof(float));
-				oclResult.push_back(tempMatrix);
+				oclForwardResult.push_back(tempMatrix);
+				targets.push_back(Matrixf::RandomNormal(outputDescription.Height, outputDescription.Width));
+				memcpy(rawTargets.get() + i * outputDescription.Height * outputDescription.Width, targets[i].Data, sizeof(float) * outputDescription.Height * outputDescription.Width);
 			}
+			tempResult.reset();
 
 			INFO("Fetching the convolution layers");
 			auto layers = network.GetLayers();
@@ -155,7 +185,10 @@ SCENARIO("Forward propagating a convolution layer in an OpenCLCNN")
 			}
 
 			int count = filters.size();
+			CHECK(count == biases.size());
 			auto tempInputs = inputs;
+			vector<vector<Matrixf>> intermediateInputs;
+			intermediateInputs.push_back(tempInputs);
 			INFO("Manually calculating the network");
 			for (int i = 0; i < count; i++)
 			{
@@ -183,19 +216,62 @@ SCENARIO("Forward propagating a convolution layer in an OpenCLCNN")
 				}
 
 				tempInputs = nextInputs;
+				intermediateInputs.push_back(tempInputs);
 			}
 
-			CHECK(tempInputs.size() == oclResult.size());
+			CHECK((count + 1) == intermediateInputs.size());
+
+			INFO("Checking the forward result");
+			CHECK(tempInputs.size() == oclForwardResult.size());
+
+			vector<Matrixf> outputDeltas;
 			for (int i = 0; i < tempInputs.size(); i++)
 			{
-				auto difference = (tempInputs[i] - oclResult[i]).Norm2Square() / tempInputs.size();
-				cout << "Difference " << difference << endl;
+				auto differenceMatrix = tempInputs[i] - oclForwardResult[i];
+				auto difference = differenceMatrix.Norm2Square() / tempInputs.size();
+				cout << "Forward difference " << difference << endl;
 				CHECK(difference < 1E-6f);
+
+				Matrixf outputDelta;
+				Matrixf tmpOutput = tempInputs[i];
+				switch (activationFunctions[activationFunctions.size() - 1])
+				{
+				case ATMLSigmoidActivation:
+					tmpOutput.Transform(&SigmoidActivationDerivativeFloat);
+					outputDelta = differenceMatrix % tmpOutput;
+					break;
+				case ATMLTanhActivation:
+					tmpOutput.Transform(&TanhActivationDerivativeFloat);
+					outputDelta = differenceMatrix % tmpOutput;
+					break;
+				case ATMLLinearActivation:
+					outputDelta = differenceMatrix;
+					break;
+				default:
+					throw runtime_error("not implemented");
+					break;
+				}
+
+				outputDeltas.push_back(outputDelta);
 			}
+
+
+
+			INFO("Back propagating the targets through the OCL network");
+			auto rawOCLBackProp = network.BackPropUnaligned(rawInputs.get(), 0, rawTargets.get());
+
+			vector<Matrixf> oclBackResult;
+			for (int i = 0; i < outBackDescription.Units; i++)
+			{
+				Matrixf tempMatrix(outBackDescription.Height, outBackDescription.Width);
+				memcpy(tempMatrix.Data, rawOCLBackProp.get() + i * outBackDescription.Height * outBackDescription.Width, outBackDescription.Height * outBackDescription.Width * sizeof(float));
+				//cout << tempMatrix.GetString() << endl;
+				oclBackResult.push_back(tempMatrix);
+			}
+
+			//TODO: Add Zero border kernel to the convolution layer
+			//TODO: Add the manual test and compare the results
 		}
 	}
 }
-
-
-
 

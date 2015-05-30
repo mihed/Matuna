@@ -185,7 +185,7 @@ void StandardOutputLayer<T>::InitializeImageOutputKernel()
 			outBackPropMem.Height, inForwardPropMem.Height));
 
 		auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-		auto inputTargetBytes = sizeof(T) * inputDescription.Units;
+		auto inputTargetBytes = sizeof(T) * inForwardPropMem.TotalMemory();
 		if (maximumConstantBufferSize > inputTargetBytes) {
 			kernel->SetConstantInput(true);
 			maximumConstantBufferSize -= inputTargetBytes;
@@ -269,7 +269,7 @@ T StandardOutputLayer<T>::CalculateError(OpenCLDevice* device, int queueIndex,
 {
 
 	if (useImage)
-		throw invalid_argument("Not implemented");
+		throw invalid_argument("error not implemented");
 
 	auto& kernel = deviceAndErrorKernels[device];
 	kernel->SetInput(previousInput);

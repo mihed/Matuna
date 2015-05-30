@@ -66,8 +66,8 @@ namespace ATML {
 
 				//Since we will add padding to the input, we will require that we have a border of size filterdimension - 1
 				LayerMemoryDescription inBackMemProp;
-				inBackMemProp.Height = layerDescription.Height + 2 * (config->FilterHeight() - 1);
-				inBackMemProp.Width = layerDescription.Width + 2 * (config->FilterWidth() - 1);
+				inBackMemProp.Height = outForwardDataDesc.Height + 2 * (config->FilterHeight() - 1);
+				inBackMemProp.Width = outForwardDataDesc.Width + 2 * (config->FilterWidth() - 1);
 				inBackMemProp.Units = config->FilterCount();
 				inBackMemProp.HeightOffset = config->FilterHeight() - 1;
 				inBackMemProp.WidthOffset = config->FilterWidth() - 1;
@@ -94,12 +94,57 @@ namespace ATML {
 				this->context->RemoveKernel(kernelProgram.get());
 				this->context->RemoveProgram(kernelProgram.get());
 			}
+
+			for (auto& deviceAndKernel : deviceAndBackConvolutionKernels) {
+				auto& kernelProgram = deviceAndKernel.second;
+				this->context->RemoveKernel(kernelProgram.get());
+				this->context->RemoveProgram(kernelProgram.get());
+			}
+
+			for (auto& deviceAndKernel : deviceAndMultiplyKernels) {
+				auto& kernelProgram = deviceAndKernel.second;
+				this->context->RemoveKernel(kernelProgram.get());
+				this->context->RemoveProgram(kernelProgram.get());
+			}
 		}
 
 		template<class T>
 		ConvolutionLayerConfig ConvolutionLayer<T>::GetConfig() const
 		{
 			return convolutionConfig;
+		}
+
+		template<class T>
+		vector<Matrix<T>> ConvolutionLayer<T>::GetFilters() const
+		{
+			OpenCLDevice* device = this->context->GetDevices()[0];
+			int temp = convolutionConfig.FilterHeight() * convolutionConfig.FilterWidth();
+			int elementCount = temp * convolutionConfig.FilterCount();
+			unique_ptr<T[]> contiguousMemory(new T[elementCount]);
+
+			device->ReadMemory(filters.get(), filters->ByteSize(), contiguousMemory.get());
+			device->WaitForDeviceQueue(0);
+
+			vector<Matrix<T>> result;
+			for (int i = 0; i < convolutionConfig.FilterCount(); i++)
+			{
+				Matrix<T> filter(convolutionConfig.FilterHeight(), convolutionConfig.FilterWidth());
+				memcpy(filter.Data, contiguousMemory.get() + i * temp, temp * sizeof(T));
+				result.push_back(filter);
+			}
+
+			return result;
+		}
+
+		template<class T>
+		vector<T> ConvolutionLayer<T>::GetBiases() const
+		{
+			OpenCLDevice* device = this->context->GetDevices()[0];
+			vector<T> result;
+			result.resize(convolutionConfig.FilterCount());
+			device->ReadMemory(biases.get(), biases->ByteSize(), result.data());
+			device->WaitForDeviceQueue(0);
+			return result;
 		}
 
 		template<class T>
@@ -144,6 +189,8 @@ namespace ATML {
 			InitializeParameters();
 			InitializeConvolutionKernel();
 			InitializeSumAllKernel();
+			InitializeBackConvolutionKernel();
+			InitializeMultiplyKernel();
 		}
 
 		template<class T>
@@ -156,7 +203,7 @@ namespace ATML {
 			LayerDataDescription firstInputData = this->InForwardPropDataDescriptions()[0];
 
 			vector<OpenCLDevice*> devices = this->context->GetDevices();
-			for (auto device : devices) 
+			for (auto device : devices)
 			{
 				auto deviceInfo = device->DeviceInfo();
 
@@ -179,13 +226,13 @@ namespace ATML {
 				//TODO: We are not using local memory for GPU devices at the moment.
 				unique_ptr<ConvolutionKernel<T>> kernel(new ConvolutionKernel<T>(
 					firstOutputData.Units, firstOutputData.Width, firstOutputData.Height,
-					convolutionConfig.FilterWidth(), convolutionConfig.FilterHeight(), 
+					convolutionConfig.FilterWidth(), convolutionConfig.FilterHeight(),
 					0, 0,
 					firstOutputMemDesc.WidthOffset, firstOutputMemDesc.HeightOffset, firstOutputMemDesc.UnitOffset,
 					firstOutputMemDesc.Width, firstInputData.Width, firstOutputMemDesc.Width * firstOutputMemDesc.Height,
 					convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight(), false));
 
-				
+
 				//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
 				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
 
@@ -284,6 +331,143 @@ namespace ATML {
 		}
 
 		template<class T>
+		void ConvolutionLayer<T>::InitializeBackConvolutionKernel()
+		{
+			LayerDataDescription firstOutputData = this->outForwardPropDataDescriptions[0];
+			LayerMemoryDescription firstOutputMemDesc = this->OutBackPropMemoryDescriptions()[0];
+			LayerMemoryDescription firstInMemDesc = this->InBackPropMemoryDescriptions()[0];
+			LayerDataDescription firstInputData = this->InForwardPropDataDescriptions()[0];
+
+			vector<OpenCLDevice*> devices = this->context->GetDevices();
+			for (auto device : devices)
+			{
+				auto deviceInfo = device->DeviceInfo();
+
+				//Make sure the type we want to execute is supported on the device.
+				if (is_same<cl_double, T>::value) {
+					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				}
+				else if (is_same<cl_float, T>::value) {
+					if (deviceInfo.PreferredFloatVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				}
+				else
+					throw runtime_error(
+					"The template argument does not match the supported arguments");
+
+				//Since the sum all units kernel is not using any padding, it has to be zero here for in input description.
+				//TODO: We are not using local memory for GPU devices at the moment.
+				unique_ptr<BackConvolutionKernel<T>> kernel(new BackConvolutionKernel<T>(
+					firstInputData.Width, firstInputData.Height, firstOutputData.Units,
+					convolutionConfig.FilterWidth(), convolutionConfig.FilterHeight(), firstInMemDesc.UnitOffset,
+					firstInMemDesc.WidthOffset, firstInMemDesc.HeightOffset,
+					0, 0, firstInMemDesc.Width, firstInputData.Width, firstInMemDesc.Height, false));
+
+
+				//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
+				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+
+				auto byteSize = convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight() *
+					convolutionConfig.FilterCount() * sizeof(T);
+				if (maximumConstantBufferSize > byteSize)
+				{
+					kernel->SetConstantFilters(true);
+					maximumConstantBufferSize -= byteSize;
+				}
+
+				byteSize = firstInMemDesc.TotalMemory()* sizeof(T);
+				if (maximumConstantBufferSize > byteSize)
+				{
+					kernel->SetConstantInputDelta(true);
+					maximumConstantBufferSize -= byteSize;
+				}
+
+				kernel->SetRelaxedMath(convolutionConfig.UseRelaxedMath());
+
+				kernel->InitializeCompilerOptions();
+
+				vector<OpenCLDevice*> oneDeviceVector;
+				oneDeviceVector.push_back(device);
+				this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
+				this->context->AddKernel(kernel.get());
+
+				kernel->SetFilters(filters.get());
+
+				deviceAndBackConvolutionKernels.insert(make_pair(device, move(kernel)));
+			}
+
+		}
+
+		template<class T>
+		void ConvolutionLayer<T>::InitializeMultiplyKernel()
+		{
+			LayerDataDescription firstOutputData = this->outForwardPropDataDescriptions[0];
+			LayerMemoryDescription firstOutputBackMemDesc = this->OutBackPropMemoryDescriptions()[0];
+			LayerMemoryDescription firstInBackMemDesc = this->InBackPropMemoryDescriptions()[0];
+			LayerMemoryDescription firstInForwardMemDesc = this->InForwardPropMemoryDescriptions()[0];
+			LayerDataDescription firstInputData = this->InForwardPropDataDescriptions()[0];
+
+			vector<OpenCLDevice*> devices = this->context->GetDevices();
+			for (auto device : devices)
+			{
+				auto deviceInfo = device->DeviceInfo();
+
+				//Make sure the type we want to execute is supported on the device.
+				if (is_same<cl_double, T>::value) {
+					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				}
+				else if (is_same<cl_float, T>::value) {
+					if (deviceInfo.PreferredFloatVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				}
+				else
+					throw runtime_error(
+					"The template argument does not match the supported arguments");
+
+				unique_ptr<MultiplyAllUnitsKernel<T>> kernel(new MultiplyAllUnitsKernel<T>(firstInputData.Width, firstInputData.Height,
+					firstInputData.Units, firstInputData.Width, firstOutputBackMemDesc.Width, firstInForwardMemDesc.Width,
+					0, 0, firstOutputBackMemDesc.WidthOffset, firstOutputBackMemDesc.HeightOffset, firstOutputBackMemDesc.UnitOffset,
+					firstInForwardMemDesc.WidthOffset, firstInForwardMemDesc.HeightOffset,
+					firstInForwardMemDesc.UnitOffset, firstOutputBackMemDesc.Height, firstInForwardMemDesc.Height));
+
+				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+
+				auto deltaBytes = firstOutputBackMemDesc.TotalMemory() * sizeof(T);
+				auto inputBytes = firstInForwardMemDesc.TotalMemory() * sizeof(T);
+				
+				if (maximumConstantBufferSize > deltaBytes)
+				{
+					kernel->SetUseConstantInputDelta(true);
+					maximumConstantBufferSize -= deltaBytes;
+				}
+
+				if (maximumConstantBufferSize > inputBytes)
+				{
+					kernel->SetUseConstantInput(true);
+					maximumConstantBufferSize -= inputBytes;
+				}
+
+				kernel->SetUseRelaxedMath(convolutionConfig.UseRelaxedMath());
+				kernel->SetActivationFunction(this->BackPropActivationFunction());
+
+				kernel->InitializeCompilerOptions();
+
+				vector<OpenCLDevice*> oneDeviceVector;
+				oneDeviceVector.push_back(device);
+				this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
+				this->context->AddKernel(kernel.get());
+
+				deviceAndMultiplyKernels.insert(make_pair(device, move(kernel)));
+			}
+		}
+
+		template<class T>
 		void ConvolutionLayer<T>::EnqueueForwardPropagation(OpenCLDevice* device,
 			int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* output,
 			bool blocking)
@@ -303,7 +487,15 @@ namespace ATML {
 			int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* delta,
 			OpenCLMemory* deltaOutput, bool blocking)
 		{
-
+			auto& convolutionKernel = deviceAndBackConvolutionKernels[device];
+			convolutionKernel->SetDeltaInput(delta);
+			convolutionKernel->SetOutput(summaryCache.get());
+			auto& multiplyKernel = deviceAndMultiplyKernels[device];
+			multiplyKernel->SetInput(previousInput);
+			multiplyKernel->SetInputDelta(summaryCache.get());
+			multiplyKernel->SetOutput(deltaOutput);
+			device->ExecuteKernel(convolutionKernel.get(), queueIndex, false);
+			device->ExecuteKernel(multiplyKernel.get(), queueIndex, blocking);
 		}
 
 		template<class T>
@@ -311,7 +503,7 @@ namespace ATML {
 			int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* delta,
 			OpenCLMemory* gradient, bool blocking)
 		{
-
+			throw runtime_error("Not implemented");
 		}
 
 		template<class T>

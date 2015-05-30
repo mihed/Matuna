@@ -243,10 +243,11 @@ unique_ptr<T[]> CNNOpenCL<T>::BackPropAligned(T* input, int formatIndex,
 	device->WriteMemory(targetMemory.get(), targetMemory->ByteSize(), target, 0,
 			true);
 
+	inBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
 	unique_ptr<OpenCLMemory> backPropOutputMemory = contexts[0]->CreateMemory(
 			CL_MEM_READ_ONLY,
 			sizeof(T) * inBackPropMemoryDescription.TotalMemory());
-	;
+
 	outputLayer->EnqueueBackPropagation(device, 0,
 			inputMemories[inputMemories.size() - 1].get(), targetMemory.get(),
 			backPropOutputMemory.get(), true);
@@ -347,7 +348,7 @@ unique_ptr<T[]> CNNOpenCL<T>::CalculateGradientAligned(T* input,
 	unique_ptr<OpenCLMemory> backPropOutputMemory = contexts[0]->CreateMemory(
 			CL_MEM_READ_ONLY,
 			sizeof(T) * inBackPropMemoryDescription.TotalMemory());
-	;
+
 	outputLayer->EnqueueBackPropagation(device, 0,
 			inputMemories[inputMemories.size() - 1].get(), targetMemory.get(),
 			backPropOutputMemory.get(), true);

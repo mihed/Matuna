@@ -260,6 +260,22 @@ void Matrix<T>::SetSubMatrix(int startRow, int startColumn,
 }
 
 template<class T>
+Matrix<T> Matrix<T>::AddZeroBorder(int leftSize, int rightSize, int upSize, int downSize) const
+{
+	Matrix<T> result = Zeros(rows + upSize + downSize, columns + rightSize + leftSize);
+	result.SetSubMatrix(upSize, leftSize, *this);
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::AddBorder(int leftSize, int rightSize, int upSize, int downSize, T value) const
+{
+	Matrix<T> result(rows + upSize + downSize, columns + rightSize + leftSize, value);
+	result.SetSubMatrix(upSize, leftSize, *this);
+	return result;
+}
+
+template<class T>
 Matrix<T> Matrix<T>::AddZeroBorder(int size) const
 {
 	Matrix<T> result = Zeros(rows + 2 * size, columns + 2 * size);
