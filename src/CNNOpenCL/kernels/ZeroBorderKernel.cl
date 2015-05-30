@@ -19,22 +19,22 @@
 #define BORDER_START_DOWN -1
 #endif
 
-// BORDER_START_LEFT + BORDER_SIZE. Inclusive
+// BORDER_START_LEFT + BORDER_SIZE - 1. Inclusive
 #ifndef BORDER_LIMIT_LEFT
 #define BORDER_LIMIT_LEFT -1
 #endif
 
-// BORDER_START_RIGHT + BORDER_SIZE. Inclusive
+// BORDER_START_RIGHT + BORDER_SIZE - 1. Inclusive
 #ifndef BORDER_LIMIT_RIGHT
 #define BORDER_LIMIT_RIGHT -1
 #endif
 
-// BORDER_START_UP + BORDER_SIZE. Inclusive
+// BORDER_START_UP + BORDER_SIZE - 1. Inclusive
 #ifndef BORDER_LIMIT_UP
 #define BORDER_LIMIT_UP -1
 #endif
 
-// BORDER_START_DOWN + BORDER_SIZE. Inclusive
+// BORDER_START_DOWN + BORDER_SIZE - 1. Inclusive
 #ifndef BORDER_LIMIT_DOWN
 #define BORDER_LIMIT_DOWN -1
 #endif

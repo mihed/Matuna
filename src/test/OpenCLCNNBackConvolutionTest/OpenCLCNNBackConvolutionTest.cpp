@@ -78,7 +78,7 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 	dataDescriptions.push_back(dataDescription);
 
 	int layerCount = layerGenerator(mt);
-	uniform_int_distribution<int> activationGenerator(2, 2);
+	uniform_int_distribution<int> activationGenerator(1, 3);
 
 	INFO("Initializing the CNN config");
 	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
@@ -117,10 +117,10 @@ SCENARIO("Back propagating a convolution layer in an OpenCLCNN")
 	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
-	uniform_int_distribution<int> dimensionGenerator(40, 300);
-	uniform_int_distribution<int> filterGenerator(1, 20);
+	uniform_int_distribution<int> dimensionGenerator(40, 400);
+	uniform_int_distribution<int> filterGenerator(1, 10);
 	uniform_int_distribution<int> unitGenerator(1, 20);
-	uniform_int_distribution<int> layerGenerator(1, 1);
+	uniform_int_distribution<int> layerGenerator(1, 4);
 
 	for (int dummy = 0; dummy < 10; dummy++)
 	{
@@ -151,7 +151,7 @@ SCENARIO("Back propagating a convolution layer in an OpenCLCNN")
 			unique_ptr<float[]> rawTargets(new float[outputDescription.TotalUnits()]);
 			for (int i = 0; i < inputUnits; i++)
 			{
-				inputs.push_back(Matrixf::RandomNormal(inputHeight, inputWidth));
+				inputs.push_back(Matrixf::RandomNormal(inputHeight, inputWidth, 0, 3));
 				memcpy(rawInputs.get() + i * inputHeight * inputWidth, inputs[i].Data, sizeof(float) * inputHeight * inputWidth);
 			}
 
@@ -265,22 +265,67 @@ SCENARIO("Back propagating a convolution layer in an OpenCLCNN")
 			for (int i = 0; i < outBackDescription.Units; i++)
 			{
 				Matrixf tempMatrix(outBackDescription.Height, outBackDescription.Width);
-				memcpy(tempMatrix.Data, rawOCLBackProp.get() + i * outBackDescription.Height * outBackDescription.Width, outBackDescription.Height * outBackDescription.Width * sizeof(float));
+				memcpy(tempMatrix.Data, rawOCLBackProp.get() + i * outBackDescription.Height * outBackDescription.Width,
+					outBackDescription.Height * outBackDescription.Width * sizeof(float));
 				//cout << tempMatrix.GetString() << endl;
 				oclBackResult.push_back(tempMatrix);
 			}
 
-			//TODO: Add Zero border kernel to the convolution layer
+			CHECK(convLayers.size() == filters.size());
+			CHECK(convLayers.size() == activationFunctions.size());
+			CHECK((convLayers.size() + 1) == intermediateInputs.size());
+			for (int i = convLayers.size() - 1; i >= 1; i--)
+			{
+				vector<Matrixf> tempOutputs;
+				auto& tempFilters = filters[i];
+				auto convLayer = convLayers[i];
+				LayerDataDescription dataDesc = convLayer->InForwardPropDataDescriptions()[0];
+				auto& tempInputs = intermediateInputs[i];
+				auto activationFunction = activationFunctions[i - 1];
+				CHECK(tempInputs.size() == dataDesc.Units);
+				CHECK(tempFilters.size() == outputDeltas.size());
+				for (auto& input : tempInputs)
+				{
+					Matrixf tempOutput = Matrixf::Zeros(dataDesc.Height, dataDesc.Width);
+					for (int j = 0; j < tempFilters.size(); j++)
+					{
+						auto& filter = tempFilters[j];
+						tempOutput += outputDeltas[j].AddZeroBorder(filter.ColumnCount() - 1,
+							filter.ColumnCount() - 1, filter.RowCount() - 1, filter.RowCount() - 1).Convolve(filter.Rotate180());
+					}
+					
+					Matrixf tempInput = input;
+					switch (activationFunction)
+					{
+					case ATMLSigmoidActivation:
+						tempInput.Transform(&SigmoidActivationDerivativeFloat);
+						tempOutputs.push_back(tempOutput % tempInput);
+						break;
+					case ATMLTanhActivation:
+						tempInput.Transform(&TanhActivationDerivativeFloat);
+						tempOutputs.push_back(tempOutput % tempInput);
+						break;
+					case ATMLLinearActivation:
+						tempOutputs.push_back(tempOutput);
+						break;
+					default:
+						throw runtime_error("not implemented");
+						break;
+					}
+				}
 
-			//CHECK(oclBackResult.size() == outputDeltas.size());
-			//for (int i = 0; i < outputDeltas.size(); i++)
-			//{
-			//	//cout << oclBackResult[i].GetString() << endl;
-			//	//cout << outputDeltas[i].GetString() << endl;
-			//	auto difference = (oclBackResult[i] - outputDeltas[i]).Norm2Square() / outputDeltas[i].ElementCount();
-			//	cout << "Back Difference " << difference << endl;
-			//	CHECK(difference < 1E-6f);
-			//}
+				outputDeltas = tempOutputs;
+			}
+
+			CHECK(oclBackResult.size() == outputDeltas.size());
+			for (int i = 0; i < outputDeltas.size(); i++)
+			{
+				//cout << oclBackResult[i].GetString() << endl;
+				//cout << outputDeltas[i].GetString() << endl;
+				auto difference = (oclBackResult[i] - outputDeltas[i]).Norm2Square() / outputDeltas[i].ElementCount();
+				cout << "Back Difference " << difference << endl;
+				CHECK(difference < 1E-6f);
+			}
 		}
 	}
 }

@@ -83,6 +83,7 @@ void StandardOutputLayer<T>::InterlockFinalized() {
 	auto inBackProp = inBackPropDataDescriptions[0];
 	auto inBackPropMem = this->InBackPropMemoryDescriptions()[0];
 	auto inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
+	auto outBackPropMem = this->OutBackPropMemoryDescriptions()[0];
 
 	if (!InterlockHelper::DataEquals(inputDescription, inBackProp))
 		throw runtime_error("The targets are not the same as the inputs");
@@ -91,7 +92,7 @@ void StandardOutputLayer<T>::InterlockFinalized() {
 		throw runtime_error(
 		"The inBackProp memory and the inForwardProp memory doesn't correspond");
 
-	if (inForwardPropMem.Width != 1 || inForwardPropMem.Height != 1)
+	if (outBackPropMem.Width != 1 || outBackPropMem.Height != 1)
 	{
 		InitializeImageOutputKernel();
 		useImage = true;

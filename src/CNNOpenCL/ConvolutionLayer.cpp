@@ -106,6 +106,12 @@ namespace ATML {
 				this->context->RemoveKernel(kernelProgram.get());
 				this->context->RemoveProgram(kernelProgram.get());
 			}
+
+			for (auto& deviceAndKernel : deviceAndZeroKernels) {
+				auto& kernelProgram = deviceAndKernel.second;
+				this->context->RemoveKernel(kernelProgram.get());
+				this->context->RemoveProgram(kernelProgram.get());
+			}
 		}
 
 		template<class T>
@@ -191,6 +197,7 @@ namespace ATML {
 			InitializeSumAllKernel();
 			InitializeBackConvolutionKernel();
 			InitializeMultiplyKernel();
+			InitializeZeroKernel();
 		}
 
 		template<class T>
@@ -363,7 +370,7 @@ namespace ATML {
 				unique_ptr<BackConvolutionKernel<T>> kernel(new BackConvolutionKernel<T>(
 					firstInputData.Width, firstInputData.Height, firstOutputData.Units,
 					convolutionConfig.FilterWidth(), convolutionConfig.FilterHeight(), firstInMemDesc.UnitOffset,
-					firstInMemDesc.WidthOffset, firstInMemDesc.HeightOffset,
+					firstInMemDesc.WidthOffset - convolutionConfig.FilterWidth() + 1, firstInMemDesc.HeightOffset - convolutionConfig.FilterHeight() + 1,
 					0, 0, firstInMemDesc.Width, firstInputData.Width, firstInMemDesc.Height, false));
 
 
@@ -399,6 +406,64 @@ namespace ATML {
 				deviceAndBackConvolutionKernels.insert(make_pair(device, move(kernel)));
 			}
 
+		}
+
+		template<class T>
+		void ConvolutionLayer<T>::InitializeZeroKernel()
+		{
+			LayerDataDescription firstOutputData = this->outForwardPropDataDescriptions[0];
+			LayerMemoryDescription firstInBackMemDesc = this->InBackPropMemoryDescriptions()[0];
+			vector<OpenCLDevice*> devices = this->context->GetDevices();
+			for (auto device : devices)
+			{
+				auto deviceInfo = device->DeviceInfo();
+
+				//Make sure the type we want to execute is supported on the device.
+				if (is_same<cl_double, T>::value) {
+					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				}
+				else if (is_same<cl_float, T>::value) {
+					if (deviceInfo.PreferredFloatVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				}
+				else
+					throw runtime_error(
+					"The template argument does not match the supported arguments");
+
+				int borderHorizontalSize = convolutionConfig.FilterWidth() - 1;
+				int borderVerticalSize = convolutionConfig.FilterHeight() - 1;
+
+				int borderStartLeft = firstInBackMemDesc.WidthOffset - borderHorizontalSize;
+				if (borderStartLeft < 0)
+					throw runtime_error("The memory / data descriptions are invalid");
+
+				int borderStartRight = firstInBackMemDesc.WidthOffset + firstOutputData.Width;
+
+				int borderStartUp = firstInBackMemDesc.HeightOffset - borderVerticalSize;
+				if (borderStartUp < 0)
+					throw runtime_error("The memory / data descriptions are invalid");
+
+				int borderStartDown = firstInBackMemDesc.HeightOffset + firstOutputData.Height;
+
+				unique_ptr<ZeroBorderKenel<T>> kernel(new ZeroBorderKenel<T>(
+					firstOutputData.Width, firstOutputData.Height,
+					firstOutputData.Units, borderStartLeft, borderStartRight,
+					borderStartUp, borderStartDown, borderHorizontalSize,
+					borderVerticalSize, firstInBackMemDesc.Width, firstInBackMemDesc.Height, firstInBackMemDesc.UnitOffset));
+
+				kernel->SetUseRelaxedMath(convolutionConfig.UseRelaxedMath());
+				kernel->InitializeCompilerOptions();
+
+				vector<OpenCLDevice*> oneDeviceVector;
+				oneDeviceVector.push_back(device);
+				this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
+				this->context->AddKernel(kernel.get());
+
+				deviceAndZeroKernels.insert(make_pair(device, move(kernel)));
+			}
 		}
 
 		template<class T>
@@ -487,6 +552,8 @@ namespace ATML {
 			int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* delta,
 			OpenCLMemory* deltaOutput, bool blocking)
 		{
+			auto& zeroKernel = deviceAndZeroKernels[device];
+			zeroKernel->SetInputOutput(delta);
 			auto& convolutionKernel = deviceAndBackConvolutionKernels[device];
 			convolutionKernel->SetDeltaInput(delta);
 			convolutionKernel->SetOutput(summaryCache.get());
@@ -494,6 +561,7 @@ namespace ATML {
 			multiplyKernel->SetInput(previousInput);
 			multiplyKernel->SetInputDelta(summaryCache.get());
 			multiplyKernel->SetOutput(deltaOutput);
+			device->ExecuteKernel(zeroKernel.get(), queueIndex, false);
 			device->ExecuteKernel(convolutionKernel.get(), queueIndex, false);
 			device->ExecuteKernel(multiplyKernel.get(), queueIndex, blocking);
 		}

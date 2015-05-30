@@ -41,6 +41,7 @@ private:
 	unordered_map<OpenCLDevice*, unique_ptr<SumAllUnitsKernel<T>>> deviceAndSumKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<BackConvolutionKernel<T>>> deviceAndBackConvolutionKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<MultiplyAllUnitsKernel<T>>> deviceAndMultiplyKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<ZeroBorderKenel<T>>> deviceAndZeroKernels;
 
 	ConvolutionLayerConfig convolutionConfig;
 	unique_ptr<OpenCLMemory> filters;
@@ -87,6 +88,7 @@ private:
 	void InitializeSumAllKernel();
 	void InitializeBackConvolutionKernel();
 	void InitializeMultiplyKernel();
+	void InitializeZeroKernel();
 };
 
 } /* namespace MachineLearning */
