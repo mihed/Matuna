@@ -18,11 +18,11 @@ namespace MachineLearning
 template<class T>
 SumUnitKernel<T>::SumUnitKernel(int inputStride, int inputMemoryHeight,
 		int inputWidthOffset, int inputHeightOffset, int inputUnitOffset,
-		int outputOffset, int globalUnits) :
+		int outputOffset, int globalUnits, int dataWidth, int dataHeight) :
 		inputStride(inputStride), inputMemoryHeight(inputMemoryHeight), inputWidthOffset(
 				inputWidthOffset), inputHeightOffset(inputHeightOffset), inputUnitOffset(
 				inputUnitOffset), outputOffset(outputOffset), globalUnits(
-				globalUnits)
+				globalUnits), dataWidth(dataWidth), dataHeight(dataHeight)
 {
 	stringstream stringStream;
 
@@ -47,7 +47,30 @@ SumUnitKernel<T>::~SumUnitKernel()
 template<class T>
 void SumUnitKernel<T>::InitializeCompilerOptions()
 {
+	stringstream stringStream;
 
+	if (is_same<cl_double, T>::value)
+		stringStream << " -D" << "DOUBLE_PRECISION ";
+	else if (!is_same<cl_float, T>::value)
+		throw runtime_error(
+				"The template type is not valid. This is an indication of programming error");
+
+	stringStream << "-D" << "INPUT_STRIDE=" << inputStride << " ";
+	stringStream << "-D" << "INPUT_WIDTH_OFFSET=" << inputWidthOffset  << " ";
+	stringStream << "-D" << "WIDTH_LIMIT=" << (inputWidthOffset + dataWidth) << " ";
+	stringStream << "-D" << "HEIGHT_LIMIT=" << (inputHeightOffset + dataHeight) << " ";
+	stringStream << "-D" << "INPUT_HEIGHT_OFFSET=" << inputHeightOffset << " ";
+	stringStream << "-D" << "INPUT_UNIT_OFFSET=" << inputUnitOffset << " ";
+	stringStream << "-D" << "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING=" << (inputStride * inputMemoryHeight) << " ";
+	stringStream << "-D" << "OUTPUT_OFFSET=" << outputOffset << " ";
+
+	if (useConstantInput)
+		stringStream << "-D" << "CONSTANT_INPUT" << " ";
+
+	if (useRelaxedMath)
+		stringStream << "-cl-fast-relaxed-math";
+
+	compilerOptions = stringStream.str();
 }
 
 template<class T>
@@ -113,7 +136,6 @@ const vector<size_t>& SumUnitKernel<T>::LocalWorkSize() const
 {
 	return localWorkSize;
 }
-
 
 template class SumUnitKernel<cl_float> ;
 template class SumUnitKernel<cl_double> ;

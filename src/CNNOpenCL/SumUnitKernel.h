@@ -39,13 +39,16 @@ private:
 	int inputWidthOffset;
 	int inputHeightOffset;
 	int inputUnitOffset;
+	int dataWidth;
+	int dataHeight;
 
 	int globalUnits;
 	int outputOffset;
 
 public:
 	SumUnitKernel(int inputStride, int inputMemoryHeight, int inputWidthOffset,
-			int inputHeightOffset, int inputUnitOffset, int outputOffset, int globalUnits);
+			int inputHeightOffset, int inputUnitOffset, int outputOffset,
+			int globalUnits, int dataWidth, int dataHeight);
 	~SumUnitKernel();
 
 	void SetInput(OpenCLMemory* input);

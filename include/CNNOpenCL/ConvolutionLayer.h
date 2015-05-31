@@ -18,6 +18,8 @@
 #include "MultiplyAllUnitsKernel.h"
 #include "ZeroBorderKenel.h"
 #include "SumAllUnitsKernel.h"
+#include "SumUnitKernel.h"
+#include "MultiplyWithOffsetKernel.h"
 
 #include <unordered_map>
 #include <vector>
@@ -42,6 +44,8 @@ private:
 	unordered_map<OpenCLDevice*, unique_ptr<BackConvolutionKernel<T>>> deviceAndBackConvolutionKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<MultiplyAllUnitsKernel<T>>> deviceAndMultiplyKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<ZeroBorderKenel<T>>> deviceAndZeroKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<SumUnitKernel<T>>> deviceAndSumUnitKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<MultiplyWithOffsetKernel<T>>> deviceAndMultiplyWithOffsetKernels;
 
 	ConvolutionLayerConfig convolutionConfig;
 	unique_ptr<OpenCLMemory> filters;
@@ -89,6 +93,8 @@ private:
 	void InitializeBackConvolutionKernel();
 	void InitializeMultiplyKernel();
 	void InitializeZeroKernel();
+	void InitializeSumUnitKernel();
+	void InitializeMultiplyWithOffsetKernel();
 };
 
 } /* namespace MachineLearning */
