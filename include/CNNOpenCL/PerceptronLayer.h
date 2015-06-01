@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef CNNOPENCL_PERCEPTRONLAYER_H_
-#define CNNOPENCL_PERCEPTRONLAYER_H_
+#ifndef ATML_CNNOPENCL_PERCEPTRONLAYER_H_
+#define ATML_CNNOPENCL_PERCEPTRONLAYER_H_
 
 #include "OpenCLForwardBackPropLayer.h"
 #include "BackPerceptronKernel.h"
@@ -100,4 +100,4 @@ private:
 /* namespace MachineLearning */
 } /* namespace ATML */
 
-#endif /* CNNOPENCL_PERCEPTRONLAYER_H_ */
+#endif /* ATML_CNNOPENCL_PERCEPTRONLAYER_H_ */

@@ -172,7 +172,7 @@ SCENARIO("Calculating the gradient of a CNN using convolution layers")
 				}
 
 			}
-			CHECK(difference < 1E-8);
+			CHECK(difference < 1E-7);
 		}
 	}
 
