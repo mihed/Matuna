@@ -83,6 +83,15 @@ void SumUnitKernel<T>::SetInput(OpenCLMemory* input)
 }
 
 template<class T>
+void SumUnitKernel<T>::SetOutput(OpenCLMemory* output)
+{
+	auto rawOutput = output->GetCLMemory();
+	CheckOpenCLError(
+			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawOutput),
+			"Could not set the kernel arguments");
+}
+
+template<class T>
 void SumUnitKernel<T>::SetConstantInput(bool value)
 {
 	useConstantInput = value;

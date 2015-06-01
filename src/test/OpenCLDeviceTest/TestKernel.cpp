@@ -8,11 +8,7 @@
 #include "TestKernel.h"
 #include "OpenCLHelper/OpenCLUtility.h"
 
-const string TestKernel::programCode = R"(__kernel void Test(const __global float* input1, const __global float* input2, __global float* output)
-	{
-		const int index = get_global_id(0);
-		output[index] = input1[index] * input2[index];
-	})";
+const string TestKernel::programCode = "__kernel void Test(const __global float* input1, const __global float* input2, __global float* output) {const int index = get_global_id(0);output[index] = input1[index] * input2[index];}";
 
 TestKernel::TestKernel()
 {

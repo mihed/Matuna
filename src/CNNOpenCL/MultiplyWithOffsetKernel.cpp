@@ -45,6 +45,10 @@ MultiplyWithOffsetKernel<T>::MultiplyWithOffsetKernel(int globalWidth,
 	useConstantInput = false;
 	useConstantInputDelta = false;
 	useRelaxedMath = false;
+
+	globalWorkSize.push_back(globalWidth);
+	globalWorkSize.push_back(globalHeight);
+	globalWorkSize.push_back(globalUnits);
 }
 
 template<class T>

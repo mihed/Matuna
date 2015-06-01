@@ -52,6 +52,7 @@ public:
 	~SumUnitKernel();
 
 	void SetInput(OpenCLMemory* input);
+	void SetOutput(OpenCLMemory* output);
 
 	void SetConstantInput(bool value);
 	void SetRelaxedMath(bool value);
