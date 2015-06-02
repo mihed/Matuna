@@ -260,17 +260,21 @@ void Matrix<T>::SetSubMatrix(int startRow, int startColumn,
 }
 
 template<class T>
-Matrix<T> Matrix<T>::AddZeroBorder(int leftSize, int rightSize, int upSize, int downSize) const
+Matrix<T> Matrix<T>::AddZeroBorder(int leftSize, int rightSize, int upSize,
+		int downSize) const
 {
-	Matrix<T> result = Zeros(rows + upSize + downSize, columns + rightSize + leftSize);
+	Matrix<T> result = Zeros(rows + upSize + downSize,
+			columns + rightSize + leftSize);
 	result.SetSubMatrix(upSize, leftSize, *this);
 	return result;
 }
 
 template<class T>
-Matrix<T> Matrix<T>::AddBorder(int leftSize, int rightSize, int upSize, int downSize, T value) const
+Matrix<T> Matrix<T>::AddBorder(int leftSize, int rightSize, int upSize,
+		int downSize, T value) const
 {
-	Matrix<T> result(rows + upSize + downSize, columns + rightSize + leftSize, value);
+	Matrix<T> result(rows + upSize + downSize, columns + rightSize + leftSize,
+			value);
 	result.SetSubMatrix(upSize, leftSize, *this);
 	return result;
 }
@@ -289,6 +293,81 @@ Matrix<T> Matrix<T>::AddBorder(int size, T value) const
 	Matrix<T> result(rows + 2 * size, columns + 2 * size, value);
 	result.SetSubMatrix(size, size, *this);
 	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::AppendUp(Matrix<T> matrix) const
+{
+	if (matrix.ColumnCount() != columns)
+		throw invalid_argument(
+				"Cannot append a matrix that has different column count");
+
+	Matrix<T> result(rows + matrix.RowCount(), columns);
+	memcpy(result.Data, matrix.Data, matrix.ElementCount() * sizeof(T));
+	memcpy(result.Data + matrix.ElementCount(), Data, elementCount * sizeof(T));
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::AppendDown(Matrix<T> matrix) const
+{
+	if (matrix.ColumnCount() != columns)
+		throw invalid_argument(
+				"Cannot append a matrix that has different column count");
+
+	Matrix<T> result(rows + matrix.RowCount(), columns);
+	memcpy(result.Data, Data, elementCount * sizeof(T));
+	memcpy(result.Data + elementCount, matrix.Data, matrix.ElementCount() * sizeof(T));
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::AppendRight(Matrix<T> matrix) const
+{
+	if (matrix.RowCount() != rows)
+		throw invalid_argument(
+				"Cannot append a matrix that has different row count");
+
+	auto inputColumns = matrix.ColumnCount();
+	auto resultColumns = columns + inputColumns;
+	Matrix<T> result(rows, resultColumns);
+	T* startRowPosition = result.Data + columns;
+	for (int i = 0; i < rows; i++)
+	{
+		auto temp = i * resultColumns;
+		memcpy(result.Data + temp,  Data + i * columns, columns * sizeof(T));
+		memcpy(startRowPosition + temp, matrix.Data + i * inputColumns, inputColumns * sizeof(T));
+	}
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::AppendLeft(Matrix<T> matrix) const
+{
+	if (matrix.RowCount() != rows)
+		throw invalid_argument(
+				"Cannot append a matrix that has different row count");
+
+	auto inputColumns = matrix.ColumnCount();
+	auto resultColumns = columns + inputColumns;
+	Matrix<T> result(rows, resultColumns);
+	T* startRowPosition = result.Data + inputColumns;
+	for (int i = 0; i < rows; i++)
+	{
+		auto temp = i * resultColumns;
+		memcpy(result.Data + temp, matrix.Data + i * inputColumns, inputColumns * sizeof(T));
+		memcpy(startRowPosition + temp, Data + i * columns, columns * sizeof(T));
+	}
+	return result;
+}
+
+template<class T>
+Matrix<T> Matrix<T>::Reshape(int height, int width) const
+{
+	if ((height * width) != elementCount)
+		throw invalid_argument(
+				"You cannot reshape the matrix into something that doesn't contains the elements");
+	return Matrix<T>(height, width, Data);
 }
 
 template<class T>
@@ -311,7 +390,8 @@ Matrix<T> Matrix<T>::Rotate180() const
 	int temp2 = columns - 1;
 	for (int j = 0; j < rows; j++)
 		for (int i = 0; i < columns; i++)
-			result.Data[(temp - j) *  columns + temp2 - i] = Data[j * columns + i];
+			result.Data[(temp - j) * columns + temp2 - i] =
+					Data[j * columns + i];
 
 	return result;
 }

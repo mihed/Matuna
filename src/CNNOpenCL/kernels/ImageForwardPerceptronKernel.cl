@@ -48,6 +48,10 @@
 #define COLUMN_COUNT -1
 #endif
 
+#ifndef OUTPUT_UNIT_OFFSET
+#define OUTPUT_UNIT_OFFSET -1
+#endif
+
 #ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
 #endif
@@ -123,31 +127,31 @@ __kernel void ForwardPerceptronKernel(
 #if defined(SIGMOID)
     #ifndef DOUBLE_PRECISION
         #if defined(HALF_MATH)
-            output[outputIndex] = ONE / (ONE + half_exp(-(sum + biases[outputIndex])));
+            output[outputIndex + OUTPUT_UNIT_OFFSET] = ONE / (ONE + half_exp(-(sum + biases[outputIndex])));
         #elif defined(NATIVE_MATH)
-            output[outputIndex] = ONE / (ONE + native_exp(-(sum + biases[outputIndex])));
+            output[outputIndex + OUTPUT_UNIT_OFFSET] = ONE / (ONE + native_exp(-(sum + biases[outputIndex])));
         #else
-            output[outputIndex] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
+            output[outputIndex + OUTPUT_UNIT_OFFSET] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
         #endif
     #else
-        output[outputIndex] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
+        output[outputIndex + OUTPUT_UNIT_OFFSET] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
     #endif
 #elif defined(TANH)
-    output[outputIndex] = TANH_OUTER * tanh(TANH_INNER * (sum + biases[outputIndex]));
+    output[outputIndex + OUTPUT_UNIT_OFFSET] = TANH_OUTER * tanh(TANH_INNER * (sum + biases[outputIndex]));
 #elif defined(SOFTMAX)
     #ifndef DOUBLE_PRECISION
         #if defined(HALF_MATH)
-	        output[outputIndex] = half_exp(sum + biases[outputIndex]);
+	        output[outputIndex + OUTPUT_UNIT_OFFSET] = half_exp(sum + biases[outputIndex]);
         #elif defined(NATIVE_MATH)
-	        output[outputIndex] = native_exp(sum + biases[outputIndex]);
+	        output[outputIndex + OUTPUT_UNIT_OFFSET] = native_exp(sum + biases[outputIndex]);
         #else
-	        output[outputIndex] = exp(sum + biases[outputIndex]);
+	        output[outputIndex + OUTPUT_UNIT_OFFSET] = exp(sum + biases[outputIndex]);
         #endif
     #else
-	    output[outputIndex] = exp(sum + biases[outputIndex]);
+	    output[outputIndex + OUTPUT_UNIT_OFFSET] = exp(sum + biases[outputIndex]);
     #endif
 #else
-    output[outputIndex] = sum + biases[outputIndex];
+    output[outputIndex + OUTPUT_UNIT_OFFSET] = sum + biases[outputIndex];
 #endif
 
 }

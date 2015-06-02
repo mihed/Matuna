@@ -51,6 +51,11 @@ public:
 	Matrix<T> Transpose() const;
 	Matrix<T> GetSubMatrix(int startRow, int startColumn, int rowLength, int columnlength) const;
 	Matrix<T> Convolve(const Matrix<T>& kernel) const;
+	Matrix<T> Reshape(int rows, int columns) const;
+	Matrix<T> AppendUp(Matrix<T> matrix) const;
+	Matrix<T> AppendDown(Matrix<T> matrix) const;
+	Matrix<T> AppendRight(Matrix<T> matrix) const;
+	Matrix<T> AppendLeft(Matrix<T> matrix) const;
 	Matrix<T> AddZeroBorder(int size) const;
 	Matrix<T> AddZeroBorder(int leftSize, int rightSize, int upSize, int downSize) const;
 	Matrix<T> AddBorder(int leftSize, int rightSize, int upSize, int downSize, T value) const;
