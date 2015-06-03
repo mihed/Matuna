@@ -212,10 +212,10 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 	auto platformInfos = OpenCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
-	uniform_int_distribution<int> dimensionGenerator(1, 20);
-	uniform_int_distribution<int> layerGenerator(1, 1);
-	uniform_int_distribution<int> filterGenerator(1, 15);
-	uniform_int_distribution<int> imageDimensionGenerator(15, 30);
+	uniform_int_distribution<int> dimensionGenerator(2, 15);
+	uniform_int_distribution<int> layerGenerator(1, 4);
+	uniform_int_distribution<int> filterGenerator(1, 30);
+	uniform_int_distribution<int> imageDimensionGenerator(30, 100);
 
 	WHEN("Back propagating a perceptron layer")
 	{
@@ -237,12 +237,13 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 
 				for (auto& deviceInfo : deviceInfos)
 				{
-					auto config = CreateRandomCNNPerceptronConfigWithImage(mt, layerGenerator, imageDimensionGenerator, filterGenerator, dimensionGenerator,true);
+					auto config = CreateRandomCNNPerceptronConfigWithImage(mt, layerGenerator, imageDimensionGenerator, filterGenerator, dimensionGenerator, true);
 					CNNOpenCL<double> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					auto layerCount = layers.size();
 
 					ConvolutionLayer<double>* convLayer = dynamic_cast<ConvolutionLayer<double>*>(layers[0]);
+					StandardOutputLayer<double>* outputLayer = dynamic_cast<StandardOutputLayer<double>*>(network.GetOutputLayer());
 					vector<PerceptronLayer<double>*> perceptronlayers;
 					for (int i = 1; i < layerCount; i++)
 						perceptronlayers.push_back(dynamic_cast<PerceptronLayer<double>*>(layers[i]));
@@ -254,8 +255,10 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 					vector<Matrix<double>> biases;
 					vector<ATMLActivationFunction> activationFunctions;
 					activationFunctions.push_back(convLayer->GetConfig().ActivationFunction());
+
 					LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 					LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];
+					LayerDataDescription outputBackDataDesc = network.OutputBackDataDescriptions()[0];
 
 					int inputUnits = inputDataDesc.Units;
 					int inputHeight = inputDataDesc.Height;
@@ -312,16 +315,17 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 					Matrixd result = perceptronInput;
 
 					vector<Matrix<double>> intermediatePerceptronInputs;
+					intermediatePerceptronInputs.push_back(perceptronInput);
 					for (int i = 0; i < weights.size(); i++)
 					{
 
 						result = weights[i] * result + biases[i];
 
-						if (activationFunctions[i] == ATMLSigmoidActivation)
+						if (activationFunctions[i + 1] == ATMLSigmoidActivation)
 							result.Transform(&SigmoidActivationDouble);
-						else if (activationFunctions[i] == ATMLTanhActivation)
+						else if (activationFunctions[i + 1] == ATMLTanhActivation)
 							result.Transform(&TanhActivationDouble);
-						else if (activationFunctions[i] == ATMLSoftMaxActivation)
+						else if (activationFunctions[i + 1] == ATMLSoftMaxActivation)
 						{
 							if (i != (weights.size() - 1))
 								throw runtime_error("Not supported by the test");
@@ -351,8 +355,82 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 							absDifference = abs((outputPointer[i] - result.At(i, 0)) / result.At(i, 0));
 						else
 							absDifference = abs(outputPointer[i] - result.At(i, 0));
-						cout << "Difference: " << absDifference << endl;
+						cout << "Forward Difference: " << absDifference << endl;
 						CHECK(absDifference < 1E-3);
+					}
+
+
+					INFO("Back propagating the network");
+					unique_ptr<double[]> backOutputPointer = network.BackPropUnaligned(rawInputs.get(), 0, target.Data);
+
+					vector<Matrixd> oclBackResult;
+					for (int i = 0; i < outputBackDataDesc.Units; i++)
+					{
+						Matrixd tempMatrix(outputBackDataDesc.Height, outputBackDataDesc.Width);
+						memcpy(tempMatrix.Data, backOutputPointer.get() + i * outputBackDataDesc.Height * outputBackDataDesc.Width,
+							outputBackDataDesc.Height * outputBackDataDesc.Width * sizeof(double));
+						//cout << "OCl result: \n" << tempMatrix.GetString() << endl;
+						oclBackResult.push_back(tempMatrix);
+					}
+
+					INFO("Calculating the manually back-propagated network"); //We know that we use softmax here in the last layer.
+					Matrixd perceptronDelta;
+					if (activationFunctions[activationFunctions.size() - 1] == ATMLSoftMaxActivation)
+						perceptronDelta = result - target;
+					else if (activationFunctions[activationFunctions.size() - 1] == ATMLSigmoidActivation)
+					{
+						Matrixd temp = result;
+						temp.Transform(&SigmoidActivationDerivativeDouble);
+						perceptronDelta = (result - target) % temp;
+
+					}
+					else if (activationFunctions[activationFunctions.size() - 1] == ATMLTanhActivation)
+					{
+						Matrixd temp = result;
+						temp.Transform(&TanhActivationDerivativeDouble);
+						perceptronDelta = (result - target) % temp;
+					}
+					else
+						perceptronDelta = result - target;
+
+					//cout << "Perceptron delta: \n" << perceptronDelta.GetString() << endl;
+
+					for (int i = weights.size() - 1; i >= 0; i--)
+					{
+						auto& input = intermediatePerceptronInputs[i];
+						auto weight = weights[i].Transpose();
+
+						perceptronDelta = (weight * perceptronDelta);
+						if (activationFunctions[i] == ATMLSigmoidActivation)
+						{
+							input.Transform(&SigmoidActivationDerivativeDouble);
+							perceptronDelta = perceptronDelta % input;
+						}
+						else if (activationFunctions[i] == ATMLTanhActivation)
+						{
+							input.Transform(&TanhActivationDerivativeDouble);
+							perceptronDelta = perceptronDelta % input;
+						}
+
+						//cout << "Perceptron delta: \n" << perceptronDelta.GetString() << endl;
+					}
+
+					CHECK(perceptronDelta.ColumnCount() == 1);
+
+					INFO("Reshaping the perceptron delta into images");
+					vector<Matrixd> manualOutputDeltas;
+					for (int i = 0; i < outputBackDataDesc.Units; i++)
+						manualOutputDeltas.push_back(perceptronDelta.GetSubMatrix(i * outputBackDataDesc.Width * outputBackDataDesc.Height,
+						0, outputBackDataDesc.Width * outputBackDataDesc.Height, 1).Reshape(outputBackDataDesc.Height, outputBackDataDesc.Width));
+
+					CHECK(manualOutputDeltas.size() == oclBackResult.size());
+
+					for (int i = 0; i < manualOutputDeltas.size(); i++)
+					{
+						//cout << "Manual result: \n" << manualOutputDeltas[i].GetString() << endl;
+						auto difference = (manualOutputDeltas[i] - oclBackResult[i]).Norm2Square() / oclBackResult[i].ElementCount();
+						cout << "Back Difference: " << difference << endl;
+						CHECK(difference < 1E-11);
 					}
 				}
 			}

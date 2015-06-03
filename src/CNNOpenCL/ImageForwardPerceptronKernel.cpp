@@ -43,6 +43,8 @@ ImageForwardPerceptronKernel<T>::ImageForwardPerceptronKernel(int globalUnits,
 	useRelaxedMath = false;
 	activationFunction = ATMLSigmoidActivation;
 	computationPrecision = ATMLNormalPrecision;
+
+	globalWorkSize.push_back(globalUnits);
 }
 
 template<class T>

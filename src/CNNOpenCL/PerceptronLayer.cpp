@@ -75,6 +75,7 @@ namespace ATML {
 				inputDescription = inputDataDescriptions[0];
 
 				scalarCache = nullptr;
+				useImage = false;
 		}
 
 		template<class T>
@@ -151,17 +152,18 @@ namespace ATML {
 			//FIXME: A normal perceptron can handle offset in the unit direction, we don't need to fall back onto the image perceptron.
 			if (firstMemory.HeightOffset == 0 && firstMemory.UnitOffset == 0
 				&& firstMemory.WidthOffset == 0
-				&& firstMemory.Width == inputDescription.Width
-				&& firstMemory.Height == inputDescription.Height
+				&& firstMemory.Width == 1
+				&& firstMemory.Height == 1
 				&& firstMemory.Units == inputDescription.Units) {
 					InitializeNormalForwardPerceptron();
 					InitializeNormalBackPerceptron();
 					InitializeNormalGradientKernel();
+					useImage = false;
 			}
 			else {
 				InitializeImageForwardPerceptron();
 				InitializeImageBackPerceptron();
-
+				useImage = true;
 				//TODO: Uncomment
 				//InitializeImageGradientKernel();
 			}
@@ -322,7 +324,7 @@ namespace ATML {
 				unique_ptr<ImageBackPerceptronKernel<T>> kernel(
 					new ImageBackPerceptronKernel<T>(inForwardDataDesc.Width, inForwardDataDesc.Height, inForwardDataDesc.Units,
 					outBackMemDesc.WidthOffset, outBackMemDesc.HeightOffset, outBackMemDesc.UnitOffset, inForwardMemDesc.WidthOffset, inForwardMemDesc.HeightOffset,
-					inForwardMemDesc.UnitOffset, outBackMemDesc.Width, outBackMemDesc.Height, inForwardMemDesc.Width, inForwardMemDesc.Height, inForwardDataDesc.TotalUnits() * outForwardDataDesc.TotalUnits(),
+					inForwardMemDesc.UnitOffset, outBackMemDesc.Width, outBackMemDesc.Height, inForwardMemDesc.Width, inForwardMemDesc.Height, inForwardDataDesc.TotalUnits(),
 					inBackMemDesc.UnitOffset, outForwardDataDesc.Units));
 
 				//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
@@ -567,34 +569,90 @@ namespace ATML {
 		void PerceptronLayer<T>::EnqueueForwardPropagation(OpenCLDevice* device,
 			int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* output,
 			bool blocking) {
-				auto& kernel = deviceAndForwardKernels[device];
-				kernel->SetInput(previousInput);
-				kernel->SetOutput(output);
-				if (config.ActivationFunction() == ATMLSoftMaxActivation)
+				if (useImage)
 				{
-					device->ExecuteKernel(kernel.get(), queueIndex, false);
-					auto& sumKernel = deviceAndSimpleSumKernels[device];
-					auto& scalarKernel = deviceAndDivideByScalarKernels[device];
-					sumKernel->SetInput(output);
-					sumKernel->SetOutput(scalarCache.get());
-					device->ExecuteTask(sumKernel.get(), queueIndex, false);
-					scalarKernel->SetInputOutput(output);
-					scalarKernel->SetScalar(scalarCache.get());
-					device->ExecuteKernel(scalarKernel.get(), queueIndex, blocking);
+					auto& kernel = deviceAndImageForwardKernels[device];
+					kernel->SetInput(previousInput);
+					kernel->SetOutput(output);
+					if (config.ActivationFunction() == ATMLSoftMaxActivation)
+					{
+						device->ExecuteKernel(kernel.get(), queueIndex, false);
+						auto& sumKernel = deviceAndSimpleSumKernels[device];
+						auto& scalarKernel = deviceAndDivideByScalarKernels[device];
+						sumKernel->SetInput(output);
+						sumKernel->SetOutput(scalarCache.get());
+						device->ExecuteTask(sumKernel.get(), queueIndex, false);
+						scalarKernel->SetInputOutput(output);
+						scalarKernel->SetScalar(scalarCache.get());
+						device->ExecuteKernel(scalarKernel.get(), queueIndex, blocking);
+					}
+					else
+						device->ExecuteKernel(kernel.get(), queueIndex, blocking);
 				}
 				else
-					device->ExecuteKernel(kernel.get(), queueIndex, blocking);
+				{
+					auto& kernel = deviceAndForwardKernels[device];
+					kernel->SetInput(previousInput);
+					kernel->SetOutput(output);
+					if (config.ActivationFunction() == ATMLSoftMaxActivation)
+					{
+						device->ExecuteKernel(kernel.get(), queueIndex, false);
+						auto& sumKernel = deviceAndSimpleSumKernels[device];
+						auto& scalarKernel = deviceAndDivideByScalarKernels[device];
+						sumKernel->SetInput(output);
+						sumKernel->SetOutput(scalarCache.get());
+						device->ExecuteTask(sumKernel.get(), queueIndex, false);
+						scalarKernel->SetInputOutput(output);
+						scalarKernel->SetScalar(scalarCache.get());
+						device->ExecuteKernel(scalarKernel.get(), queueIndex, blocking);
+					}
+					else
+						device->ExecuteKernel(kernel.get(), queueIndex, blocking);
+				}
 		}
 
 		template<class T>
 		void PerceptronLayer<T>::EnqueueBackPropagation(OpenCLDevice* device,
 			int queueIndex, OpenCLMemory* previousInput, OpenCLMemory* delta,
-			OpenCLMemory* deltaOutput, bool blocking) {
+			OpenCLMemory* deltaOutput, bool blocking) 
+		{
+			if (useImage)
+			{
+
+				//LayerMemoryDescription inBackPropMemDesc = this->InBackPropMemoryDescriptions()[0];
+				//LayerMemoryDescription outBackPropMemDesc = this->OutBackPropMemoryDescriptions()[0];
+				//LayerMemoryDescription inForwardPropMemDesc = this->InForwardPropMemoryDescriptions()[0];
+
+				//auto inDelta = new double[inBackPropMemDesc.TotalMemory()];
+				//auto input = new double[inForwardPropMemDesc.TotalMemory()];
+				//auto outputDelta = new double[outBackPropMemDesc.TotalMemory()];
+
+				//device->ReadMemory(delta, delta->ByteSize(), inDelta);
+				//device->ReadMemory(previousInput, previousInput->ByteSize(), input);
+
+				//for (int i = 0; i < inForwardPropMemDesc.TotalMemory(); i++)
+				//	printf("input %i: %f \n", i, input[i]);
+				//for (int i = 0; i < inBackPropMemDesc.TotalMemory(); i++)
+				//	printf("inDelta %i: %f \n", i, inDelta[i]);
+
+				auto& kernel = deviceAndImageBackKernels[device];
+				kernel->SetInput(previousInput);
+				kernel->SetDeltaInput(delta);
+				kernel->SetOutput(deltaOutput);
+				device->ExecuteKernel(kernel.get(), queueIndex, blocking);
+
+				//device->ReadMemory(deltaOutput, deltaOutput->ByteSize(), outputDelta);
+				//for (int i = 0; i < outBackPropMemDesc.TotalMemory(); i++)
+				//	printf("outDelta %i: %f \n", i, outputDelta[i]);
+			}
+			else
+			{
 				auto& kernel = deviceAndBackKernels[device];
 				kernel->SetInput(previousInput);
 				kernel->SetDeltaInput(delta);
 				kernel->SetOutput(deltaOutput);
 				device->ExecuteKernel(kernel.get(), queueIndex, blocking);
+			}
 		}
 
 		template<class T>

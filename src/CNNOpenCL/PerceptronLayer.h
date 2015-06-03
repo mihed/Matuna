@@ -53,6 +53,8 @@ private:
 	PerceptronLayerConfig config;
 	LayerDataDescription inputDescription;
 
+	bool useImage;
+
 public:
 	PerceptronLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
