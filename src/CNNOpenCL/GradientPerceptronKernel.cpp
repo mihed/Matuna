@@ -10,12 +10,15 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML {
-namespace MachineLearning {
+namespace ATML
+{
+namespace MachineLearning
+{
 
 template<class T>
 GradientPerceptronKernel<T>::GradientPerceptronKernel(int inputUnits, int units) :
-		inputUnits(inputUnits), units(units) {
+		inputUnits(inputUnits), units(units)
+{
 	stringstream stringStream;
 
 	stringStream << "GradientPerceptronKernelProgram";
@@ -32,27 +35,32 @@ GradientPerceptronKernel<T>::GradientPerceptronKernel(int inputUnits, int units)
 
 }
 template<class T>
-GradientPerceptronKernel<T>::~GradientPerceptronKernel() {
+GradientPerceptronKernel<T>::~GradientPerceptronKernel()
+{
 
 }
 
 template<class T>
-void GradientPerceptronKernel<T>::SetConstantInput(bool value) {
+void GradientPerceptronKernel<T>::SetConstantInput(bool value)
+{
 	useConstantInput = value;
 }
 
 template<class T>
-void GradientPerceptronKernel<T>::SetConstantInputDelta(bool value) {
+void GradientPerceptronKernel<T>::SetConstantInputDelta(bool value)
+{
 	useConstantInputDelta = value;
 }
 
 template<class T>
-void GradientPerceptronKernel<T>::SetUseRelaxedMath(bool value) {
+void GradientPerceptronKernel<T>::SetUseRelaxedMath(bool value)
+{
 	useRelaxedMath = value;
 }
 
 template<class T>
-void GradientPerceptronKernel<T>::SetInput(OpenCLMemory* input) {
+void GradientPerceptronKernel<T>::SetInput(OpenCLMemory* input)
+{
 	auto rawInput = input->GetCLMemory();
 	CheckOpenCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -60,7 +68,8 @@ void GradientPerceptronKernel<T>::SetInput(OpenCLMemory* input) {
 }
 
 template<class T>
-void GradientPerceptronKernel<T>::SetInputDelta(OpenCLMemory* inputDelta) {
+void GradientPerceptronKernel<T>::SetInputDelta(OpenCLMemory* inputDelta)
+{
 	auto rawInput = inputDelta->GetCLMemory();
 	CheckOpenCLError(
 			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawInput),
@@ -68,7 +77,8 @@ void GradientPerceptronKernel<T>::SetInputDelta(OpenCLMemory* inputDelta) {
 }
 
 template<class T>
-void GradientPerceptronKernel<T>::SetGradient(OpenCLMemory* gradient) {
+void GradientPerceptronKernel<T>::SetGradient(OpenCLMemory* gradient)
+{
 	auto rawGradient = gradient->GetCLMemory();
 	CheckOpenCLError(
 			clSetKernelArg(this->GetKernel(), 2, sizeof(cl_mem), &rawGradient),
@@ -76,7 +86,8 @@ void GradientPerceptronKernel<T>::SetGradient(OpenCLMemory* gradient) {
 }
 
 template<class T>
-void GradientPerceptronKernel<T>::InitializeCompilerOptions() {
+void GradientPerceptronKernel<T>::InitializeCompilerOptions()
+{
 	stringstream stringStream;
 
 	if (useConstantInput)
@@ -99,17 +110,20 @@ void GradientPerceptronKernel<T>::InitializeCompilerOptions() {
 }
 
 template<class T>
-string GradientPerceptronKernel<T>::ProgramName() const {
+string GradientPerceptronKernel<T>::ProgramName() const
+{
 	return programName;
 }
 
 template<class T>
-string GradientPerceptronKernel<T>::GetCompilerOptions() const {
+string GradientPerceptronKernel<T>::GetCompilerOptions() const
+{
 	return compilerOptions;
 }
 
 template<class T>
-vector<string> GradientPerceptronKernel<T>::GetProgramCode() const {
+vector<string> GradientPerceptronKernel<T>::GetProgramCode() const
+{
 	vector<string> result;
 	result.push_back(
 			FileHelper::GetTextFromPath(
@@ -121,17 +135,20 @@ vector<string> GradientPerceptronKernel<T>::GetProgramCode() const {
 }
 
 template<class T>
-string GradientPerceptronKernel<T>::KernelName() const {
+string GradientPerceptronKernel<T>::KernelName() const
+{
 	return kernelName;
 }
 
 template<class T>
-const vector<size_t>& GradientPerceptronKernel<T>::GlobalWorkSize() const {
+const vector<size_t>& GradientPerceptronKernel<T>::GlobalWorkSize() const
+{
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& GradientPerceptronKernel<T>::LocalWorkSize() const {
+const vector<size_t>& GradientPerceptronKernel<T>::LocalWorkSize() const
+{
 	return localWorkSize;
 }
 

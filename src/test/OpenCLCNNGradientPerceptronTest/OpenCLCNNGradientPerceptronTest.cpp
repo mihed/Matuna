@@ -1,9 +1,9 @@
 /*
- * OpenCLCNNGradientPerceptronTest.cpp
- *
- *  Created on: May 17, 2015
- *      Author: Mikael
- */
+* OpenCLCNNGradientPerceptronTest.cpp
+*
+*  Created on: May 17, 2015
+*      Author: Mikael
+*/
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OpenCLHelper/OpenCLHelper.h"
@@ -23,14 +23,84 @@ using namespace ATML::Math;
 using namespace ATML::Helper;
 
 unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
-	uniform_int_distribution<int>& layerGenerator,
-	uniform_int_distribution<int>& dimensionGenerator,
-	bool useSoftMax)
+													  uniform_int_distribution<int>& layerGenerator,
+													  uniform_int_distribution<int>& dimensionGenerator,
+													  bool useSoftMax)
 {
 	vector<LayerDataDescription> dataDescriptions;
 	LayerDataDescription dataDescription;
 	dataDescription.Height = 1;
 	dataDescription.Width = 1;
+	dataDescription.Units = dimensionGenerator(mt);
+	dataDescriptions.push_back(dataDescription);
+
+	int layerCount = layerGenerator(mt);
+	uniform_int_distribution<int> activationGenerator(1, 3);
+
+	INFO("Initializing the CNN config");
+	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+
+	ATMLActivationFunction activationFunction;
+	INFO("Creating the layers config");
+	for (int i = 0; i < layerCount; i++)
+	{
+		auto activation = activationGenerator(mt);
+		switch (activation)
+		{
+		case 1:
+			activationFunction = ATMLSigmoidActivation;
+			break;
+		case 2:
+			activationFunction = ATMLLinearActivation;
+			break;
+		case 3:
+			activationFunction = ATMLTanhActivation;
+			break;
+		}
+
+		//Simply to avoid overflow when using softmax
+		if (useSoftMax)
+			if (i == (layerCount - 2) && activationFunction == ATMLLinearActivation)
+				activationFunction = ATMLTanhActivation;
+
+		auto temp = dimensionGenerator(mt);
+		if (useSoftMax)
+		{
+			if (i == (layerCount - 1))
+			{
+				activationFunction = ATMLSoftMaxActivation;
+				temp = temp > 1 ? temp : 2;
+			}
+		}
+
+		unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(temp, activationFunction));
+		config->AddToBack(move(perceptronConfig));
+	}
+
+	if (useSoftMax)
+	{
+		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig(ATMLCrossEntropy));
+		config->SetOutputConfig(move(outputConfig));
+	}
+	else
+	{
+		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig());
+		config->SetOutputConfig(move(outputConfig));
+	}
+
+	return move(config);
+}
+
+unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfigWithImage(mt19937& mt,
+															   uniform_int_distribution<int>& layerGenerator,
+															   uniform_int_distribution<int>& dimensionGenerator,
+															   uniform_int_distribution<int>& imageGenerator,
+															   bool useSoftMax)
+{
+	vector<LayerDataDescription> dataDescriptions;
+	LayerDataDescription dataDescription;
+	dataDescription.Height = imageGenerator(mt);
+	dataDescription.Width = imageGenerator(mt);
 	dataDescription.Units = dimensionGenerator(mt);
 	dataDescriptions.push_back(dataDescription);
 
@@ -97,6 +167,95 @@ double CalculateCEError(const Matrix<double>& input, const Matrix<double>& targe
 	for (int i = 0; i < input.RowCount(); i++)
 		result -= target.At(i, 0) * log(input.At(i, 0));
 	return result;
+}
+
+SCENARIO("Calculating the gradient of a CNN using perceptron layers with image input")
+{
+	auto platformInfos = OpenCLHelper::GetPlatformInfos();
+	random_device device;
+	mt19937 mt(device());
+	uniform_int_distribution<int> dimensionGenerator(1, 20);
+	uniform_int_distribution<int> imageDimensionGenerator(1,10);
+	uniform_int_distribution<int> layerGenerator(1, 4);
+
+	for (int dummy = 0; dummy < 5; dummy++)
+	{
+
+		vector<vector<OpenCLDeviceInfo>> deviceInfos;
+		for (auto platformInfo : platformInfos)
+		{
+			auto temp = OpenCLHelper::GetDeviceInfos(platformInfo);
+			vector<OpenCLDeviceInfo> capabaleDevices;
+			for (auto& deviceInfo : temp)
+				if (deviceInfo.PreferredDoubleVectorWidth() != 0)
+					capabaleDevices.push_back(deviceInfo);
+
+			deviceInfos.push_back(capabaleDevices);
+		}
+
+		for (auto& deviceInfo : deviceInfos)
+		{
+			auto config = CreateRandomCNNPerceptronConfigWithImage(mt, layerGenerator, dimensionGenerator, imageDimensionGenerator,false);
+			CNNOpenCL<double> network(deviceInfo, move(config));
+
+			LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
+			LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];
+
+			int inputUnits = inputDataDesc.Units;
+			int inputHeight = inputDataDesc.Height;
+			int inputWidth = inputDataDesc.Width;
+
+			vector<Matrixd> inputs;
+			unique_ptr<double[]> rawInputs(new double[inputDataDesc.TotalUnits()]);
+			for (int i = 0; i < inputUnits; i++)
+			{
+				inputs.push_back(Matrixd::RandomNormal(inputHeight, inputWidth));
+				memcpy(rawInputs.get() + i * inputHeight * inputWidth, inputs[i].Data, sizeof(double) * inputHeight * inputWidth);
+			}
+
+			auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1, 0, 4);
+
+			auto parameterCount = network.GetParameterCount();
+
+			unique_ptr<double[]> gradient = network.CalculateGradientUnaligned(rawInputs.get(), 0, target.Data);
+			Matrix<double> gradientMatrix(parameterCount, 1, gradient.get());
+			gradient.reset();
+
+			//Let us now compare the calculated gradient to the finite difference gradient
+			auto parameters = network.GetParameters();
+			Matrix<double> parameterMatrix(parameterCount, 1, parameters.get());
+			parameters.reset();
+			double h = 1E-5;
+
+			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
+
+			for (int i = 0; i < parameterCount; i++)
+			{
+				Matrix<double> param1 = parameterMatrix;
+				param1.At(i, 0) = param1.At(i, 0) - h;
+				network.SetParameters(param1.Data);
+
+				auto minusValue = network.CalculateErrorUnaligned(rawInputs.get(), 0, target.Data);
+
+				Matrix<double> param2 = parameterMatrix;
+				param2.At(i, 0) = param2.At(i, 0) + h;
+				network.SetParameters(param2.Data);
+
+				auto plusValue = network.CalculateErrorUnaligned(rawInputs.get(), 0, target.Data);
+
+				finiteDifferenceGradient.At(i, 0) = (plusValue - minusValue) / (2 * h);
+			}
+			//for (int i = 0; i < parameterCount; i++)
+			//{
+			//	cout << "Gradient: " << gradientMatrix.At(i, 0) << endl;
+			//	cout << "Finite difference: " << finiteDifferenceGradient.At(i, 0) << endl;
+			//}
+
+			auto difference = (gradientMatrix - finiteDifferenceGradient).Norm2Square() / parameterCount;
+			cout << "Difference: " << difference << endl;
+			CHECK(difference < 1E-11);
+		}
+	}
 }
 
 SCENARIO("Calculating the gradient of a CNN using softmax")

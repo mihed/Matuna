@@ -15,6 +15,7 @@
 #include "SimpleSumKernel.h"
 #include "ImageForwardPerceptronKernel.h"
 #include "ImageBackPerceptronKernel.h"
+#include "ImageGradientPerceptronKernel.h"
 #include "DivideByScalarKernel.h"
 #include "CNN/PerceptronLayerConfig.h"
 #include "Math/Matrix.h"
@@ -43,6 +44,7 @@ private:
 	unordered_map<OpenCLDevice*, unique_ptr<BackPerceptronKernel<T>>> deviceAndBackKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<ImageBackPerceptronKernel<T>>> deviceAndImageBackKernels;
 	unordered_map<OpenCLDevice*, unique_ptr<GradientPerceptronKernel<T>>> deviceAndGradientKernels;
+	unordered_map<OpenCLDevice*, unique_ptr<ImageGradientPerceptronKernel<T>>> deviceAndImageGradientKernels;
 
 	unique_ptr<OpenCLMemory> scalarCache;
 	unordered_map<OpenCLDevice*, unique_ptr<DivideByScalarKernel<T>>> deviceAndDivideByScalarKernels;
