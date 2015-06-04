@@ -1,6 +1,8 @@
 # ATML
 Automatically Tuned Machine Learning.
 
+#Introduction
+There's tons of stuff missing in the current alpha version. However, I try to follow my philosophy of releasing something that works without a ton of features to get additional experience for the next release. The current version was written in about 3-4 weeks (so, about 40 000 lines of code in this period!). To set up the entire cross-platform development system took me another week. There's a lot of duplicated code, no comments and a lot of things that are just partially implemented. The next alpha releases will not focus on any features but mostly tidying, refactoring and commenting in order to make this a usable library. 
 
 ##Development Environment (Sketch)
 ###Windows
