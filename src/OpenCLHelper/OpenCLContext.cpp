@@ -14,7 +14,7 @@ namespace ATML
 namespace Helper
 {
 
-	OpenCLContext::OpenCLContext(const OpenCLPlatformInfo& platformInfo,
+OpenCLContext::OpenCLContext(const OpenCLPlatformInfo& platformInfo,
 		const vector<tuple<OpenCLDeviceConfig, OpenCLDeviceInfo>>& deviceConfigs) :
 		platformInfo(platformInfo)
 {
@@ -80,6 +80,21 @@ OpenCLContext::~OpenCLContext()
 				"Could not release the context");
 }
 
+bool OpenCLContext::ProgramAdded(const string& name) const
+{
+	return programs.find(name) != programs.end();
+}
+
+bool OpenCLContext::KernelAdded(const string& programName,
+		const string& kernelName) const
+{
+	if (kernels.find(programName) == kernels.end())
+		return false;
+
+	auto& kernelMap = kernels.find(programName)->second;
+	return kernelMap.find(kernelName) != kernelMap.end();
+}
+
 OpenCLPlatformInfo OpenCLContext::GetPlatformInfo() const
 {
 	return platformInfo;
@@ -120,12 +135,11 @@ void OpenCLContext::AddProgramFromSource(const string& programName,
 {
 
 	if (programs.find(programName) != programs.end())
-		throw invalid_argument(
-		"The program has already been added.");
+		throw invalid_argument("The program has already been added.");
 
 	if (kernels.find(programName) != kernels.end())
 		throw invalid_argument(
-		"The program has already been added in the kernels. This is an indication that there's something wrong in the implementation");
+				"The program has already been added in the kernels. This is an indication that there's something wrong in the implementation");
 
 	cl_int error;
 	vector<const char*> rawProgramFiles;

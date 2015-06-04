@@ -97,6 +97,9 @@ final
 		}
 		;
 
+		bool ProgramAdded(const string& name) const;
+		bool KernelAdded(const string& programName, const string& kernelName) const;
+
 		OpenCLPlatformInfo GetPlatformInfo() const;
 
 		vector<OpenCLDevice*> GetDevices() const;

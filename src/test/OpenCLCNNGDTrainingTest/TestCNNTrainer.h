@@ -1,0 +1,50 @@
+/*
+* TestCNNTrainer.h
+*
+*  Created on: Jun 3, 2015
+*      Author: Mikael
+*/
+
+#ifndef ATML_TEST_OPENCLCNNGDTRAININGTEST_TESTCNNTRAINER_H_
+#define ATML_TEST_OPENCLCNNGDTRAININGTEST_TESTCNNTRAINER_H_
+
+#include "CNN/CNNTrainer.h"
+#include "Math/Matrix.h"
+#include "CNNOpenCL/CNNOpenCL.h"
+
+using namespace std;
+using namespace ATML::MachineLearning;
+using namespace ATML::Math;
+
+namespace ATML
+{
+	namespace MachineLearning
+	{
+
+		template<class T> 
+		class TestCNNTrainer: public CNNTrainer<T>
+		{
+		private:
+			CNNOpenCL<T>* network;
+			T* input;
+			T* target;
+		public:
+			TestCNNTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
+				const vector<LayerDataDescription>& targetDataDescriptions,
+				const vector<LayerMemoryDescription>& inputMemoryDescriptions,
+				const vector<LayerMemoryDescription>& targetMemoryDescriptions, CNNOpenCL<T>* network);
+			~TestCNNTrainer();
+
+			virtual void MapInputAndTarget(T*& input, T*& target,int& formatIndex) override;
+			virtual void UnmapInputAndTarget(T* input, T* target,int formatIndex) override;
+			virtual void BatchFinished(T error) override;
+			virtual void EpochFinished() override;
+
+			void SetInput(T* input);
+			void SetTarget(T* target);
+		};
+
+	} /* namespace MachineLearning */
+} /* namespace ATML */
+
+#endif /* ATML_TEST_OPENCLCNNGDTRAININGTEST_TESTCNNTRAINER_H_ */

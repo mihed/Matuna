@@ -138,6 +138,13 @@ namespace ATML
 				this->context->RemoveKernel(kernelProgram.get());
 				this->context->RemoveProgram(kernelProgram.get());
 			}
+
+			for (auto& deviceAndKernel : deviceAndSumUnitKernels2)
+			{
+				auto& kernelProgram = deviceAndKernel.second;
+				this->context->RemoveKernel(kernelProgram.get());
+				this->context->RemoveProgram(kernelProgram.get());
+			}
 		}
 
 		template<class T>
@@ -671,6 +678,16 @@ namespace ATML
 					convolutionConfig.FilterCount(), firstOutputData.Width,
 					firstOutputData.Height));
 
+				//HACK: this must be changed when removing deprecated functions
+				unique_ptr<SumUnitKernel<T>> kernel2(
+					new SumUnitKernel<T>(firstInBackMemDesc.Width,
+					firstInBackMemDesc.Height,
+					firstInBackMemDesc.WidthOffset,
+					firstInBackMemDesc.HeightOffset,
+					firstInBackMemDesc.UnitOffset, 0, //Zero in this case since we have splitted up the gradient in the new function
+					convolutionConfig.FilterCount(), firstOutputData.Width,
+					firstOutputData.Height));
+
 				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
 
 				auto deltaBytes = firstInBackMemDesc.TotalMemory() * sizeof(T);
@@ -678,19 +695,26 @@ namespace ATML
 				if (maximumConstantBufferSize > deltaBytes)
 				{
 					kernel->SetConstantInput(true);
+					kernel2->SetConstantInput(true);
 					maximumConstantBufferSize -= deltaBytes;
 				}
 
 				kernel->SetRelaxedMath(convolutionConfig.UseRelaxedMath());
+				kernel2->SetRelaxedMath(convolutionConfig.UseRelaxedMath());
 
 				kernel->InitializeCompilerOptions();
+				kernel2->InitializeCompilerOptions();
 
 				vector<OpenCLDevice*> oneDeviceVector;
 				oneDeviceVector.push_back(device);
 				this->context->AddProgramFromSource(kernel.get(), oneDeviceVector);
 				this->context->AddKernel(kernel.get());
 
+				this->context->AddProgramFromSource(kernel2.get(), oneDeviceVector);
+				this->context->AddKernel(kernel2.get());
+
 				deviceAndSumUnitKernels.insert(make_pair(device, move(kernel)));
+				deviceAndSumUnitKernels2.insert(make_pair(device, move(kernel2)));
 			}
 		}
 
@@ -834,16 +858,52 @@ namespace ATML
 		}
 
 		template<class T>
-		vector<tuple<OpenCLMemory*, int>> ConvolutionLayer<T>::GetParameters()
+		void ConvolutionLayer<T>::EnqueueCalculateGradient(OpenCLDevice* device, int queueIndex,
+			OpenCLMemory* previousInput, OpenCLMemory* delta, vector<OpenCLMemory*> gradient, bool blocking)
 		{
-			vector<tuple<OpenCLMemory*, int> > result;
 
-			auto filterTuple = make_tuple(filters.get(),
-				convolutionConfig.FilterCount() * convolutionConfig.FilterWidth()
+			if (gradient.size() != 2)
+				throw invalid_argument("The gradient size is not valid");
+
+			if (gradient[0]->ByteSize() / sizeof(T) != (convolutionConfig.FilterCount() * convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight()))
+				throw invalid_argument("The first gradient does not contain the correct amount of memory");
+
+			if (gradient[1]->ByteSize() / sizeof(T) != (convolutionConfig.FilterCount()))
+				throw invalid_argument("The second gradient does not contain the correct amount of memory");
+
+			auto& sumAllUnitsKernel = deviceAndSumKernels[device];
+			sumAllUnitsKernel->SetInput(previousInput);
+			sumAllUnitsKernel->SetOutput(summaryCache.get());
+			auto& multiplyWithOffsetKernel = deviceAndMultiplyWithOffsetKernels[device];
+			multiplyWithOffsetKernel->SetInput(summaryCache.get());
+			multiplyWithOffsetKernel->SetInputDelta(delta);
+			multiplyWithOffsetKernel->SetOutput(gradient[0]);
+			auto& sumUnitKernel = deviceAndSumUnitKernels2[device];
+			sumUnitKernel->SetInput(delta);
+			sumUnitKernel->SetOutput(gradient[1]);
+
+			device->ExecuteKernel(sumAllUnitsKernel.get(), queueIndex, false);
+			device->ExecuteKernel(multiplyWithOffsetKernel.get(), queueIndex, false);
+			device->ExecuteKernel(sumUnitKernel.get(), queueIndex, blocking);
+		}
+
+		template<class T>
+		vector<size_t> ConvolutionLayer<T>::GetMultipleParameterCount()
+		{
+			vector<size_t> result;
+			result.push_back(convolutionConfig.FilterCount() * convolutionConfig.FilterWidth()
 				* convolutionConfig.FilterHeight());
-			auto biasTuple = make_tuple(biases.get(), convolutionConfig.FilterCount());
-			result.push_back(filterTuple);
-			result.push_back(biasTuple);
+			result.push_back(convolutionConfig.FilterCount());
+			return result;
+		}
+
+		template<class T>
+		vector<OpenCLMemory*> ConvolutionLayer<T>::GetParameters()
+		{
+			vector<OpenCLMemory*> result;
+
+			result.push_back(filters.get());
+			result.push_back(biases.get());
 
 			return result;
 		}

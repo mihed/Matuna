@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef CNN_IALGORITHMCONFIG_H_
-#define CNN_IALGORITHMCONFIG_H_
+#ifndef ATML_CNN_IALGORITHMCONFIG_H_
+#define ATML_CNN_IALGORITHMCONFIG_H_
 
 namespace ATML
 {
@@ -26,4 +26,4 @@ public:
 } /* ATML */
 } /* MachineLearning */
 
-#endif /* CNN_IALGORITHMCONFIG_H_ */
+#endif /* ATML_CNN_IALGORITHMCONFIG_H_ */
