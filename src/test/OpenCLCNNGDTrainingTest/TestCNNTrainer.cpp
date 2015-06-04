@@ -49,6 +49,18 @@ namespace ATML
 		}
 
 		template<class T> 
+		void TestCNNTrainer<T>::EpochStarted()
+		{
+
+		}
+
+		template<class T> 
+		void TestCNNTrainer<T>::BatchStarted()
+		{
+
+		}
+
+		template<class T> 
 		void TestCNNTrainer<T>::SetInput(T* input)
 		{
 			this->input = input;

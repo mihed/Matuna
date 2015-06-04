@@ -39,6 +39,8 @@ namespace ATML
 			virtual void UnmapInputAndTarget(T* input, T* target,int formatIndex) override;
 			virtual void BatchFinished(T error) override;
 			virtual void EpochFinished() override;
+			virtual void EpochStarted() override;
+			virtual void BatchStarted() override;
 
 			void SetInput(T* input);
 			void SetTarget(T* target);

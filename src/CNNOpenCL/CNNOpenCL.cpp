@@ -610,9 +610,11 @@ namespace ATML
 
 			for (int epoch = 0; epoch < epochs; epoch++)
 			{
+				trainer->EpochStarted();
 				T stepSize = stepSizeCallback(0);
 				for (int batch = 0; batch < batchIterations; batch++)
 				{
+					trainer->BatchStarted();
 					for (int sample = 0; sample < batchSize; sample++)
 					{
 						if (trainer->Stopping())

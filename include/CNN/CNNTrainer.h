@@ -40,6 +40,8 @@ namespace ATML
 			virtual void UnmapInputAndTarget(T* input, T* target,int formatIndex) = 0;
 			virtual void BatchFinished(T error) = 0;
 			virtual void EpochFinished() = 0;
+			virtual void EpochStarted() = 0;
+			virtual void BatchStarted() = 0;
 
 
 			vector<LayerDataDescription> InputDataDescriptions() const;
