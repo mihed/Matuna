@@ -9,6 +9,8 @@
 #include <stdexcept>
 #include <type_traits>
 #include <random>
+#include <stdlib.h>
+#include <string.h>
 
 namespace ATML
 {
