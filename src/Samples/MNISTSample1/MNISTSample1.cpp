@@ -7,9 +7,9 @@
 
 #include "AssetLoader.h"
 
-#include "OpenCLHelper/OpenCLHelper.h"
-#include "CNNOpenCL/CNNOpenCL.h"
-#include "CNNOpenCL/PerceptronLayer.h"
+#include "OCLHelper/OCLHelper.h"
+#include "CNNOCL/CNNOCL.h"
+#include "CNNOCL/PerceptronLayer.h"
 #include "CNN/GradientDescentConfig.h"
 #include "CNN/PerceptronLayerConfig.h"
 #include "CNN/StandardOutputLayerConfig.h"
@@ -30,7 +30,7 @@ template<class T>
 class TestCNNTrainer: public CNNTrainer<T>
 {
 private:
-	CNNOpenCL<T>* network;
+	CNNOCL<T>* network;
 	vector<Matrix<T>> inputs;
 	vector<Matrix<T>> targets;
 	vector<Matrix<T>> tests;
@@ -42,7 +42,7 @@ public:
 		const vector<LayerDataDescription>& targetDataDescriptions,
 		const vector<LayerMemoryDescription>& inputMemoryDescriptions,
 		const vector<LayerMemoryDescription>& targetMemoryDescriptions, 
-		CNNOpenCL<T>* network) : CNNTrainer<T>(inputDataDescriptions, targetDataDescriptions, inputMemoryDescriptions, targetMemoryDescriptions)
+		CNNOCL<T>* network) : CNNTrainer<T>(inputDataDescriptions, targetDataDescriptions, inputMemoryDescriptions, targetMemoryDescriptions)
 	{
 		counter = 0;
 		this->network = network;
@@ -142,21 +142,21 @@ int main(int argc, char* argv[])
 	auto testImages = AssetLoader<float>::ReadTestImages(1000);
 	auto testTargets = AssetLoader<float>::ReadTestTargets(1000);
 	auto trainingTargets = AssetLoader<float>::ReadTrainingTargets();
-	auto platformInfos = OpenCLHelper::GetPlatformInfos();
+	auto platformInfos = OCLHelper::GetPlatformInfos();
 
 	if (platformInfos.size() == 0)
 	{
-		cout << "No available OpenCL platforms" << endl;
+		cout << "No available OCL platforms" << endl;
 		return 1;
 	}
 
 	//If there's an nvidia gpu available, use it. Otherwise, train on the first best device
-	auto deviceInfo = OpenCLHelper::GetDeviceInfos(platformInfos[0])[0];
+	auto deviceInfo = OCLHelper::GetDeviceInfos(platformInfos[0])[0];
 	for (auto& platformInfo : platformInfos)
 	{
 		if (platformInfo.PlatformName().find("NVIDIA") != string::npos)
 		{
-			deviceInfo = OpenCLHelper::GetDeviceInfos(platformInfo)[0];
+			deviceInfo = OCLHelper::GetDeviceInfos(platformInfo)[0];
 			break;
 		}
 	}
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
 	inputDesc.Units = 1;
 	inputDataDescriptions.push_back(inputDesc);
 	unique_ptr<CNNConfig> config(new CNNConfig(inputDataDescriptions));
-	vector<OpenCLDeviceInfo> deviceInfos;
+	vector<OCLDeviceInfo> deviceInfos;
 	deviceInfos.push_back(deviceInfo);
 
 	unique_ptr<ConvolutionLayerConfig> convLayerConfig1(new ConvolutionLayerConfig(16, 8, 8, MatunaTanhActivation));
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 	config->AddToBack(move(perceptronConfig1));
 	config->AddToBack(move(perceptronConfig2));
 	config->SetOutputConfig(move(outputLayerConfig));
-	CNNOpenCL<float> network(deviceInfos, move(config));
+	CNNOCL<float> network(deviceInfos, move(config));
 
 	auto tempTrainer = new TestCNNTrainer<float>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
 		network.InputForwardMemoryDescriptions(),
