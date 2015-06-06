@@ -237,6 +237,24 @@ namespace ATML
 		template<class T>
 		void ConvolutionLayer<T>::InterlockFinalized()
 		{
+
+			//Make sure the type we want to execute is supported on the device.
+			vector<OpenCLDevice*> devices = this->context->GetDevices();
+			for (auto device : devices) {
+				auto deviceInfo = device->DeviceInfo();
+				if (is_same<cl_double, T>::value) {
+					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				} else if (is_same<cl_float, T>::value) {
+					if (deviceInfo.PreferredFloatVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				} else
+					throw runtime_error(
+					"The template argument does not match the supported arguments");
+			}
+
 			InitializeParameters();
 			InitializeConvolutionKernel();
 			InitializeSumAllKernel();
@@ -263,23 +281,6 @@ namespace ATML
 			for (auto device : devices)
 			{
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				//Since the sum all units kernel is not using any padding, it has to be zero here for in input description.
 				//TODO: We are not using local memory for GPU devices at the moment.
@@ -354,23 +355,6 @@ namespace ATML
 			{
 				auto deviceInfo = device->DeviceInfo();
 
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
-
 				//We are not using any padding at all in this kernel. Meaning that the convolution kernel cannot use it either
 				unique_ptr<SumAllUnitsKernel<T>> kernel(
 					new SumAllUnitsKernel<T>(firstInputData.Width,
@@ -419,23 +403,6 @@ namespace ATML
 			for (auto device : devices)
 			{
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				//Since the sum all units kernel is not using any padding, it has to be zero here for in input description.
 				//TODO: We are not using local memory for GPU devices at the moment.
@@ -499,23 +466,6 @@ namespace ATML
 			{
 				auto deviceInfo = device->DeviceInfo();
 
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
-
 				int borderHorizontalSize = convolutionConfig.FilterWidth() - 1;
 				int borderVerticalSize = convolutionConfig.FilterHeight() - 1;
 
@@ -575,23 +525,6 @@ namespace ATML
 			{
 				auto deviceInfo = device->DeviceInfo();
 
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
-
 				unique_ptr<MultiplyAllUnitsKernel<T>> kernel(
 					new MultiplyAllUnitsKernel<T>(firstInputData.Width,
 					firstInputData.Height, firstInputData.Units,
@@ -649,23 +582,6 @@ namespace ATML
 			for (auto device : devices)
 			{
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				//Since this is used for gradient calculation, we set offset to the entire
 				//filter size
@@ -736,23 +652,6 @@ namespace ATML
 			for (auto device : devices)
 			{
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				//Since this is used for gradient calculation, we set offset to the entire
 				//filter size

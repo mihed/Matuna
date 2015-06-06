@@ -171,7 +171,23 @@ namespace ATML
 
 			InitializeParameters();
 
-			//IF the memory descriptions doesn't contain any padding or offsets, we may use the standard forward prop kernel.
+			//Make sure the type we want to execute is supported on the device.
+			vector<OpenCLDevice*> devices = this->context->GetDevices();
+			for (auto device : devices) {
+				auto deviceInfo = device->DeviceInfo();
+				if (is_same<cl_double, T>::value) {
+					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				} else if (is_same<cl_float, T>::value) {
+					if (deviceInfo.PreferredFloatVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				} else
+					throw runtime_error(
+					"The template argument does not match the supported arguments");
+			}
+
 			//FIXME: A normal perceptron can handle offset in the unit direction, we don't need to fall back onto the image perceptron.
 			if (firstMemory.HeightOffset == 0 && firstMemory.UnitOffset == 0
 				&& firstMemory.WidthOffset == 0 && firstMemory.Width == 1
@@ -204,23 +220,6 @@ namespace ATML
 			for (auto device : devices)
 			{
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				unique_ptr<GradientPerceptronKernel<T>> kernel(
 					new GradientPerceptronKernel<T>(inputDescription.TotalUnits(),
@@ -266,23 +265,6 @@ namespace ATML
 			for (auto device : devices)
 			{
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				unique_ptr<ImageGradientPerceptronKernel<T>> kernel(
 					new ImageGradientPerceptronKernel<T>(
@@ -335,23 +317,6 @@ namespace ATML
 			for (auto device : devices)
 			{
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				unique_ptr<BackPerceptronKernel<T>> kernel(
 					new BackPerceptronKernel<T>(firstOutputData.TotalUnits(),
@@ -412,23 +377,6 @@ namespace ATML
 			for (auto device : devices)
 			{
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				unique_ptr<ImageBackPerceptronKernel<T>> kernel(
 					new ImageBackPerceptronKernel<T>(inForwardDataDesc.Width,
@@ -494,23 +442,6 @@ namespace ATML
 				vector<OpenCLDevice*> oneDeviceVector;
 				oneDeviceVector.push_back(device);
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				if (config.ActivationFunction() == ATMLSoftMaxActivation)
 				{
@@ -634,23 +565,6 @@ namespace ATML
 				vector<OpenCLDevice*> oneDeviceVector;
 				oneDeviceVector.push_back(device);
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				if (config.ActivationFunction() == ATMLSoftMaxActivation)
 				{

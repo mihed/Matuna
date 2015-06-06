@@ -98,6 +98,23 @@ namespace ATML {
 				throw runtime_error(
 				"The inBackProp memory and the inForwardProp memory doesn't correspond");
 
+			//Make sure the type we want to execute is supported on the device.
+			vector<OpenCLDevice*> devices = this->context->GetDevices();
+			for (auto device : devices) {
+				auto deviceInfo = device->DeviceInfo();
+				if (is_same<cl_double, T>::value) {
+					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				} else if (is_same<cl_float, T>::value) {
+					if (deviceInfo.PreferredFloatVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				} else
+					throw runtime_error(
+					"The template argument does not match the supported arguments");
+			}
+
 			if (outBackPropMem.Width != 1 || outBackPropMem.Height != 1)
 			{
 				InitializeImageOutputKernel();
@@ -117,19 +134,6 @@ namespace ATML {
 			vector<OpenCLDevice*> devices = this->context->GetDevices();
 			for (auto device : devices) {
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value) {
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else if (is_same<cl_float, T>::value) {
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				unique_ptr<ErrorKernel<T>> kernel(
 					new ErrorKernel<T>(inputDescription.Units,
@@ -166,19 +170,6 @@ namespace ATML {
 			vector<OpenCLDevice*> devices = this->context->GetDevices();
 			for (auto device : devices) {
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value) {
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else if (is_same<cl_float, T>::value) {
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				unique_ptr<ImageErrorKernel<T>> kernel(
 					new ImageErrorKernel<T>(inForwardPropData.Width, inForwardPropData.Height, inForwardPropData.Units,
@@ -220,21 +211,6 @@ namespace ATML {
 			vector<OpenCLDevice*> devices = this->context->GetDevices();
 			for (auto device : devices) {
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value) {
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value) {
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				unique_ptr<ImageOutputKernel<T>> kernel(
 					new ImageOutputKernel<T>(inForwardPropData.Width, inForwardPropData.Height, inForwardPropData.Units,
@@ -278,19 +254,6 @@ namespace ATML {
 			vector<OpenCLDevice*> devices = this->context->GetDevices();
 			for (auto device : devices) {
 				auto deviceInfo = device->DeviceInfo();
-
-				//Make sure the type we want to execute is supported on the device.
-				if (is_same<cl_double, T>::value) {
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else if (is_same<cl_float, T>::value) {
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
 
 				unique_ptr<OutputKernel<T>> kernel(
 					new OutputKernel<T>(inputDescription.Units,
