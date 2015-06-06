@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -20,7 +20,7 @@ namespace ATML
 		template<class T>
 		ConvolutionLayer<T>::ConvolutionLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
-			ATMLActivationFunction backPropActivation,
+			MatunaActivationFunction backPropActivation,
 			const ConvolutionLayerConfig* config) :
 		OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions,
 			backPropActivation, config), convolutionConfig(*config)
@@ -33,7 +33,7 @@ namespace ATML
 			if (inputLayerDescriptions.size() != 1)
 				throw runtime_error("Not implemented exception");
 
-			if (config->ConnectionType() != ATMLFullConnection)
+			if (config->ConnectionType() != MatunaFullConnection)
 				throw runtime_error("Not implemented exception");
 
 			//FIXME: Since we are not using any optimization at the moment, such as local memory.
@@ -850,4 +850,4 @@ namespace ATML
 		template class ConvolutionLayer<cl_double> ;
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

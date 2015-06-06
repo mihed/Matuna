@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <stdio.h>
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -215,4 +215,4 @@ void OpenCLDevice::ReadMemory(OpenCLMemory* memory, size_t bytes, void* buffer,
 }
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

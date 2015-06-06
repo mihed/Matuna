@@ -7,7 +7,7 @@
 
 #include "OpenCLKernelInfo.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -41,4 +41,4 @@ cl_ulong OpenCLKernelInfo::LocalMemorySize() const
 }
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

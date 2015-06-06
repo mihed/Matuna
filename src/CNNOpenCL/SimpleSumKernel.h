@@ -5,18 +5,18 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNNOPENCL_SIMPLESUMKERNEL_H_
-#define ATML_CNNOPENCL_SIMPLESUMKERNEL_H_
+#ifndef MATUNA_CNNOPENCL_SIMPLESUMKERNEL_H_
+#define MATUNA_CNNOPENCL_SIMPLESUMKERNEL_H_
 
 #include "OpenCLHelper/OpenCLKernelProgram.h"
 #include "OpenCLHelper/OpenCLMemory.h"
 #include <string>
 #include <vector>
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -50,6 +50,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_SIMPLESUMKERNEL_H_ */
+#endif /* MATUNA_CNNOPENCL_SIMPLESUMKERNEL_H_ */

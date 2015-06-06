@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <random>
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -19,7 +19,7 @@ namespace ATML
 		template<class T>
 		PerceptronLayer<T>::PerceptronLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
-			ATMLActivationFunction backPropActivation,
+			MatunaActivationFunction backPropActivation,
 			const PerceptronLayerConfig* config) :
 		OpenCLForwardBackPropLayer<T>(context, inputLayerDescriptions,
 			backPropActivation, config), config(*config)
@@ -29,7 +29,7 @@ namespace ATML
 				throw invalid_argument(
 				"There's no input data descriptions for the perceptron layer.");
 
-			if (config->ConnectionType() != ATMLFullConnection)
+			if (config->ConnectionType() != MatunaFullConnection)
 				throw runtime_error("Not implemented exception");
 
 			//In a perceptron layer, we cannot have multiple input descriptions for the same network
@@ -443,7 +443,7 @@ namespace ATML
 				oneDeviceVector.push_back(device);
 				auto deviceInfo = device->DeviceInfo();
 
-				if (config.ActivationFunction() == ATMLSoftMaxActivation)
+				if (config.ActivationFunction() == MatunaSoftMaxActivation)
 				{
 					unique_ptr<SimpleSumKernel<T>> sumKernel(
 						new SimpleSumKernel<T>(biasCount));
@@ -566,7 +566,7 @@ namespace ATML
 				oneDeviceVector.push_back(device);
 				auto deviceInfo = device->DeviceInfo();
 
-				if (config.ActivationFunction() == ATMLSoftMaxActivation)
+				if (config.ActivationFunction() == MatunaSoftMaxActivation)
 				{
 					unique_ptr<SimpleSumKernel<T>> sumKernel(
 						new SimpleSumKernel<T>(biasCount));
@@ -640,7 +640,7 @@ namespace ATML
 				auto& kernel = deviceAndImageForwardKernels[device];
 				kernel->SetInput(previousInput);
 				kernel->SetOutput(output);
-				if (config.ActivationFunction() == ATMLSoftMaxActivation)
+				if (config.ActivationFunction() == MatunaSoftMaxActivation)
 				{
 					device->ExecuteKernel(kernel.get(), queueIndex, false);
 					auto& sumKernel = deviceAndSimpleSumKernels[device];
@@ -660,7 +660,7 @@ namespace ATML
 				auto& kernel = deviceAndForwardKernels[device];
 				kernel->SetInput(previousInput);
 				kernel->SetOutput(output);
-				if (config.ActivationFunction() == ATMLSoftMaxActivation)
+				if (config.ActivationFunction() == MatunaSoftMaxActivation)
 				{
 					device->ExecuteKernel(kernel.get(), queueIndex, false);
 					auto& sumKernel = deviceAndSimpleSumKernels[device];
@@ -816,4 +816,4 @@ namespace ATML
 		template class PerceptronLayer<cl_double> ;
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

@@ -5,13 +5,13 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_STANDARDOUTPUTLAYERCONFIG_H_
-#define ATML_CNN_STANDARDOUTPUTLAYERCONFIG_H_
+#ifndef MATUNA_CNN_STANDARDOUTPUTLAYERCONFIG_H_
+#define MATUNA_CNN_STANDARDOUTPUTLAYERCONFIG_H_
 
 #include "OutputLayerConfig.h"
-#include "ATMLErrorFunctionEnum.h"
+#include "MatunaErrorFunctionEnum.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -20,19 +20,19 @@ class StandardOutputLayerConfig: public OutputLayerConfig
 {
 
 private:
-	ATMLErrorFunction errorFunction;
+	MatunaErrorFunction errorFunction;
 
 public:
-	StandardOutputLayerConfig(ATMLErrorFunction errorFunction =
-			ATMLMeanSquareError, bool useRelaxedMath = false,
-			ATMLComputationPrecision computationPrecision = ATMLNormalPrecision);
+	StandardOutputLayerConfig(MatunaErrorFunction errorFunction =
+			MatunaMeanSquareError, bool useRelaxedMath = false,
+			MatunaComputationPrecision computationPrecision = MatunaNormalPrecision);
 	~StandardOutputLayerConfig();
 
-	ATMLErrorFunction ErrorFunction() const;
+	MatunaErrorFunction ErrorFunction() const;
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_STANDARDOUTPUTLAYERCONFIG_H_ */
+#endif /* MATUNA_CNN_STANDARDOUTPUTLAYERCONFIG_H_ */

@@ -19,9 +19,9 @@
 #include <type_traits>
 
 using namespace std;
-using namespace ATML::MachineLearning;
-using namespace ATML::Math;
-using namespace ATML::Helper;
+using namespace Matuna::MachineLearning;
+using namespace Matuna::Math;
+using namespace Matuna::Helper;
 
 float SigmoidActivationFloat(float x)
 {
@@ -81,7 +81,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 	INFO("Initializing the CNN config");
 	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
-	ATMLActivationFunction activationFunction;
+	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
 	for (int i = 0; i < layerCount; i++)
 	{
@@ -89,27 +89,27 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 		switch (activation)
 		{
 		case 1:
-			activationFunction = ATMLSigmoidActivation;
+			activationFunction = MatunaSigmoidActivation;
 			break;
 		case 2:
-			activationFunction = ATMLLinearActivation;
+			activationFunction = MatunaLinearActivation;
 			break;
 		case 3:
-			activationFunction = ATMLTanhActivation;
+			activationFunction = MatunaTanhActivation;
 			break;
 		}
 
 		//Simply to avoid overflow when using softmax
 		if (useSoftMax)
-			if (i == (layerCount - 2) && activationFunction == ATMLLinearActivation)
-				activationFunction = ATMLTanhActivation;
+			if (i == (layerCount - 2) && activationFunction == MatunaLinearActivation)
+				activationFunction = MatunaTanhActivation;
 
 		auto temp = dimensionGenerator(mt);
 		if (useSoftMax)
 		{
 			if (i == (layerCount - 1))
 			{
-				activationFunction = ATMLSoftMaxActivation;
+				activationFunction = MatunaSoftMaxActivation;
 				temp = temp > 1 ? temp : 2;
 			}
 		}
@@ -120,7 +120,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 
 	if (useSoftMax)
 	{
-		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig(ATMLCrossEntropy));
+		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig(MatunaCrossEntropy));
 		config->SetOutputConfig(move(outputConfig));
 	}
 	else
@@ -156,7 +156,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfigWithImage(mt19937& mt,
 		filterDimensionGenerator(mt), filterDimensionGenerator(mt)));
 	config->AddToBack(move(convConfig));
 
-	ATMLActivationFunction activationFunction;
+	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
 	for (int i = 0; i < layerCount; i++)
 	{
@@ -164,27 +164,27 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfigWithImage(mt19937& mt,
 		switch (activation)
 		{
 		case 1:
-			activationFunction = ATMLSigmoidActivation;
+			activationFunction = MatunaSigmoidActivation;
 			break;
 		case 2:
-			activationFunction = ATMLLinearActivation;
+			activationFunction = MatunaLinearActivation;
 			break;
 		case 3:
-			activationFunction = ATMLTanhActivation;
+			activationFunction = MatunaTanhActivation;
 			break;
 		}
 
 		//Simply to avoid overflow when using softmax
 		if (useSoftMax)
-			if (i == (layerCount - 2) && activationFunction == ATMLLinearActivation)
-				activationFunction = ATMLTanhActivation;
+			if (i == (layerCount - 2) && activationFunction == MatunaLinearActivation)
+				activationFunction = MatunaTanhActivation;
 
 		auto temp = dimensionGenerator(mt);
 		if (useSoftMax)
 		{
 			if (i == (layerCount - 1))
 			{
-				activationFunction = ATMLSoftMaxActivation;
+				activationFunction = MatunaSoftMaxActivation;
 				temp = temp > 1 ? temp : 2;
 			}
 		}
@@ -195,7 +195,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfigWithImage(mt19937& mt,
 
 	if (useSoftMax)
 	{
-		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig(ATMLCrossEntropy));
+		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig(MatunaCrossEntropy));
 		config->SetOutputConfig(move(outputConfig));
 	}
 	else
@@ -253,7 +253,7 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 
 					vector<Matrix<double>> weights;
 					vector<Matrix<double>> biases;
-					vector<ATMLActivationFunction> activationFunctions;
+					vector<MatunaActivationFunction> activationFunctions;
 					activationFunctions.push_back(convLayer->GetConfig().ActivationFunction());
 
 					LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
@@ -298,11 +298,11 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 							tempResult += inputs[k].Convolve(filter);
 
 						tempResult += convBiases[j];
-						if (convLayer->GetConfig().ActivationFunction() == ATMLSigmoidActivation)
+						if (convLayer->GetConfig().ActivationFunction() == MatunaSigmoidActivation)
 							tempResult.Transform(&SigmoidActivationDouble);
-						else if (convLayer->GetConfig().ActivationFunction() == ATMLTanhActivation)
+						else if (convLayer->GetConfig().ActivationFunction() == MatunaTanhActivation)
 							tempResult.Transform(&TanhActivationDouble);
-						else if (convLayer->GetConfig().ActivationFunction() == ATMLSoftMaxActivation)
+						else if (convLayer->GetConfig().ActivationFunction() == MatunaSoftMaxActivation)
 							throw runtime_error("Invalid activation in the test");
 
 						convOutput.push_back(tempResult);
@@ -321,11 +321,11 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 
 						result = weights[i] * result + biases[i];
 
-						if (activationFunctions[i + 1] == ATMLSigmoidActivation)
+						if (activationFunctions[i + 1] == MatunaSigmoidActivation)
 							result.Transform(&SigmoidActivationDouble);
-						else if (activationFunctions[i + 1] == ATMLTanhActivation)
+						else if (activationFunctions[i + 1] == MatunaTanhActivation)
 							result.Transform(&TanhActivationDouble);
-						else if (activationFunctions[i + 1] == ATMLSoftMaxActivation)
+						else if (activationFunctions[i + 1] == MatunaSoftMaxActivation)
 						{
 							if (i != (weights.size() - 1))
 								throw runtime_error("Not supported by the test");
@@ -375,16 +375,16 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 
 					INFO("Calculating the manually back-propagated network"); //We know that we use softmax here in the last layer.
 					Matrixd perceptronDelta;
-					if (activationFunctions[activationFunctions.size() - 1] == ATMLSoftMaxActivation)
+					if (activationFunctions[activationFunctions.size() - 1] == MatunaSoftMaxActivation)
 						perceptronDelta = result - target;
-					else if (activationFunctions[activationFunctions.size() - 1] == ATMLSigmoidActivation)
+					else if (activationFunctions[activationFunctions.size() - 1] == MatunaSigmoidActivation)
 					{
 						Matrixd temp = result;
 						temp.Transform(&SigmoidActivationDerivativeDouble);
 						perceptronDelta = (result - target) % temp;
 
 					}
-					else if (activationFunctions[activationFunctions.size() - 1] == ATMLTanhActivation)
+					else if (activationFunctions[activationFunctions.size() - 1] == MatunaTanhActivation)
 					{
 						Matrixd temp = result;
 						temp.Transform(&TanhActivationDerivativeDouble);
@@ -401,12 +401,12 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 						auto weight = weights[i].Transpose();
 
 						perceptronDelta = (weight * perceptronDelta);
-						if (activationFunctions[i] == ATMLSigmoidActivation)
+						if (activationFunctions[i] == MatunaSigmoidActivation)
 						{
 							input.Transform(&SigmoidActivationDerivativeDouble);
 							perceptronDelta = perceptronDelta % input;
 						}
-						else if (activationFunctions[i] == ATMLTanhActivation)
+						else if (activationFunctions[i] == MatunaTanhActivation)
 						{
 							input.Transform(&TanhActivationDerivativeDouble);
 							perceptronDelta = perceptronDelta % input;
@@ -476,7 +476,7 @@ SCENARIO("Back propagating a perceptron using Softmax")
 
 					vector<Matrix<double>> weights;
 					vector<Matrix<double>> biases;
-					vector<ATMLActivationFunction> activationFunctions;
+					vector<MatunaActivationFunction> activationFunctions;
 					LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 					LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];
 
@@ -504,11 +504,11 @@ SCENARIO("Back propagating a perceptron using Softmax")
 
 						result = weights[i] * result + biases[i];
 
-						if (activationFunctions[i] == ATMLSigmoidActivation)
+						if (activationFunctions[i] == MatunaSigmoidActivation)
 							result.Transform(&SigmoidActivationDouble);
-						else if (activationFunctions[i] == ATMLTanhActivation)
+						else if (activationFunctions[i] == MatunaTanhActivation)
 							result.Transform(&TanhActivationDouble);
-						else if (activationFunctions[i] == ATMLSoftMaxActivation)
+						else if (activationFunctions[i] == MatunaSoftMaxActivation)
 						{
 							if (i != (weights.size() - 1))
 								throw runtime_error("Not supported by the test");
@@ -553,12 +553,12 @@ SCENARIO("Back propagating a perceptron using Softmax")
 						auto& input = inputs[i];
 						auto weight = weights[i].Transpose();
 						delta = (weight * delta);
-						if (activationFunctions[i - 1] == ATMLSigmoidActivation)
+						if (activationFunctions[i - 1] == MatunaSigmoidActivation)
 						{
 							input.Transform(&SigmoidActivationDerivativeDouble);
 							delta = delta % input;
 						}
-						else if (activationFunctions[i - 1] == ATMLTanhActivation)
+						else if (activationFunctions[i - 1] == MatunaTanhActivation)
 						{
 							input.Transform(&TanhActivationDerivativeDouble);
 							delta = delta % input;
@@ -619,7 +619,7 @@ SCENARIO("Back propagating a perceptron using MSE")
 
 					vector<Matrix<double>> weights;
 					vector<Matrix<double>> biases;
-					vector<ATMLActivationFunction> activationFunctions;
+					vector<MatunaActivationFunction> activationFunctions;
 					LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 					LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];
 
@@ -646,11 +646,11 @@ SCENARIO("Back propagating a perceptron using MSE")
 
 						result = weights[i] * result + biases[i];
 
-						if (activationFunctions[i] == ATMLSigmoidActivation)
+						if (activationFunctions[i] == MatunaSigmoidActivation)
 							result.Transform(&SigmoidActivationDouble);
-						else if (activationFunctions[i] == ATMLTanhActivation)
+						else if (activationFunctions[i] == MatunaTanhActivation)
 							result.Transform(&TanhActivationDouble);
-						else if (activationFunctions[i] == ATMLSoftMaxActivation)
+						else if (activationFunctions[i] == MatunaSoftMaxActivation)
 							throw runtime_error("Invalid activation in the test");
 
 						inputs.push_back(result);
@@ -683,12 +683,12 @@ SCENARIO("Back propagating a perceptron using MSE")
 					INFO("Calculating the manually back-propagated network");
 					auto delta = result - target;
 
-					if (activationFunctions[activationFunctions.size() - 1] == ATMLSigmoidActivation)
+					if (activationFunctions[activationFunctions.size() - 1] == MatunaSigmoidActivation)
 					{
 						result.Transform(&SigmoidActivationDerivativeFloat);
 						delta = delta % result;
 					}
-					else if (activationFunctions[activationFunctions.size() - 1] == ATMLTanhActivation)
+					else if (activationFunctions[activationFunctions.size() - 1] == MatunaTanhActivation)
 					{
 						result.Transform(&TanhActivationDerivativeFloat);
 						delta = delta % result;
@@ -699,12 +699,12 @@ SCENARIO("Back propagating a perceptron using MSE")
 						auto& input = inputs[i];
 						auto weight = weights[i].Transpose();
 						delta = (weight * delta);
-						if (activationFunctions[i - 1] == ATMLSigmoidActivation)
+						if (activationFunctions[i - 1] == MatunaSigmoidActivation)
 						{
 							input.Transform(&SigmoidActivationDerivativeDouble);
 							delta = delta % input;
 						}
-						else if (activationFunctions[i - 1] == ATMLTanhActivation)
+						else if (activationFunctions[i - 1] == MatunaTanhActivation)
 						{
 							input.Transform(&TanhActivationDerivativeDouble);
 							delta = delta % input;

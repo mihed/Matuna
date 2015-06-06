@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <type_traits>
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -813,4 +813,4 @@ namespace ATML
 		template class CNNOpenCL<cl_double> ;
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

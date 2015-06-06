@@ -10,14 +10,14 @@
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
 
 OutputLayer::OutputLayer(
 		const vector<LayerDataDescription>& inputLayerDescriptions,
-		ATMLActivationFunction backPropActivation,
+		MatunaActivationFunction backPropActivation,
 		const OutputLayerConfig* outputLayerConfig) :
 		BackPropLayer(inputLayerDescriptions, backPropActivation)
 {
@@ -30,4 +30,4 @@ OutputLayer::~OutputLayer()
 }
 }
 /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

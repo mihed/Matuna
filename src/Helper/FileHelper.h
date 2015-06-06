@@ -5,14 +5,14 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_HELPER_FILEHELPER_H_
-#define ATML_HELPER_FILEHELPER_H_
+#ifndef MATUNA_HELPER_FILEHELPER_H_
+#define MATUNA_HELPER_FILEHELPER_H_
 
 #include <string>
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -26,6 +26,6 @@ public:
 };
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_HELPER_FILEHELPER_H_ */
+#endif /* MATUNA_HELPER_FILEHELPER_H_ */

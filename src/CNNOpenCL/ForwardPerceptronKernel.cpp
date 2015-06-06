@@ -12,7 +12,7 @@
 #include <sstream>
 #include <type_traits>
 
-namespace ATML {
+namespace Matuna {
 namespace MachineLearning {
 
 template<class T>
@@ -30,8 +30,8 @@ ForwardPerceptronKernel<T>::ForwardPerceptronKernel(int inputUnitsCount,
 	useConstantInput = false;
 	useConstantBiases = false;
 	useRelaxedMath = false;
-	activationFunction = ATMLSigmoidActivation;
-	computationPrecision = ATMLNormalPrecision;
+	activationFunction = MatunaSigmoidActivation;
+	computationPrecision = MatunaNormalPrecision;
 	biases = nullptr;
 	weights = nullptr;
 
@@ -74,16 +74,16 @@ void ForwardPerceptronKernel<T>::InitializeCompilerOptions() {
 		throw runtime_error(
 				"The template type is not valid. This is an indication of programming error");
 
-	if (activationFunction == ATMLSigmoidActivation)
+	if (activationFunction == MatunaSigmoidActivation)
 		stringStream << "-D" << "SIGMOID ";
-	else if (activationFunction == ATMLTanhActivation)
+	else if (activationFunction == MatunaTanhActivation)
 		stringStream << "-D" << "TANH ";
-	else if (activationFunction == ATMLSoftMaxActivation)
+	else if (activationFunction == MatunaSoftMaxActivation)
 		stringStream << "-D" << "SOFTMAX ";
 
-	if (computationPrecision == ATMLNativePrecision)
+	if (computationPrecision == MatunaNativePrecision)
 		stringStream << "-D" << "NATIVE_MATH ";
-	else if (computationPrecision == ATMLHalfPrecision)
+	else if (computationPrecision == MatunaHalfPrecision)
 		stringStream << "-D" << "HALF_MATH ";
 
 	if (useRelaxedMath)
@@ -140,13 +140,13 @@ void ForwardPerceptronKernel<T>::SetUseConstantBiases(bool value) {
 
 template<class T>
 void ForwardPerceptronKernel<T>::SetActivationFunction(
-		ATMLActivationFunction activationFunction) {
+		MatunaActivationFunction activationFunction) {
 	this->activationFunction = activationFunction;
 }
 
 template<class T>
 void ForwardPerceptronKernel<T>::SetComputationPrecision(
-		ATMLComputationPrecision computationPrecision) {
+		MatunaComputationPrecision computationPrecision) {
 	this->computationPrecision = computationPrecision;
 }
 
@@ -191,4 +191,4 @@ template class ForwardPerceptronKernel<cl_float> ;
 template class ForwardPerceptronKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

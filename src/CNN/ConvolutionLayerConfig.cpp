@@ -7,15 +7,15 @@
 
 #include "ConvolutionLayerConfig.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
 
 ConvolutionLayerConfig::ConvolutionLayerConfig(int filterCount, int filterWidth,
-		int filterHeight, ATMLActivationFunction activationFunction,
-		ATMLConnectionType connectionType, bool useRelaxedMath,
-		ATMLComputationPrecision computationPrecision) :
+		int filterHeight, MatunaActivationFunction activationFunction,
+		MatunaConnectionType connectionType, bool useRelaxedMath,
+		MatunaComputationPrecision computationPrecision) :
 		ForwardBackPropLayerConfig(useRelaxedMath, computationPrecision), filterCount(
 				filterCount), filterWidth(filterWidth), filterHeight(
 				filterHeight), activationFunction(activationFunction), connectionType(
@@ -44,12 +44,12 @@ int ConvolutionLayerConfig::FilterWidth() const
 	return filterWidth;
 }
 
-ATMLActivationFunction ConvolutionLayerConfig::ActivationFunction() const
+MatunaActivationFunction ConvolutionLayerConfig::ActivationFunction() const
 {
 	return activationFunction;
 }
 
-ATMLConnectionType ConvolutionLayerConfig::ConnectionType() const
+MatunaConnectionType ConvolutionLayerConfig::ConnectionType() const
 {
 	return connectionType;
 }
@@ -60,4 +60,4 @@ void ConvolutionLayerConfig::Accept(ILayerConfigVisitor* visitor)
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

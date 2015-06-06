@@ -8,7 +8,7 @@
 #include "CNNConfig.h"
 #include "ILayerConfigVisitor.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -86,4 +86,4 @@ void CNNConfig::Accept(ILayerConfigVisitor* visitor)
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

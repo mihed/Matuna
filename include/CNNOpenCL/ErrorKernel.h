@@ -5,20 +5,20 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNNOPENCL_ERRORKERNEL_H_
-#define ATML_CNNOPENCL_ERRORKERNEL_H_
+#ifndef MATUNA_CNNOPENCL_ERRORKERNEL_H_
+#define MATUNA_CNNOPENCL_ERRORKERNEL_H_
 
 #include "OpenCLHelper/OpenCLKernelProgram.h"
 #include "OpenCLHelper/OpenCLMemory.h"
-#include "CNN/ATMLComputationPrecision.h"
-#include "CNN/ATMLErrorFunctionEnum.h"
+#include "CNN/MatunaComputationPrecision.h"
+#include "CNN/MatunaErrorFunctionEnum.h"
 #include <string>
 #include <vector>
 
 using namespace std;
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -35,8 +35,8 @@ private:
 	bool useRelaxedMath;
 	bool useConstantInput;
 	bool useConstantTarget;
-	ATMLErrorFunction errorFunction;
-	ATMLComputationPrecision computationPrecision;
+	MatunaErrorFunction errorFunction;
+	MatunaComputationPrecision computationPrecision;
 	int units; 
 	int unitOffset;
 public:
@@ -46,8 +46,8 @@ public:
 	void SetConstantInput(bool value);
 	void SetConstantTarget(bool value);
 	void SetUseRelaxedMath(bool value);
-	void SetErrorFunction(ATMLErrorFunction errorFunction);
-	void SetComputationPrecision(ATMLComputationPrecision computationPrecision);
+	void SetErrorFunction(MatunaErrorFunction errorFunction);
+	void SetComputationPrecision(MatunaComputationPrecision computationPrecision);
 
 	//Changed for every execution
 	void SetInput(OpenCLMemory* input);
@@ -67,6 +67,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_ERRORKERNEL_H_ */
+#endif /* MATUNA_CNNOPENCL_ERRORKERNEL_H_ */

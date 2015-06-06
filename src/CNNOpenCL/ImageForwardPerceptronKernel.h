@@ -5,18 +5,18 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNNOPENCL_IMAGEFORWARDPERCEPTRONKERNEL_H_
-#define ATML_CNNOPENCL_IMAGEFORWARDPERCEPTRONKERNEL_H_
+#ifndef MATUNA_CNNOPENCL_IMAGEFORWARDPERCEPTRONKERNEL_H_
+#define MATUNA_CNNOPENCL_IMAGEFORWARDPERCEPTRONKERNEL_H_
 
 #include "OpenCLHelper/OpenCLKernelProgram.h"
 #include "OpenCLHelper/OpenCLMemory.h"
-#include "CNN/ATMLActivationFunctionEnum.h"
-#include "CNN/ATMLComputationPrecision.h"
+#include "CNN/MatunaActivationFunctionEnum.h"
+#include "CNN/MatunaComputationPrecision.h"
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -36,8 +36,8 @@ private:
 	bool useConstantBiases;
 	bool useRelaxedMath;
 
-	ATMLActivationFunction activationFunction;
-	ATMLComputationPrecision computationPrecision;
+	MatunaActivationFunction activationFunction;
+	MatunaComputationPrecision computationPrecision;
 
 	int globalUnits;
 	int inputDataUnits;
@@ -62,8 +62,8 @@ public:
 	void SetUseConstantInput(bool value);
 	void SetUseConstantBiases(bool value);
 	void SetUseRelaxedMath(bool value);
-	void SetActivationFunction(ATMLActivationFunction activationFunction);
-	void SetComputationPrecision(ATMLComputationPrecision computationPrecision);
+	void SetActivationFunction(MatunaActivationFunction activationFunction);
+	void SetComputationPrecision(MatunaComputationPrecision computationPrecision);
 	void SetWeights(OpenCLMemory* weights);
 	void SetBiases(OpenCLMemory* biases);
 
@@ -84,6 +84,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_IMAGEFORWARDPERCEPTRONKERNEL_H_ */
+#endif /* MATUNA_CNNOPENCL_IMAGEFORWARDPERCEPTRONKERNEL_H_ */

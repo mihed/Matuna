@@ -5,14 +5,14 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_OUTPUTLAYER_H_
-#define ATML_CNN_OUTPUTLAYER_H_
+#ifndef MATUNA_CNN_OUTPUTLAYER_H_
+#define MATUNA_CNN_OUTPUTLAYER_H_
 
 #include "BackPropLayer.h"
 #include "LayerDescriptions.h"
 #include "OutputLayerConfig.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -21,12 +21,12 @@ class OutputLayer: public BackPropLayer
 {
 public:
 	OutputLayer(const vector<LayerDataDescription>& inputLayerDescriptions,
-			ATMLActivationFunction backPropActivation,
+			MatunaActivationFunction backPropActivation,
 			const OutputLayerConfig* outputLayerConfig);
 	virtual ~OutputLayer();
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_OUTPUTLAYER_H_ */
+#endif /* MATUNA_CNN_OUTPUTLAYER_H_ */

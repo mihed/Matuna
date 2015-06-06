@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <random>
 
-namespace ATML
+namespace Matuna
 {
 namespace Math
 {
@@ -754,4 +754,4 @@ template class Matrix<double> ;
 template class Matrix<long double> ;
 
 } /* namespace Math */
-} /* namespace ATML */
+} /* namespace Matuna */

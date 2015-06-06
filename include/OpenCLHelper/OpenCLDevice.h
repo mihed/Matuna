@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_OPENCLHELPER_OPENCLDEVICE_H_
-#define ATML_OPENCLHELPER_OPENCLDEVICE_H_
+#ifndef MATUNA_OPENCLHELPER_OPENCLDEVICE_H_
+#define MATUNA_OPENCLHELPER_OPENCLDEVICE_H_
 
 #include "OpenCLInclude.h"
 #include <unordered_map>
@@ -22,7 +22,7 @@
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -127,6 +127,6 @@ final
 
 	}
 	/* namespace Helper */
-	} /* namespace ATML */
+	} /* namespace Matuna */
 
-#endif /* ATML_OPENCLHELPER_OPENCLDEVICE_H_ */
+#endif /* MATUNA_OPENCLHELPER_OPENCLDEVICE_H_ */

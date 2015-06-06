@@ -7,15 +7,15 @@
 
 #include "PerceptronLayerConfig.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
 
 PerceptronLayerConfig::PerceptronLayerConfig(int units,
-		ATMLActivationFunction activationFunction,
-		ATMLConnectionType connectionType, bool useRelaxedMath,
-		ATMLComputationPrecision computationPrecision) :
+		MatunaActivationFunction activationFunction,
+		MatunaConnectionType connectionType, bool useRelaxedMath,
+		MatunaComputationPrecision computationPrecision) :
 		ForwardBackPropLayerConfig(useRelaxedMath, computationPrecision), units(
 				units), activationFunction(activationFunction), connectionType(
 				connectionType)
@@ -34,12 +34,12 @@ int PerceptronLayerConfig::Units() const
 	return units;
 }
 
-ATMLActivationFunction PerceptronLayerConfig::ActivationFunction() const
+MatunaActivationFunction PerceptronLayerConfig::ActivationFunction() const
 {
 	return activationFunction;
 }
 
-ATMLConnectionType PerceptronLayerConfig::ConnectionType() const
+MatunaConnectionType PerceptronLayerConfig::ConnectionType() const
 {
 	return connectionType;
 }
@@ -50,4 +50,4 @@ void PerceptronLayerConfig::Accept(ILayerConfigVisitor* visitor)
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

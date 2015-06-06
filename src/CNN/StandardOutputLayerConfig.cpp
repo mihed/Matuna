@@ -7,14 +7,14 @@
 
 #include "StandardOutputLayerConfig.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
 
 StandardOutputLayerConfig::StandardOutputLayerConfig(
-		ATMLErrorFunction errorFunction, bool useRelaxedMath,
-		ATMLComputationPrecision computationPrecision) :
+		MatunaErrorFunction errorFunction, bool useRelaxedMath,
+		MatunaComputationPrecision computationPrecision) :
 		OutputLayerConfig(useRelaxedMath, computationPrecision), errorFunction(
 				errorFunction)
 {
@@ -26,7 +26,7 @@ StandardOutputLayerConfig::~StandardOutputLayerConfig()
 
 }
 
-ATMLErrorFunction StandardOutputLayerConfig::ErrorFunction() const
+MatunaErrorFunction StandardOutputLayerConfig::ErrorFunction() const
 {
 	return errorFunction;
 }
@@ -37,4 +37,4 @@ void StandardOutputLayerConfig::Accept(ILayerConfigVisitor* visitor)
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

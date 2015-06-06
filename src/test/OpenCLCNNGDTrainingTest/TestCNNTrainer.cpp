@@ -10,7 +10,7 @@
 #include <string>
 #include <iostream>
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -88,4 +88,4 @@ namespace ATML
 		template class TestCNNTrainer<cl_double>;
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

@@ -5,14 +5,14 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_OPENCLHELPER_OPENCLKERNELPROGRAM_H_
-#define ATML_OPENCLHELPER_OPENCLKERNELPROGRAM_H_
+#ifndef MATUNA_OPENCLHELPER_OPENCLKERNELPROGRAM_H_
+#define MATUNA_OPENCLHELPER_OPENCLKERNELPROGRAM_H_
 
 #include "OpenCLKernel.h"
 #include <string>
 #include <vector>
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -27,6 +27,6 @@ public:
 };
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_OPENCLHELPER_OPENCLKERNELPROGRAM_H_ */
+#endif /* MATUNA_OPENCLHELPER_OPENCLKERNELPROGRAM_H_ */

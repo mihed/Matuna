@@ -19,9 +19,9 @@
 #include <type_traits>
 
 using namespace std;
-using namespace ATML::MachineLearning;
-using namespace ATML::Math;
-using namespace ATML::Helper;
+using namespace Matuna::MachineLearning;
+using namespace Matuna::Math;
+using namespace Matuna::Helper;
 
 unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
 											uniform_int_distribution<int>& perceptronLayerGenerator,
@@ -44,7 +44,7 @@ unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
 	INFO("Initializing the CNN config");
 	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
-	ATMLActivationFunction activationFunction;
+	MatunaActivationFunction activationFunction;
 
 	for (int i = 0; i < convolutionLayerCount; i++)
 	{
@@ -52,13 +52,13 @@ unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
 		switch (activation)
 		{
 		case 1:
-			activationFunction = ATMLSigmoidActivation;
+			activationFunction = MatunaSigmoidActivation;
 			break;
 		case 2:
-			activationFunction = ATMLLinearActivation;
+			activationFunction = MatunaLinearActivation;
 			break;
 		case 3:
-			activationFunction = ATMLTanhActivation;
+			activationFunction = MatunaTanhActivation;
 			break;
 		}
 
@@ -77,28 +77,28 @@ unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
 		switch (activation)
 		{
 		case 1:
-			activationFunction = ATMLSigmoidActivation;
+			activationFunction = MatunaSigmoidActivation;
 			break;
 		case 2:
-			activationFunction = ATMLLinearActivation;
+			activationFunction = MatunaLinearActivation;
 			break;
 		case 3:
-			activationFunction = ATMLTanhActivation;
+			activationFunction = MatunaTanhActivation;
 			break;
 		}
 
 		//Simply to avoid overflow when using softmax
 		if (useSoftMax)
 			if (i == (perceptronLayerCount - 2)
-				&& activationFunction == ATMLLinearActivation)
-				activationFunction = ATMLTanhActivation;
+				&& activationFunction == MatunaLinearActivation)
+				activationFunction = MatunaTanhActivation;
 
 		auto temp = dimensionGenerator(mt);
 		if (useSoftMax)
 		{
 			if (i == (perceptronLayerCount - 1))
 			{
-				activationFunction = ATMLSoftMaxActivation;
+				activationFunction = MatunaSoftMaxActivation;
 				temp = temp > 1 ? temp : 2;
 			}
 		}
@@ -111,7 +111,7 @@ unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
 	if (useSoftMax)
 	{
 		unique_ptr<StandardOutputLayerConfig> outputConfig(
-			new StandardOutputLayerConfig(ATMLCrossEntropy));
+			new StandardOutputLayerConfig(MatunaCrossEntropy));
 		config->SetOutputConfig(move(outputConfig));
 	}
 	else

@@ -5,14 +5,14 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_CONVOLUTIONLAYERCONFIG_H_
-#define ATML_CNN_CONVOLUTIONLAYERCONFIG_H_
+#ifndef MATUNA_CNN_CONVOLUTIONLAYERCONFIG_H_
+#define MATUNA_CNN_CONVOLUTIONLAYERCONFIG_H_
 
 #include "ForwardBackPropLayerConfig.h"
-#include "ATMLConnectionTypeEnum.h"
-#include "ATMLActivationFunctionEnum.h"
+#include "MatunaConnectionTypeEnum.h"
+#include "MatunaActivationFunctionEnum.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -20,18 +20,18 @@ namespace MachineLearning
 class ConvolutionLayerConfig: public ForwardBackPropLayerConfig
 {
 private:
-	ATMLActivationFunction activationFunction;
-	ATMLConnectionType connectionType;
+	MatunaActivationFunction activationFunction;
+	MatunaConnectionType connectionType;
 	int filterCount;
 	int filterWidth;
 	int filterHeight;
 
 public:
 	ConvolutionLayerConfig(int filterCount, int filterWidth, int filterHeight,
-			ATMLActivationFunction activationFunction = ATMLSigmoidActivation,
-			ATMLConnectionType connectionType = ATMLFullConnection,
+			MatunaActivationFunction activationFunction = MatunaSigmoidActivation,
+			MatunaConnectionType connectionType = MatunaFullConnection,
 			bool useRelaxedMath = false,
-			ATMLComputationPrecision computationPrecision = ATMLNormalPrecision);
+			MatunaComputationPrecision computationPrecision = MatunaNormalPrecision);
 	virtual ~ConvolutionLayerConfig();
 
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
@@ -39,11 +39,11 @@ public:
 	int FilterCount() const;
 	int FilterHeight() const;
 	int FilterWidth() const;
-	ATMLActivationFunction ActivationFunction() const;
-	ATMLConnectionType ConnectionType() const;
+	MatunaActivationFunction ActivationFunction() const;
+	MatunaConnectionType ConnectionType() const;
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_CONVOLUTIONLAYERCONFIG_H_ */
+#endif /* MATUNA_CNN_CONVOLUTIONLAYERCONFIG_H_ */

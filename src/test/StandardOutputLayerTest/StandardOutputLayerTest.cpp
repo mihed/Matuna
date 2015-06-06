@@ -19,9 +19,9 @@
 #include <type_traits>
 
 using namespace std;
-using namespace ATML::MachineLearning;
-using namespace ATML::Helper;
-using namespace ATML::Math;
+using namespace Matuna::MachineLearning;
+using namespace Matuna::Helper;
+using namespace Matuna::Math;
 
 SCENARIO("Creating a CNN with an standard output layer")
 {
@@ -121,7 +121,7 @@ SCENARIO("Creating a CNN with an standard output layer")
 			{
 				for (auto& deviceInfo : deviceInfos)
 				{
-					unique_ptr<OutputLayerConfig> outputLayerConfig(new StandardOutputLayerConfig(ATMLMeanSquareError, true));
+					unique_ptr<OutputLayerConfig> outputLayerConfig(new StandardOutputLayerConfig(MatunaMeanSquareError, true));
 					LayerDataDescription inputDescription;
 					inputDescription.Height = 1;
 					inputDescription.Width = 1;

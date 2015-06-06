@@ -5,19 +5,19 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_CNNFACTORYVISITOR_H_
-#define ATML_CNN_CNNFACTORYVISITOR_H_
+#ifndef MATUNA_CNN_CNNFACTORYVISITOR_H_
+#define MATUNA_CNN_CNNFACTORYVISITOR_H_
 
 #include "ILayerConfigVisitor.h"
 #include "ForwardBackPropLayer.h"
-#include "ATMLActivationFunctionEnum.h"
+#include "MatunaActivationFunctionEnum.h"
 #include "OutputLayer.h"
 #include <vector>
 #include <memory>
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -42,7 +42,7 @@ protected:
 	vector<LayerDataDescription> inputDataDescriptions;
 	vector<LayerMemoryDescription> forwardInputProposals;
 	vector<LayerMemoryDescription> backOutputProposals;
-	ATMLActivationFunction backPropActivation;
+	MatunaActivationFunction backPropActivation;
 
 	void InterlockAndAddLayer(const PerceptronLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer);
 	void InterlockAndAddLayer(const ConvolutionLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer);
@@ -58,6 +58,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_CNNFACTORYVISITOR_H_ */
+#endif /* MATUNA_CNN_CNNFACTORYVISITOR_H_ */

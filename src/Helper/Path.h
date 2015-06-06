@@ -5,15 +5,15 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_HELPER_PATH_H_
-#define ATML_HELPER_PATH_H_
+#ifndef MATUNA_HELPER_PATH_H_
+#define MATUNA_HELPER_PATH_H_
 
 #include <string>
 #include <vector>
 
 using namespace std;
 
-namespace ATML {
+namespace Matuna {
 namespace Helper {
 
 class Path {
@@ -27,6 +27,6 @@ public:
 };
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_HELPER_PATH_H_ */
+#endif /* MATUNA_HELPER_PATH_H_ */

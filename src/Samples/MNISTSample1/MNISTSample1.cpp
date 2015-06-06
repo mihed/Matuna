@@ -22,9 +22,9 @@
 #include <string>
 
 using namespace std;
-using namespace ATML::MachineLearning;
-using namespace ATML::Math;
-using namespace ATML::Helper;
+using namespace Matuna::MachineLearning;
+using namespace Matuna::Math;
+using namespace Matuna::Helper;
 
 template<class T> 
 class TestCNNTrainer: public CNNTrainer<T>
@@ -171,11 +171,11 @@ int main(int argc, char* argv[])
 	vector<OpenCLDeviceInfo> deviceInfos;
 	deviceInfos.push_back(deviceInfo);
 
-	unique_ptr<ConvolutionLayerConfig> convLayerConfig1(new ConvolutionLayerConfig(16, 8, 8, ATMLTanhActivation));
-	unique_ptr<ConvolutionLayerConfig> convLayerConfig2(new ConvolutionLayerConfig(32, 4, 4, ATMLTanhActivation));
-	unique_ptr<PerceptronLayerConfig> perceptronConfig1(new PerceptronLayerConfig(64, ATMLTanhActivation));
-	unique_ptr<PerceptronLayerConfig> perceptronConfig2(new PerceptronLayerConfig(10, ATMLSoftMaxActivation));
-	unique_ptr<StandardOutputLayerConfig> outputLayerConfig(new StandardOutputLayerConfig(ATMLCrossEntropy));
+	unique_ptr<ConvolutionLayerConfig> convLayerConfig1(new ConvolutionLayerConfig(16, 8, 8, MatunaTanhActivation));
+	unique_ptr<ConvolutionLayerConfig> convLayerConfig2(new ConvolutionLayerConfig(32, 4, 4, MatunaTanhActivation));
+	unique_ptr<PerceptronLayerConfig> perceptronConfig1(new PerceptronLayerConfig(64, MatunaTanhActivation));
+	unique_ptr<PerceptronLayerConfig> perceptronConfig2(new PerceptronLayerConfig(10, MatunaSoftMaxActivation));
+	unique_ptr<StandardOutputLayerConfig> outputLayerConfig(new StandardOutputLayerConfig(MatunaCrossEntropy));
 	config->AddToBack(move(convLayerConfig1));
 	config->AddToBack(move(convLayerConfig2));
 	config->AddToBack(move(perceptronConfig1));

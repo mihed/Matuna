@@ -9,7 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace ATML {
+namespace Matuna {
 	namespace Helper {
 
 		OpenCLDeviceInfo::OpenCLDeviceInfo(
@@ -220,4 +220,4 @@ namespace ATML {
 		}
 
 	} /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

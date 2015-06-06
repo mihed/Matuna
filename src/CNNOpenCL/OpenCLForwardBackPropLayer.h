@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef ATML_CNNOPENCL_OPENCLFORWARDBACKPROPLAYER_H_
-#define ATML_CNNOPENCL_OPENCLFORWARDBACKPROPLAYER_H_
+#ifndef MATUNA_CNNOPENCL_OPENCLFORWARDBACKPROPLAYER_H_
+#define MATUNA_CNNOPENCL_OPENCLFORWARDBACKPROPLAYER_H_
 
 #include "CNN/ForwardBackPropLayer.h"
 #include "OpenCLHelper/OpenCLContext.h"
@@ -15,10 +15,10 @@
 #include <tuple>
 #include <vector>
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -32,7 +32,7 @@ namespace ATML
 		public:
 			OpenCLForwardBackPropLayer(shared_ptr<OpenCLContext> context,
 				const vector<LayerDataDescription>& inputLayerDescriptions,
-				ATMLActivationFunction backPropActivation,
+				MatunaActivationFunction backPropActivation,
 				const ForwardBackPropLayerConfig* config);
 			virtual ~OpenCLForwardBackPropLayer();
 
@@ -65,6 +65,6 @@ namespace ATML
 		};
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_OPENCLFORWARDBACKPROPLAYER_H_ */
+#endif /* MATUNA_CNNOPENCL_OPENCLFORWARDBACKPROPLAYER_H_ */

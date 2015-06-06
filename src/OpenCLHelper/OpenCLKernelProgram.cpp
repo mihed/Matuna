@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -29,4 +29,4 @@ OpenCLKernelProgram::~OpenCLKernelProgram()
 }
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

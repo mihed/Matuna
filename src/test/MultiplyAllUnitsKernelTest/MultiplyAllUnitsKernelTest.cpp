@@ -14,9 +14,9 @@
 #include <random>
 #include <type_traits>
 
-using namespace ATML::Helper;
-using namespace ATML::Math;
-using namespace ATML::MachineLearning;
+using namespace Matuna::Helper;
+using namespace Matuna::Math;
+using namespace Matuna::MachineLearning;
 
 float SigmoidActivationDerivativeFloat(float x)
 {
@@ -66,17 +66,17 @@ SCENARIO("Multiplying all the inputs with a single unit")
 					int units = unitGenerator(mt);
 
 					int activation = activationGenerator(mt);
-					ATMLActivationFunction activationFunction;
+					MatunaActivationFunction activationFunction;
 					switch (activation)
 					{
 					case 1:
-						activationFunction = ATMLSigmoidActivation;
+						activationFunction = MatunaSigmoidActivation;
 						break;
 					case 2:
-						activationFunction = ATMLLinearActivation;
+						activationFunction = MatunaLinearActivation;
 						break;
 					case 3:
-						activationFunction = ATMLTanhActivation;
+						activationFunction = MatunaTanhActivation;
 						break;
 					}
 
@@ -130,15 +130,15 @@ SCENARIO("Multiplying all the inputs with a single unit")
 						auto temp = inputMatrices[i].GetSubMatrix(inputHeightOffset, inputWidthOffset, height, width);
 						switch (activationFunction)
 						{
-						case ATMLSigmoidActivation:
+						case MatunaSigmoidActivation:
 							temp.Transform(&SigmoidActivationDerivativeFloat);
 							break;
-						case ATMLTanhActivation:
+						case MatunaTanhActivation:
 							temp.Transform(&TanhActivationDerivativeFloat);
 							break;
 						}
 
-						if (activationFunction != ATMLLinearActivation)
+						if (activationFunction != MatunaLinearActivation)
 							manualResults.push_back(temp %
 							inputDeltaMatrix.GetSubMatrix(inputDeltaHeightOffset, inputDeltaWidthOffset, height, width));
 						else

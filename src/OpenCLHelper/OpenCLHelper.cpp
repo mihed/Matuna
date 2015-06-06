@@ -9,7 +9,7 @@
 #include "OpenCLUtility.h"
 #include <stdexcept>
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -355,4 +355,4 @@ unique_ptr<OpenCLContext> OpenCLHelper::GetContext(const OpenCLPlatformInfo& pla
 }
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

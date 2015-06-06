@@ -10,7 +10,7 @@
 #include "TestKernel.h"
 #include <memory>
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 
 SCENARIO("Acquiring memory, writing memory, reading memory", "[OpenCLMemory][OpenCLDevice][OpenCLHelper]")
 {

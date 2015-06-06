@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_MATH_MATRIX_H_
-#define ATML_MATH_MATRIX_H_
+#ifndef MATUNA_MATH_MATRIX_H_
+#define MATUNA_MATH_MATRIX_H_
 
 #include <memory>
 #include <string>
@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace Math
 {
@@ -144,6 +144,6 @@ typedef Matrix<double> Matrixd;
 typedef Matrix<long double> Matrixld;
 
 } /* namespace Math */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_MATH_MATRIX_H_ */
+#endif /* MATUNA_MATH_MATRIX_H_ */

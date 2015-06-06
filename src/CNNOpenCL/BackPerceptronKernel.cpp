@@ -10,7 +10,7 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML {
+namespace Matuna {
 namespace MachineLearning {
 
 template<class T>
@@ -24,7 +24,7 @@ BackPerceptronKernel<T>::BackPerceptronKernel(int inputUnits, int outputUnits,
 	useConstantDeltaInput = false;
 	useConstantWeights = false;
 	kernelName = "BackPerceptronKernel";
-	activationFunction = ATMLLinearActivation;
+	activationFunction = MatunaLinearActivation;
 	weights = nullptr;
 	stringstream stringStream;
 
@@ -62,7 +62,7 @@ void BackPerceptronKernel<T>::SetUseRelaxedMath(bool value) {
 
 template<class T>
 void BackPerceptronKernel<T>::SetActivationFunction(
-		ATMLActivationFunction activationFunction) {
+		MatunaActivationFunction activationFunction) {
 	this->activationFunction = activationFunction;
 }
 
@@ -126,9 +126,9 @@ void BackPerceptronKernel<T>::InitializeCompilerOptions() {
 		throw runtime_error(
 				"The template type is not valid. This is an indication of programming error");
 
-	if (activationFunction == ATMLSigmoidActivation)
+	if (activationFunction == MatunaSigmoidActivation)
 		stringStream << "-D" << "SIGMOID ";
-	else if (activationFunction == ATMLTanhActivation)
+	else if (activationFunction == MatunaTanhActivation)
 		stringStream << "-D" << "TANH ";
 
 	if (useRelaxedMath)
@@ -178,4 +178,4 @@ template class BackPerceptronKernel<cl_float> ;
 template class BackPerceptronKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

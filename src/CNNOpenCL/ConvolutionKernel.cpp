@@ -10,7 +10,7 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -44,8 +44,8 @@ ConvolutionKernel<T>::ConvolutionKernel(int dataOutputUnits,
 	useConstantBias = false;
 	useRelaxedMath = false;
 
-	activation = ATMLSigmoidActivation;
-	precision = ATMLNormalPrecision;
+	activation = MatunaSigmoidActivation;
+	precision = MatunaNormalPrecision;
 
 	globalWorkSize.push_back(dataOutputWidth);
 	globalWorkSize.push_back(dataOutputHeight);
@@ -92,14 +92,14 @@ void ConvolutionKernel<T>::InitializeCompilerOptions()
 		throw runtime_error(
 		"The template type is not valid. This is an indication of programming error");
 
-	if (activation == ATMLSigmoidActivation)
+	if (activation == MatunaSigmoidActivation)
 		stringStream << "-D" << "SIGMOID ";
-	else if (activation == ATMLTanhActivation)
+	else if (activation == MatunaTanhActivation)
 		stringStream << "-D" << "TANH ";
 
-	if (precision == ATMLNativePrecision)
+	if (precision == MatunaNativePrecision)
 		stringStream << "-D" << "NATIVE_MATH ";
-	else if (precision == ATMLHalfPrecision)
+	else if (precision == MatunaHalfPrecision)
 		stringStream << "-D" << "HALF_MATH ";
 
 	if (useRelaxedMath)
@@ -187,14 +187,14 @@ void ConvolutionKernel<T>::SetRelaxedMath(bool value)
 
 template<class T>
 void ConvolutionKernel<T>::SetActivationFunction(
-		ATMLActivationFunction activation)
+		MatunaActivationFunction activation)
 {
 	this->activation = activation;
 }
 
 template<class T>
 void ConvolutionKernel<T>::SetComputationPrecision(
-		ATMLComputationPrecision precision)
+		MatunaComputationPrecision precision)
 {
 	this->precision = precision;
 }
@@ -246,4 +246,4 @@ template class ConvolutionKernel<cl_float> ;
 template class ConvolutionKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

@@ -5,13 +5,13 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_FORWARDBACKPROPLAYERCONFIG_H_
-#define ATML_CNN_FORWARDBACKPROPLAYERCONFIG_H_
+#ifndef MATUNA_CNN_FORWARDBACKPROPLAYERCONFIG_H_
+#define MATUNA_CNN_FORWARDBACKPROPLAYERCONFIG_H_
 
 #include "ILayerConfig.h"
-#include "ATMLComputationPrecision.h"
+#include "MatunaComputationPrecision.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -20,18 +20,18 @@ class ForwardBackPropLayerConfig: public ILayerConfig
 {
 private:
 	bool useRelaxedMath;
-	ATMLComputationPrecision computationPrecision;
+	MatunaComputationPrecision computationPrecision;
 
 public:
 	ForwardBackPropLayerConfig(bool useRelaxedMath = false,
-			ATMLComputationPrecision computationPrecision = ATMLNormalPrecision);
+			MatunaComputationPrecision computationPrecision = MatunaNormalPrecision);
 	virtual ~ForwardBackPropLayerConfig();
 
 	bool UseRelaxedMath() const;
-	ATMLComputationPrecision ComputationPrecision() const;
+	MatunaComputationPrecision ComputationPrecision() const;
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_FORWARDBACKPROPLAYERCONFIG_H_ */
+#endif /* MATUNA_CNN_FORWARDBACKPROPLAYERCONFIG_H_ */

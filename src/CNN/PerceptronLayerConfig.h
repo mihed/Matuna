@@ -5,14 +5,14 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_PERCEPTRONLAYERCONFIG_H_
-#define ATML_CNN_PERCEPTRONLAYERCONFIG_H_
+#ifndef MATUNA_CNN_PERCEPTRONLAYERCONFIG_H_
+#define MATUNA_CNN_PERCEPTRONLAYERCONFIG_H_
 
 #include "ForwardBackPropLayerConfig.h"
-#include "ATMLActivationFunctionEnum.h"
-#include "ATMLConnectionTypeEnum.h"
+#include "MatunaActivationFunctionEnum.h"
+#include "MatunaConnectionTypeEnum.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -20,24 +20,24 @@ namespace MachineLearning
 class PerceptronLayerConfig: public ForwardBackPropLayerConfig
 {
 private:
-	ATMLActivationFunction activationFunction;
-	ATMLConnectionType connectionType;
+	MatunaActivationFunction activationFunction;
+	MatunaConnectionType connectionType;
 	int units;
 
 public:
-	PerceptronLayerConfig(int units, ATMLActivationFunction activationFunction =
-			ATMLSigmoidActivation, ATMLConnectionType connectionType =
-			ATMLFullConnection, bool useRelaxedMath = false,
-			ATMLComputationPrecision computationPrecision = ATMLNormalPrecision);
+	PerceptronLayerConfig(int units, MatunaActivationFunction activationFunction =
+			MatunaSigmoidActivation, MatunaConnectionType connectionType =
+			MatunaFullConnection, bool useRelaxedMath = false,
+			MatunaComputationPrecision computationPrecision = MatunaNormalPrecision);
 	~PerceptronLayerConfig();
 
 	int Units() const;
-	ATMLActivationFunction ActivationFunction() const;
-	ATMLConnectionType ConnectionType() const;
+	MatunaActivationFunction ActivationFunction() const;
+	MatunaConnectionType ConnectionType() const;
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_PERCEPTRONLAYERCONFIG_H_ */
+#endif /* MATUNA_CNN_PERCEPTRONLAYERCONFIG_H_ */

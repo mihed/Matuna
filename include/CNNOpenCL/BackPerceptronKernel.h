@@ -5,16 +5,16 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNNOPENCL_BACKPERCEPTRONKERNEL_H_
-#define ATML_CNNOPENCL_BACKPERCEPTRONKERNEL_H_
+#ifndef MATUNA_CNNOPENCL_BACKPERCEPTRONKERNEL_H_
+#define MATUNA_CNNOPENCL_BACKPERCEPTRONKERNEL_H_
 
 #include "OpenCLHelper/OpenCLKernelProgram.h"
-#include "CNN/ATMLActivationFunctionEnum.h"
+#include "CNN/MatunaActivationFunctionEnum.h"
 #include "OpenCLHelper/OpenCLMemory.h"
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -29,7 +29,7 @@ private:
 	string kernelName;
 	string programName;
 	string compilerOptions;
-	ATMLActivationFunction activationFunction;
+	MatunaActivationFunction activationFunction;
 	bool useRelaxedMath;
 	bool useConstantInput;
 	bool useConstantDeltaInput;
@@ -48,7 +48,7 @@ public:
 	void SetUseConstantInput(bool value);
 	void SetUseConstantDeltaInput(bool value);
 	void SetUseRelaxedMath(bool value);
-	void SetActivationFunction(ATMLActivationFunction activationFunction);
+	void SetActivationFunction(MatunaActivationFunction activationFunction);
 	void SetWeights(OpenCLMemory* weights);
 
 	//Changed for every execution
@@ -70,6 +70,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_BACKPERCEPTRONKERNEL_H_ */
+#endif /* MATUNA_CNNOPENCL_BACKPERCEPTRONKERNEL_H_ */

@@ -5,12 +5,12 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_ILAYERCONFIG_H_
-#define ATML_CNN_ILAYERCONFIG_H_
+#ifndef MATUNA_CNN_ILAYERCONFIG_H_
+#define MATUNA_CNN_ILAYERCONFIG_H_
 
 #include "ILayerConfigVisitor.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -27,7 +27,7 @@ public:
 
 };
 
-} /* ATML */
+} /* Matuna */
 } /* MachineLearning */
 
-#endif /* ATML_CNN_ILAYERCONFIG_H_ */
+#endif /* MATUNA_CNN_ILAYERCONFIG_H_ */

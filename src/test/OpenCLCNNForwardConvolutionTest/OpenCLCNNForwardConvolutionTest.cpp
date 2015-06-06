@@ -18,9 +18,9 @@
 #include <type_traits>
 
 using namespace std;
-using namespace ATML::MachineLearning;
-using namespace ATML::Math;
-using namespace ATML::Helper;
+using namespace Matuna::MachineLearning;
+using namespace Matuna::Math;
+using namespace Matuna::Helper;
 
 float SigmoidActivationFloat(float x)
 {
@@ -61,7 +61,7 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 	INFO("Initializing the CNN config");
 	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
-	ATMLActivationFunction activationFunction;
+	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
 	for (int i = 0; i < layerCount; i++)
 	{
@@ -69,13 +69,13 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 		switch (activation)
 		{
 		case 1:
-			activationFunction = ATMLSigmoidActivation;
+			activationFunction = MatunaSigmoidActivation;
 			break;
 		case 2:
-			activationFunction = ATMLLinearActivation;
+			activationFunction = MatunaLinearActivation;
 			break;
 		case 3:
-			activationFunction = ATMLTanhActivation;
+			activationFunction = MatunaTanhActivation;
 			break;
 		}
 		unique_ptr<ForwardBackPropLayerConfig> convConfig(new ConvolutionLayerConfig(
@@ -146,7 +146,7 @@ SCENARIO("Forward propagating a convolution layer in an OpenCLCNN")
 
 			vector<vector<Matrixf>> filters;
 			vector<vector<float>> biases;
-			vector<ATMLActivationFunction> activationFunctions;
+			vector<MatunaActivationFunction> activationFunctions;
 			for (auto convLayer : convLayers)
 			{
 				filters.push_back(convLayer->GetFilters());
@@ -172,11 +172,11 @@ SCENARIO("Forward propagating a convolution layer in an OpenCLCNN")
 						tempResult += tempInputs[k].Convolve(filter);
 
 					tempResult += tempBiases[j];
-					if (activationFunctions[i] == ATMLSigmoidActivation)
+					if (activationFunctions[i] == MatunaSigmoidActivation)
 						tempResult.Transform(&SigmoidActivationFloat);
-					else if (activationFunctions[i] == ATMLTanhActivation)
+					else if (activationFunctions[i] == MatunaTanhActivation)
 						tempResult.Transform(&TanhActivationFloat);
-					else if (activationFunctions[i] == ATMLSoftMaxActivation)
+					else if (activationFunctions[i] == MatunaSoftMaxActivation)
 						throw runtime_error("Invalid activation in the test");
 
 					nextInputs.push_back(tempResult);

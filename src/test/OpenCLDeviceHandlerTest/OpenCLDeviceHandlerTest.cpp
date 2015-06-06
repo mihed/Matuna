@@ -9,7 +9,7 @@
 #include "OpenCLHelper/OpenCLHelper.h"
 #include <stdio.h>
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 
 SCENARIO("Fetching device and platform information", "[PlatformInfo]")
 {

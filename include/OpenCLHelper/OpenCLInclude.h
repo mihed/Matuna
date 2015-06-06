@@ -1,13 +1,13 @@
 //
 //  OpenCLInclude.h
-//  ATML
+//  Matuna
 //
 //  Created by Mikael Hedberg on 18/05/15.
 //
 //
 
-#ifndef ATML_OPENCLHELPER_OPENCLINCLUDE_H_
-#define ATML_OPENCLHELPER_OPENCLINCLUDE_H_
+#ifndef MATUNA_OPENCLHELPER_OPENCLINCLUDE_H_
+#define MATUNA_OPENCLHELPER_OPENCLINCLUDE_H_
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>

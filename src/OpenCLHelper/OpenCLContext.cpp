@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <sstream>
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -404,4 +404,4 @@ void OpenCLContext::RemoveKernel(OpenCLKernel* kernel)
 //}
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

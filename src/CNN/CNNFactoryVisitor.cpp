@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <type_traits>
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -23,7 +23,7 @@ namespace MachineLearning
 CNNFactoryVisitor::CNNFactoryVisitor(CNN* network) :
 		network(network)
 {
-	backPropActivation = ATMLLinearActivation;
+	backPropActivation = MatunaLinearActivation;
 	outputIsCalled = false;
 }
 
@@ -257,4 +257,4 @@ unique_ptr<OutputLayer> CNNFactoryVisitor::GetOutputLayer()
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

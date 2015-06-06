@@ -5,13 +5,13 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_FORTHBACKPROPLAYER_H_
-#define ATML_CNN_FORTHBACKPROPLAYER_H_
+#ifndef MATUNA_CNN_FORTHBACKPROPLAYER_H_
+#define MATUNA_CNN_FORTHBACKPROPLAYER_H_
 
 #include "BackPropLayer.h"
 #include "ForwardBackPropLayerConfig.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -30,7 +30,7 @@ protected:
 public:
 	ForwardBackPropLayer(
 			const vector<LayerDataDescription>& inputLayerDescriptions,
-			ATMLActivationFunction backPropActivation,
+			MatunaActivationFunction backPropActivation,
 			const ForwardBackPropLayerConfig* config);
 	virtual ~ForwardBackPropLayer();
 
@@ -45,6 +45,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_FORTHBACKPROPLAYER_H_ */
+#endif /* MATUNA_CNN_FORTHBACKPROPLAYER_H_ */

@@ -11,13 +11,13 @@
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
 
 BackPropLayer::BackPropLayer(
-	const vector<LayerDataDescription>& inputLayerDescriptions, ATMLActivationFunction backPropActivation) :
+	const vector<LayerDataDescription>& inputLayerDescriptions, MatunaActivationFunction backPropActivation) :
 	inForwardPropDataDescriptions(inputLayerDescriptions), backPropActivation(backPropActivation)
 {
 	inputInterlocked = false;
@@ -30,7 +30,7 @@ BackPropLayer::~BackPropLayer()
 
 }
 
-ATMLActivationFunction BackPropLayer::BackPropActivationFunction() const
+MatunaActivationFunction BackPropLayer::BackPropActivationFunction() const
 {
 	return backPropActivation;
 }
@@ -140,4 +140,4 @@ vector<LayerMemoryDescription> BackPropLayer::OutBackPropMemoryProposals() const
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

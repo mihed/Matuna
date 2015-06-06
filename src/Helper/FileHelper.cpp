@@ -31,7 +31,7 @@
 #include <libgen.h>
 #endif
 
-namespace ATML
+namespace Matuna
 {
 	namespace Helper
 	{
@@ -101,4 +101,4 @@ namespace ATML
 		}
 
 	} /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

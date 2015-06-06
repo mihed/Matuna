@@ -8,7 +8,7 @@
 #include "CNN.h"
 #include <stdexcept>
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -119,4 +119,4 @@ vector<LayerDataDescription>CNN::OutputBackDataDescriptions() const
 
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

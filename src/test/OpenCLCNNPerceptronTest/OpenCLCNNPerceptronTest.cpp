@@ -18,9 +18,9 @@
 #include <type_traits>
 
 using namespace std;
-using namespace ATML::MachineLearning;
-using namespace ATML::Math;
-using namespace ATML::Helper;
+using namespace Matuna::MachineLearning;
+using namespace Matuna::Math;
+using namespace Matuna::Helper;
 
 
 template<class T>
@@ -259,7 +259,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 	INFO("Initializing the CNN config");
 	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
-	ATMLActivationFunction activationFunction;
+	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
 	for (int i = 0; i < layerCount; i++)
 	{
@@ -267,27 +267,27 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 		switch (activation)
 		{
 		case 1:
-			activationFunction = ATMLSigmoidActivation;
+			activationFunction = MatunaSigmoidActivation;
 			break;
 		case 2:
-			activationFunction = ATMLLinearActivation;
+			activationFunction = MatunaLinearActivation;
 			break;
 		case 3:
-			activationFunction = ATMLTanhActivation;
+			activationFunction = MatunaTanhActivation;
 			break;
 		}
 
 		//Simply to avoid overflow when using softmax
 		if (useSoftMax)
-			if (i == (layerCount - 2) && activationFunction == ATMLLinearActivation)
-				activationFunction = ATMLTanhActivation;
+			if (i == (layerCount - 2) && activationFunction == MatunaLinearActivation)
+				activationFunction = MatunaTanhActivation;
 
 		auto temp = dimensionGenerator(mt);
 		if (useSoftMax)
 		{
 			if (i == (layerCount - 1))
 			{
-				activationFunction = ATMLSoftMaxActivation;
+				activationFunction = MatunaSoftMaxActivation;
 				temp = temp > 1 ? temp : 2;
 			}
 		}
@@ -298,7 +298,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 
 	if (useSoftMax)
 	{
-		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig(ATMLCrossEntropy));
+		unique_ptr<StandardOutputLayerConfig> outputConfig(new StandardOutputLayerConfig(MatunaCrossEntropy));
 		config->SetOutputConfig(move(outputConfig));
 	}
 	else
@@ -343,7 +343,7 @@ SCENARIO("Forward propagating a CNN network using image inputs for a perceptron 
 
 					vector<Matrixf> weights;
 					vector<Matrixf> biases;
-					vector<ATMLActivationFunction> activationFunctions;
+					vector<MatunaActivationFunction> activationFunctions;
 					LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 
 					vector<Matrixf> inputs;
@@ -372,11 +372,11 @@ SCENARIO("Forward propagating a CNN network using image inputs for a perceptron 
 
 						result = weights[i] * result + biases[i];
 
-						if (activationFunctions[i] == ATMLSigmoidActivation)
+						if (activationFunctions[i] == MatunaSigmoidActivation)
 							result.Transform(&SigmoidActivationFloat);
-						else if (activationFunctions[i] == ATMLTanhActivation)
+						else if (activationFunctions[i] == MatunaTanhActivation)
 							result.Transform(&TanhActivationFloat);
-						else if (activationFunctions[i] == ATMLSoftMaxActivation)
+						else if (activationFunctions[i] == MatunaSoftMaxActivation)
 							throw runtime_error("Invalid activation in the test");
 					}
 
@@ -468,7 +468,7 @@ SCENARIO("Forward propagating an OR CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLNativePrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaNativePrecision));
 				CalculateORPerceptron<cl_float>(move(config), deviceInfo, move(perceptronConfig), inputsFloat, targetsFloat);
 			}
 		}
@@ -485,7 +485,7 @@ SCENARIO("Forward propagating an OR CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLHalfPrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaHalfPrecision));
 				CalculateORPerceptron<cl_float>(move(config), deviceInfo, move(perceptronConfig), inputsFloat, targetsFloat);
 			}
 		}
@@ -501,7 +501,7 @@ SCENARIO("Forward propagating an OR CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, true, ATMLHalfPrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, true, MatunaHalfPrecision));
 				CalculateORPerceptron<cl_float>(move(config), deviceInfo, move(perceptronConfig), inputsFloat, targetsFloat);
 			}
 		}
@@ -533,7 +533,7 @@ SCENARIO("Forward propagating an OR CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLNativePrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaNativePrecision));
 				CalculateORPerceptron<cl_double>(move(config), deviceInfo, move(perceptronConfig), inputsDouble, targetsDouble);
 			}
 		}
@@ -549,7 +549,7 @@ SCENARIO("Forward propagating an OR CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLHalfPrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaHalfPrecision));
 				CalculateORPerceptron<cl_double>(move(config), deviceInfo, move(perceptronConfig), inputsDouble, targetsDouble);
 			}
 		}
@@ -565,7 +565,7 @@ SCENARIO("Forward propagating an OR CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, true, ATMLHalfPrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, true, MatunaHalfPrecision));
 				CalculateORPerceptron<cl_double>(move(config), deviceInfo, move(perceptronConfig), inputsDouble, targetsDouble);
 			}
 		}
@@ -634,7 +634,7 @@ SCENARIO("Forward propagating an AND CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLNativePrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaNativePrecision));
 				CalculateANDPerceptron<cl_float>(move(config), deviceInfo, move(perceptronConfig), inputsFloat, targetsFloat);
 			}
 		}
@@ -650,7 +650,7 @@ SCENARIO("Forward propagating an AND CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLHalfPrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaHalfPrecision));
 				CalculateANDPerceptron<cl_float>(move(config), deviceInfo, move(perceptronConfig), inputsFloat, targetsFloat);
 			}
 		}
@@ -670,7 +670,7 @@ SCENARIO("Forward propagating an AND CNN network")
 				//	continue;
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, true, ATMLHalfPrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, true, MatunaHalfPrecision));
 				CalculateANDPerceptron<cl_float>(move(config), deviceInfo, move(perceptronConfig), inputsFloat, targetsFloat);
 			}
 		}
@@ -702,7 +702,7 @@ SCENARIO("Forward propagating an AND CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLNativePrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaNativePrecision));
 				CalculateANDPerceptron<cl_double>(move(config), deviceInfo, move(perceptronConfig), inputsDouble, targetsDouble);
 			}
 		}
@@ -718,7 +718,7 @@ SCENARIO("Forward propagating an AND CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, false, ATMLHalfPrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaHalfPrecision));
 				CalculateANDPerceptron<cl_double>(move(config), deviceInfo, move(perceptronConfig), inputsDouble, targetsDouble);
 			}
 		}
@@ -734,7 +734,7 @@ SCENARIO("Forward propagating an AND CNN network")
 				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
-				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, ATMLSigmoidActivation, ATMLFullConnection, true, ATMLHalfPrecision));
+				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, true, MatunaHalfPrecision));
 				CalculateANDPerceptron<cl_double>(move(config), deviceInfo, move(perceptronConfig), inputsDouble, targetsDouble);
 			}
 		}
@@ -774,7 +774,7 @@ SCENARIO("Forward propagating multi-layer perceptron network using cross entropy
 
 					vector<Matrix<float>> weights;
 					vector<Matrix<float>> biases;
-					vector<ATMLActivationFunction> activationFunctions;
+					vector<MatunaActivationFunction> activationFunctions;
 					LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 
 					auto input = Matrix<float>::RandomNormal(inputDataDesc.Units, 1);
@@ -798,11 +798,11 @@ SCENARIO("Forward propagating multi-layer perceptron network using cross entropy
 
 						result = weights[i] * result + biases[i];
 
-						if (activationFunctions[i] == ATMLSigmoidActivation)
+						if (activationFunctions[i] == MatunaSigmoidActivation)
 							result.Transform(&SigmoidActivationFloat);
-						else if (activationFunctions[i] == ATMLTanhActivation)
+						else if (activationFunctions[i] == MatunaTanhActivation)
 							result.Transform(&TanhActivationFloat);
-						else if (activationFunctions[i] == ATMLSoftMaxActivation)
+						else if (activationFunctions[i] == MatunaSoftMaxActivation)
 						{
 							if (i != (weights.size() - 1))
 								throw runtime_error("Not supported by the test");
@@ -877,7 +877,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 
 					vector<Matrix<float>> weights;
 					vector<Matrix<float>> biases;
-					vector<ATMLActivationFunction> activationFunctions;
+					vector<MatunaActivationFunction> activationFunctions;
 					LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 
 					auto input = Matrix<float>::RandomNormal(inputDataDesc.Units, 1);
@@ -900,11 +900,11 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 
 						result = weights[i] * result + biases[i];
 
-						if (activationFunctions[i] == ATMLSigmoidActivation)
+						if (activationFunctions[i] == MatunaSigmoidActivation)
 							result.Transform(&SigmoidActivationFloat);
-						else if (activationFunctions[i] == ATMLTanhActivation)
+						else if (activationFunctions[i] == MatunaTanhActivation)
 							result.Transform(&TanhActivationFloat);
-						else if (activationFunctions[i] == ATMLSoftMaxActivation)
+						else if (activationFunctions[i] == MatunaSoftMaxActivation)
 							throw runtime_error("Invalid activation in the test");
 					}
 

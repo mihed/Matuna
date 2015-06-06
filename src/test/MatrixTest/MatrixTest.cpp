@@ -11,7 +11,7 @@
 #include <math.h>
 #include <random>
 
-using namespace ATML::Math;
+using namespace Matuna::Math;
 
 SCENARIO("Rotating a matrix")
 {

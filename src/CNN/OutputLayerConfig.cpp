@@ -7,13 +7,13 @@
 
 #include "OutputLayerConfig.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
 
 OutputLayerConfig::OutputLayerConfig(bool useRelaxedMath,
-		ATMLComputationPrecision computationPrecision) :
+		MatunaComputationPrecision computationPrecision) :
 		useRelaxedMath(useRelaxedMath), computationPrecision(
 				computationPrecision)
 {
@@ -29,10 +29,10 @@ bool OutputLayerConfig::UseRelaxedMath() const
 {
 	return useRelaxedMath;
 }
-ATMLComputationPrecision OutputLayerConfig::ComputationPrecision() const
+MatunaComputationPrecision OutputLayerConfig::ComputationPrecision() const
 {
 	return computationPrecision;
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

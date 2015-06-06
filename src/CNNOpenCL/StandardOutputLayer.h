@@ -21,9 +21,9 @@
 #include <unordered_map>
 
 using namespace std;
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -46,7 +46,7 @@ private:
 public:
 	StandardOutputLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
-			ATMLActivationFunction backPropActivation,
+			MatunaActivationFunction backPropActivation,
 			const StandardOutputLayerConfig* outputLayerConfig);
 	~StandardOutputLayer();
 
@@ -68,6 +68,6 @@ private:
 
 }
 /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
 #endif /* CNNOPENCL_STANDARDOUTPUTLAYER_H_ */

@@ -7,8 +7,8 @@
  * NOTE: Most of the comments here are directly taken from the OpenCL Specification.
  */
 
-#ifndef ATML_OPENCLHELPER_OPENCLDEVICEINFO_H_
-#define ATML_OPENCLHELPER_OPENCLDEVICEINFO_H_
+#ifndef MATUNA_OPENCLHELPER_OPENCLDEVICEINFO_H_
+#define MATUNA_OPENCLHELPER_OPENCLDEVICEINFO_H_
 
 #include <vector>
 #include <string>
@@ -17,7 +17,7 @@
 
 using namespace std;
 
-namespace ATML {
+namespace Matuna {
 	namespace Helper {
 
 		/**
@@ -696,6 +696,6 @@ namespace ATML {
 		};
 
 	} /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_OPENCLHELPER_OPENCLDEVICEINFO_H_ */
+#endif /* MATUNA_OPENCLHELPER_OPENCLDEVICEINFO_H_ */

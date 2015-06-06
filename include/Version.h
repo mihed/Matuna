@@ -9,62 +9,62 @@
  namespace ATML
  {
  
-	int ATMLVersionMajor()
+	int MatunaVersionMajor()
 	{
 		return 0;
 	};
 
-	int ATMLVersionMinor()
+	int MatunaVersionMinor()
 	{
 		return 1;
 	}; 
 
-	int ATMLVersionPatch()
+	int MatunaVersionPatch()
 	{
 		return 0;
 	}; 
 
-	const char* ATMLCodeName
+	const char* MatunaCodeName
 	{
 		return "Platon";
 	};
 
-	const char* ATMLName
+	const char* MatunaName
 	{
-		return "ATML";
+		return "Matuna";
 	};
 
-	const char* ATMLCopyrightYears
+	const char* MatunaCopyrightYears
 	{
 		return "2015";
 	};
 
-	const char* ATMLVersionType
+	const char* MatunaVersionType
 	{
 		return "SNAPSHOT";
 	};
 
-	const char* ATMLVersionString
+	const char* MatunaVersionString
 	{
 		return "0.1.0-SNAPSHOT";
 	};
 
-	const char* ATMLVendorID
+	const char* MatunaVendorID
 	{
 		return "com.yourcompany";
 	};
 
-	const char* ATMLVendorName
+	const char* MatunaVendorName
 	{
 		return "Your Company";
 	};
 
-	const char* ATMLVendorURL
+	const char* MatunaVendorURL
 	{
 		return "yourcompany.com";
 	};
 
-	const char* ATMLVendorID
+	const char* MatunaVendorID
 	{
 		return "com.yourcompany";
 	};

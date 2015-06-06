@@ -8,7 +8,7 @@
 #include "OpenCLPlatformInfo.h"
 #include <sstream>
 
-namespace ATML {
+namespace Matuna {
 	namespace Helper {
 
 		OpenCLPlatformInfo::OpenCLPlatformInfo(const cl_platform_id platformID,
@@ -36,4 +36,4 @@ namespace ATML {
 		}
 
 	} /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

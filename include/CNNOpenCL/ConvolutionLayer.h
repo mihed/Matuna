@@ -26,10 +26,10 @@
 #include <memory>
 
 using namespace std;
-using namespace ATML::Helper;
-using namespace ATML::Math;
+using namespace Matuna::Helper;
+using namespace Matuna::Math;
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -58,7 +58,7 @@ namespace ATML
 		public:
 			ConvolutionLayer(shared_ptr<OpenCLContext> context,
 				const vector<LayerDataDescription>& inputLayerDescriptions,
-				ATMLActivationFunction backPropActivation,
+				MatunaActivationFunction backPropActivation,
 				const ConvolutionLayerConfig* config);
 			virtual ~ConvolutionLayer();
 
@@ -106,6 +106,6 @@ namespace ATML
 		};
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
 #endif /* CNNOPENCL_CONVOLUTIONLAYER_H_ */

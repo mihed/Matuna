@@ -27,7 +27,7 @@
 #include <random>
 
 using namespace std;
-using namespace ATML::MachineLearning;
+using namespace Matuna::MachineLearning;
 
 void CheckUnitDescription(const LayerDataDescription& left,
 	const LayerDataDescription& right)

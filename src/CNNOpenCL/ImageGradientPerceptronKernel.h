@@ -5,15 +5,15 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNNOPENCL_IMAGEGRADIENTPERCEPTRONKERNEL_H_
-#define ATML_CNNOPENCL_IMAGEGRADIENTPERCEPTRONKERNEL_H_
+#ifndef MATUNA_CNNOPENCL_IMAGEGRADIENTPERCEPTRONKERNEL_H_
+#define MATUNA_CNNOPENCL_IMAGEGRADIENTPERCEPTRONKERNEL_H_
 
 #include "OpenCLHelper/OpenCLKernelProgram.h"
 #include "OpenCLHelper/OpenCLMemory.h"
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -73,6 +73,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_IMAGEGRADIENTPERCEPTRONKERNEL_H_ */
+#endif /* MATUNA_CNNOPENCL_IMAGEGRADIENTPERCEPTRONKERNEL_H_ */

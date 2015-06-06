@@ -5,22 +5,22 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_
-#define ATML_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_
+#ifndef MATUNA_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_
+#define MATUNA_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_
 
 #include "CNN/OutputLayer.h"
 
-using namespace ATML::MachineLearning;
+using namespace Matuna::MachineLearning;
 
 class OutputLayerTest: public OutputLayer
 {
 public:
 	OutputLayerTest(const vector<LayerDataDescription>& inputLayerDescriptions,
-		ATMLActivationFunction backPropActivation,
+		MatunaActivationFunction backPropActivation,
 			const OutputLayerConfig* config);
 	~OutputLayerTest();
 
 	virtual void InterlockFinalized() override;
 };
 
-#endif /* ATML_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_ */
+#endif /* MATUNA_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_ */

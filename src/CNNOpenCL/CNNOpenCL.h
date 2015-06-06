@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNNOPENCL_CNNOPENCL_H_
-#define ATML_CNNOPENCL_CNNOPENCL_H_
+#ifndef MATUNA_CNNOPENCL_CNNOPENCL_H_
+#define MATUNA_CNNOPENCL_CNNOPENCL_H_
 
 #include "CNN/CNNConfig.h"
 #include "CNN/CNN.h"
@@ -25,9 +25,9 @@
 #include <vector>
 
 using namespace std;
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -74,6 +74,6 @@ private:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_CNNOPENCL_H_ */
+#endif /* MATUNA_CNNOPENCL_CNNOPENCL_H_ */

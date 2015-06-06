@@ -5,14 +5,14 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_INTERLOCKHELPER_H_
-#define ATML_CNN_INTERLOCKHELPER_H_
+#ifndef MATUNA_CNN_INTERLOCKHELPER_H_
+#define MATUNA_CNN_INTERLOCKHELPER_H_
 
 #include <vector>
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -61,6 +61,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_INTERLOCKHELPER_H_ */
+#endif /* MATUNA_CNN_INTERLOCKHELPER_H_ */

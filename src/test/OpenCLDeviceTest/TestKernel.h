@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_TEST_OPENCLDEVICETEST_TESTKERNEL_H_
-#define ATML_TEST_OPENCLDEVICETEST_TESTKERNEL_H_
+#ifndef MATUNA_TEST_OPENCLDEVICETEST_TESTKERNEL_H_
+#define MATUNA_TEST_OPENCLDEVICETEST_TESTKERNEL_H_
 
 #include <OpenCLHelper/OpenCLKernelProgram.h>
 #include <OpenCLHelper/OpenCLMemory.h>
@@ -14,7 +14,7 @@
 #include <vector>
 #include <tuple>
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 
 class TestKernel : public OpenCLKernelProgram
 {
@@ -42,4 +42,4 @@ public:
 	virtual const vector<size_t>& LocalWorkSize() const override;
 };
 
-#endif /* ATML_TEST_OPENCLDEVICETEST_TESTKERNEL_H_ */
+#endif /* MATUNA_TEST_OPENCLDEVICETEST_TESTKERNEL_H_ */

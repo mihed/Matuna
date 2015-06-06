@@ -5,15 +5,15 @@
 *      Author: Mikael
 */
 
-#ifndef ATML_CNN_ICNNTRAINER_H_
-#define ATML_CNN_ICNNTRAINER_H_
+#ifndef MATUNA_CNN_ICNNTRAINER_H_
+#define MATUNA_CNN_ICNNTRAINER_H_
 
 #include "LayerDescriptions.h"
 #include <vector>
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -54,7 +54,7 @@ namespace ATML
 
 		};
 
-	} /* ATML */
+	} /* Matuna */
 } /* MachineLearning */
 
-#endif /* ATML_CNN_ICNNTRAINER_H_ */
+#endif /* MATUNA_CNN_ICNNTRAINER_H_ */

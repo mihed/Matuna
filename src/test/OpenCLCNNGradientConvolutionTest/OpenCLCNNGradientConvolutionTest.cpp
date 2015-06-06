@@ -18,9 +18,9 @@
 #include <type_traits>
 
 using namespace std;
-using namespace ATML::MachineLearning;
-using namespace ATML::Math;
-using namespace ATML::Helper;
+using namespace Matuna::MachineLearning;
+using namespace Matuna::Math;
+using namespace Matuna::Helper;
 
 
 unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
@@ -42,7 +42,7 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 	INFO("Initializing the CNN config");
 	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
 
-	ATMLActivationFunction activationFunction;
+	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
 	for (int i = 0; i < layerCount; i++)
 	{
@@ -50,13 +50,13 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 		switch (activation)
 		{
 		case 1:
-			activationFunction = ATMLSigmoidActivation;
+			activationFunction = MatunaSigmoidActivation;
 			break;
 		case 2:
-			activationFunction = ATMLLinearActivation;
+			activationFunction = MatunaLinearActivation;
 			break;
 		case 3:
-			activationFunction = ATMLTanhActivation;
+			activationFunction = MatunaTanhActivation;
 			break;
 		}
 		unique_ptr<ForwardBackPropLayerConfig> convConfig(new ConvolutionLayerConfig(

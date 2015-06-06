@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_SAMPLES_MNISTSAMPLE1_ASSETLOADER_H_
-#define ATML_SAMPLES_MNISTSAMPLE1_ASSETLOADER_H_
+#ifndef MATUNA_SAMPLES_MNISTSAMPLE1_ASSETLOADER_H_
+#define MATUNA_SAMPLES_MNISTSAMPLE1_ASSETLOADER_H_
 
 #include "Math/Matrix.h"
 #include "Helper/Path.h"
@@ -17,8 +17,8 @@
 #include <iostream>
 #include <stdexcept>
 
-using namespace ATML::Math;
-using namespace ATML::Helper;
+using namespace Matuna::Math;
+using namespace Matuna::Helper;
 using namespace std;
 
 inline int ReverseInt(int i)
@@ -157,4 +157,4 @@ public:
 	}
 };
 
-#endif /* ATML_SAMPLES_MNISTSAMPLE1_ASSETLOADER_H_ */
+#endif /* MATUNA_SAMPLES_MNISTSAMPLE1_ASSETLOADER_H_ */

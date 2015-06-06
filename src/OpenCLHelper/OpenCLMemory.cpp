@@ -8,7 +8,7 @@
 #include "OpenCLMemory.h"
 #include "OpenCLUtility.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -30,4 +30,4 @@ OpenCLMemory::~OpenCLMemory()
 }
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

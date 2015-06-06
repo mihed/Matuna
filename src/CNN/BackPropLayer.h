@@ -5,17 +5,17 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_BACKPROPLAYER_H_
-#define ATML_CNN_BACKPROPLAYER_H_
+#ifndef MATUNA_CNN_BACKPROPLAYER_H_
+#define MATUNA_CNN_BACKPROPLAYER_H_
 
 #include "Layer.h"
 #include "LayerDescriptions.h"
-#include "ATMLActivationFunctionEnum.h"
+#include "MatunaActivationFunctionEnum.h"
 #include <vector>
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -26,7 +26,7 @@ private:
 	bool forwardInputInterlocked;
 	bool inputInterlocked;
 	bool outputInterlocked;
-	ATMLActivationFunction backPropActivation;
+	MatunaActivationFunction backPropActivation;
 
 	vector<LayerDataDescription> inForwardPropDataDescriptions;
 
@@ -46,7 +46,7 @@ protected:
 	vector<LayerMemoryDescription> inForwardPropMemoryProposals; //Must be set inside constructor for derived classes
 
 public:
-	BackPropLayer(const vector<LayerDataDescription>& inputLayerDescriptions, ATMLActivationFunction backPropActivation);
+	BackPropLayer(const vector<LayerDataDescription>& inputLayerDescriptions, MatunaActivationFunction backPropActivation);
 	virtual ~BackPropLayer();
 
 	void InterlockForwardPropInput(
@@ -56,7 +56,7 @@ public:
 	void InterlockBackPropOutput(
 			const vector<LayerMemoryDescription>& outputDescriptions);
 
-	ATMLActivationFunction BackPropActivationFunction() const;
+	MatunaActivationFunction BackPropActivationFunction() const;
 
 	virtual bool Interlocked() const;
 
@@ -73,6 +73,6 @@ public:
 	vector<LayerMemoryDescription> OutBackPropMemoryProposals() const;
 };
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_BACKPROPLAYER_H_ */
+#endif /* MATUNA_CNN_BACKPROPLAYER_H_ */

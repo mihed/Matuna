@@ -10,7 +10,7 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -201,4 +201,4 @@ template class BackConvolutionKernel<cl_float> ;
 template class BackConvolutionKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

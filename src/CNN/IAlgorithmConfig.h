@@ -5,10 +5,10 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_IALGORITHMCONFIG_H_
-#define ATML_CNN_IALGORITHMCONFIG_H_
+#ifndef MATUNA_CNN_IALGORITHMCONFIG_H_
+#define MATUNA_CNN_IALGORITHMCONFIG_H_
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -23,7 +23,7 @@ public:
 	;
 };
 
-} /* ATML */
+} /* Matuna */
 } /* MachineLearning */
 
-#endif /* ATML_CNN_IALGORITHMCONFIG_H_ */
+#endif /* MATUNA_CNN_IALGORITHMCONFIG_H_ */

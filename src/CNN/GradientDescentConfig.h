@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_GRADIENTDESCENTCONFIG_H_
-#define ATML_CNN_GRADIENTDESCENTCONFIG_H_
+#ifndef MATUNA_CNN_GRADIENTDESCENTCONFIG_H_
+#define MATUNA_CNN_GRADIENTDESCENTCONFIG_H_
 
 #include "IAlgorithmConfig.h"
 #include <functional>
@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -47,6 +47,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_GRADIENTDESCENTCONFIG_H_ */
+#endif /* MATUNA_CNN_GRADIENTDESCENTCONFIG_H_ */

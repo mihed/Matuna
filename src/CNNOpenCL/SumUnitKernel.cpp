@@ -10,7 +10,7 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -150,4 +150,4 @@ template class SumUnitKernel<cl_float> ;
 template class SumUnitKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

@@ -15,9 +15,9 @@
 #include <random>
 #include <type_traits>
 
-using namespace ATML::Helper;
-using namespace ATML::Math;
-using namespace ATML::MachineLearning;
+using namespace Matuna::Helper;
+using namespace Matuna::Math;
+using namespace Matuna::MachineLearning;
 
 float SigmoidActivationFloat(float x)
 {
@@ -93,17 +93,17 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 					oneDeviceVector.push_back(device);
 
 					auto activation = activationGenerator(mt);
-					ATMLActivationFunction activationFunction;
+					MatunaActivationFunction activationFunction;
 					switch (activation)
 					{
 					case 1:
-						activationFunction = ATMLSigmoidActivation;
+						activationFunction = MatunaSigmoidActivation;
 						break;
 					case 2:
-						activationFunction = ATMLLinearActivation;
+						activationFunction = MatunaLinearActivation;
 						break;
 					case 3:
-						activationFunction = ATMLTanhActivation;
+						activationFunction = MatunaTanhActivation;
 						break;
 					}
 
@@ -219,10 +219,10 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 						auto manualResult = input.GetSubMatrix(inputHeightOffset, inputWidthOffset, imageHeight, imageWidth).Convolve(filters[i]) + biases[i];
 						switch (activationFunction)
 						{
-						case ATMLSigmoidActivation:
+						case MatunaSigmoidActivation:
 							manualResult.Transform(&SigmoidActivationFloat);
 							break;
-						case ATMLTanhActivation:
+						case MatunaTanhActivation:
 							manualResult.Transform(&TanhActivationFloat);
 							break;
 						}
@@ -304,17 +304,17 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 						filters.push_back(Matrix<float>::RandomNormal(filterHeight, filterWidth));
 
 					auto activation = activationGenerator(mt);
-					ATMLActivationFunction activationFunction;
+					MatunaActivationFunction activationFunction;
 					switch (activation)
 					{
 					case 1:
-						activationFunction = ATMLSigmoidActivation;
+						activationFunction = MatunaSigmoidActivation;
 						break;
 					case 2:
-						activationFunction = ATMLLinearActivation;
+						activationFunction = MatunaLinearActivation;
 						break;
 					case 3:
-						activationFunction = ATMLTanhActivation;
+						activationFunction = MatunaTanhActivation;
 						break;
 					}
 
@@ -352,10 +352,10 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 						auto manualResult = input.GetSubMatrix(inputHeightOffset, inputWidthOffset, imageHeight, imageWidth).Convolve(filters[i]) + biases[i];
 						switch (activationFunction)
 						{
-						case ATMLSigmoidActivation:
+						case MatunaSigmoidActivation:
 							manualResult.Transform(&SigmoidActivationFloat);
 							break;
-						case ATMLTanhActivation:
+						case MatunaTanhActivation:
 							manualResult.Transform(&TanhActivationFloat);
 							break;
 						}
@@ -456,17 +456,17 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 					oneDeviceVector.push_back(device);
 
 					auto activation = activationGenerator(mt);
-					ATMLActivationFunction activationFunction;
+					MatunaActivationFunction activationFunction;
 					switch (activation)
 					{
 					case 1:
-						activationFunction = ATMLSigmoidActivation;
+						activationFunction = MatunaSigmoidActivation;
 						break;
 					case 2:
-						activationFunction = ATMLLinearActivation;
+						activationFunction = MatunaLinearActivation;
 						break;
 					case 3:
-						activationFunction = ATMLTanhActivation;
+						activationFunction = MatunaTanhActivation;
 						break;
 					}
 
@@ -579,10 +579,10 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 						auto manualResult = input.Convolve(filters[i]) + biases[i];
 						switch (activationFunction)
 						{
-						case ATMLSigmoidActivation:
+						case MatunaSigmoidActivation:
 							manualResult.Transform(&SigmoidActivationFloat);
 							break;
-						case ATMLTanhActivation:
+						case MatunaTanhActivation:
 							manualResult.Transform(&TanhActivationFloat);
 							break;
 						}
@@ -647,17 +647,17 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 						filters.push_back(Matrix<float>::RandomNormal(filterHeight, filterWidth));
 
 					auto activation = activationGenerator(mt);
-					ATMLActivationFunction activationFunction;
+					MatunaActivationFunction activationFunction;
 					switch (activation)
 					{
 					case 1:
-						activationFunction = ATMLSigmoidActivation;
+						activationFunction = MatunaSigmoidActivation;
 						break;
 					case 2:
-						activationFunction = ATMLLinearActivation;
+						activationFunction = MatunaLinearActivation;
 						break;
 					case 3:
-						activationFunction = ATMLTanhActivation;
+						activationFunction = MatunaTanhActivation;
 						break;
 					}
 
@@ -693,10 +693,10 @@ SCENARIO("Performing convolution on a single input with multiple filters")
 						auto manualResult = input.Convolve(filters[i]) + biases[i];
 						switch (activationFunction)
 						{
-						case ATMLSigmoidActivation:
+						case MatunaSigmoidActivation:
 							manualResult.Transform(&SigmoidActivationFloat);
 							break;
-						case ATMLTanhActivation:
+						case MatunaTanhActivation:
 							manualResult.Transform(&TanhActivationFloat);
 							break;
 						}

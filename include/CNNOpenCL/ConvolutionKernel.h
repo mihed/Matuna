@@ -5,18 +5,18 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNNOPENCL_CONVOLUTIONKERNEL_H_
-#define ATML_CNNOPENCL_CONVOLUTIONKERNEL_H_
+#ifndef MATUNA_CNNOPENCL_CONVOLUTIONKERNEL_H_
+#define MATUNA_CNNOPENCL_CONVOLUTIONKERNEL_H_
 
 #include "OpenCLHelper/OpenCLKernelProgram.h"
-#include "CNN/ATMLActivationFunctionEnum.h"
-#include "CNN/ATMLComputationPrecision.h"
+#include "CNN/MatunaActivationFunctionEnum.h"
+#include "CNN/MatunaComputationPrecision.h"
 #include "OpenCLHelper/OpenCLMemory.h"
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -37,8 +37,8 @@ namespace ATML
 			bool useLocalMemory;
 			bool useRelaxedMath;
 
-			ATMLActivationFunction activation;
-			ATMLComputationPrecision precision;
+			MatunaActivationFunction activation;
+			MatunaComputationPrecision precision;
 
 			int filterWidth; 
 			int filterHeight;  
@@ -73,8 +73,8 @@ namespace ATML
 			void SetConstantFilters(bool value);
 			void SetConstantBias(bool value);
 			void SetRelaxedMath(bool value);
-			void SetActivationFunction(ATMLActivationFunction activation);
-			void SetComputationPrecision(ATMLComputationPrecision precision);
+			void SetActivationFunction(MatunaActivationFunction activation);
+			void SetComputationPrecision(MatunaComputationPrecision precision);
 
 			void InitializeCompilerOptions();
 
@@ -87,6 +87,6 @@ namespace ATML
 		};
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_CONVOLUTIONKERNEL_H_ */
+#endif /* MATUNA_CNNOPENCL_CONVOLUTIONKERNEL_H_ */

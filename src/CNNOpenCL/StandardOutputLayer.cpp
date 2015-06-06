@@ -10,13 +10,13 @@
 #include <stdexcept>
 #include <type_traits>
 
-namespace ATML {
+namespace Matuna {
 	namespace MachineLearning {
 
 		template<class T>
 		StandardOutputLayer<T>::StandardOutputLayer(shared_ptr<OpenCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
-			ATMLActivationFunction backPropActivation,
+			MatunaActivationFunction backPropActivation,
 			const StandardOutputLayerConfig* outputLayerConfig) :
 		OutputLayer(inputLayerDescriptions, backPropActivation,
 			outputLayerConfig), context(context), config(*outputLayerConfig) {
@@ -343,4 +343,4 @@ namespace ATML {
 		template class StandardOutputLayer<cl_double> ;
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

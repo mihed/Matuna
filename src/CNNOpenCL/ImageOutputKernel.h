@@ -5,21 +5,21 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNNOPENCL_IMAGEOUTPUTKERNEL_H_
-#define ATML_CNNOPENCL_IMAGEOUTPUTKERNEL_H_
+#ifndef MATUNA_CNNOPENCL_IMAGEOUTPUTKERNEL_H_
+#define MATUNA_CNNOPENCL_IMAGEOUTPUTKERNEL_H_
 
 #include "OpenCLHelper/OpenCLKernelProgram.h"
 #include "OpenCLHelper/OpenCLMemory.h"
-#include "CNN/ATMLComputationPrecision.h"
-#include "CNN/ATMLActivationFunctionEnum.h"
-#include "CNN/ATMLErrorFunctionEnum.h"
+#include "CNN/MatunaComputationPrecision.h"
+#include "CNN/MatunaActivationFunctionEnum.h"
+#include "CNN/MatunaErrorFunctionEnum.h"
 #include <string>
 #include <vector>
 
 using namespace std;
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -36,9 +36,9 @@ private:
 	bool useRelaxedMath;
 	bool useConstantInput;
 	bool useConstantTarget;
-	ATMLActivationFunction activationFunction;
-	ATMLComputationPrecision computationPrecision;
-	ATMLErrorFunction errorFunction;
+	MatunaActivationFunction activationFunction;
+	MatunaComputationPrecision computationPrecision;
+	MatunaErrorFunction errorFunction;
 
 	int globalWidth;
 	int globalHeight;
@@ -64,9 +64,9 @@ public:
 	void SetConstantInput(bool value);
 	void SetConstantTarget(bool value);
 	void SetUseRelaxedMath(bool value);
-	void SetActivationFunction(ATMLActivationFunction activationFunction);
-	void SetComputationPrecision(ATMLComputationPrecision computationPrecision);
-	void SetErrorFunction(ATMLErrorFunction errorFunction);
+	void SetActivationFunction(MatunaActivationFunction activationFunction);
+	void SetComputationPrecision(MatunaComputationPrecision computationPrecision);
+	void SetErrorFunction(MatunaErrorFunction errorFunction);
 
 	//Changed for every execution
 	void SetInput(OpenCLMemory* input);
@@ -86,6 +86,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_IMAGEOUTPUTKERNEL_H_ */
+#endif /* MATUNA_CNNOPENCL_IMAGEOUTPUTKERNEL_H_ */

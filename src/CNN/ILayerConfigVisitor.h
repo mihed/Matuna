@@ -5,10 +5,10 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_ILAYERCONFIGVISITOR_H_
-#define ATML_CNN_ILAYERCONFIGVISITOR_H_
+#ifndef MATUNA_CNN_ILAYERCONFIGVISITOR_H_
+#define MATUNA_CNN_ILAYERCONFIGVISITOR_H_
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -34,7 +34,7 @@ public:
 	virtual void Visit(const StandardOutputLayerConfig* const convolutionConfig) = 0;
 };
 
-} /* ATML */
+} /* Matuna */
 } /* MachineLearning */
 
-#endif /* ATML_CNN_ILAYERCONFIGVISITOR_H_ */
+#endif /* MATUNA_CNN_ILAYERCONFIGVISITOR_H_ */

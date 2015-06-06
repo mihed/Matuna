@@ -12,7 +12,7 @@
 */
 #include "CNNTrainer.h"
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -78,6 +78,6 @@ namespace ATML
 
 
 	}
-	/* ATML */
+	/* Matuna */
 } /* MachineLearning */
 

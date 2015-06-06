@@ -10,7 +10,7 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -140,4 +140,4 @@ template class ZeroBorderKenel<cl_float> ;
 template class ZeroBorderKenel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

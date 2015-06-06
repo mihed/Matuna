@@ -10,7 +10,7 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -42,7 +42,7 @@ MultiplyAllUnitsKernel<T>::MultiplyAllUnitsKernel(int globalWidth,
 	useRelaxedMath = false;
 	useConstantInput = false;
 	useConstantInputDelta = false;
-	activationFunction = ATMLLinearActivation;
+	activationFunction = MatunaLinearActivation;
 
 	kernelName = "MultiplyAllUnitsKernel";
 
@@ -88,9 +88,9 @@ void MultiplyAllUnitsKernel<T>::InitializeCompilerOptions()
 	stringStream << "-D" << "INPUT_HEIGHT_OFFSET=" << inputHeightOffset << " ";
 	stringStream << "-D" << "INPUT_UNIT_OFFSET=" << inputUnitOffset << " ";
 
-	if (activationFunction == ATMLSigmoidActivation)
+	if (activationFunction == MatunaSigmoidActivation)
 		stringStream << "-D" << "SIGMOID ";
-	else if (activationFunction == ATMLTanhActivation)
+	else if (activationFunction == MatunaTanhActivation)
 		stringStream << "-D" << "TANH ";
 
 	if (useRelaxedMath)
@@ -118,7 +118,7 @@ void MultiplyAllUnitsKernel<T>::SetUseConstantInputDelta(bool value)
 }
 
 template<class T>
-void MultiplyAllUnitsKernel<T>::SetActivationFunction(ATMLActivationFunction activationFunction)
+void MultiplyAllUnitsKernel<T>::SetActivationFunction(MatunaActivationFunction activationFunction)
 {
 	this->activationFunction = activationFunction;
 }
@@ -197,4 +197,4 @@ template class MultiplyAllUnitsKernel<cl_float>;
 template class MultiplyAllUnitsKernel<cl_double>;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

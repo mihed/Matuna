@@ -13,7 +13,7 @@ using namespace std;
 
 ForthBackPropLayerTest::ForthBackPropLayerTest(
 		const vector<LayerDataDescription>& inputLayerDescriptions,
-		ATMLActivationFunction backPropActivation,
+		MatunaActivationFunction backPropActivation,
 		const ForwardBackPropLayerConfig* config) :
 		ForwardBackPropLayer(inputLayerDescriptions, backPropActivation, config)
 {

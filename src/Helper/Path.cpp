@@ -7,7 +7,7 @@
 
 #include "Path.h"
 
-namespace ATML {
+namespace Matuna {
 namespace Helper {
 
 string Path::Combine(const string& left, const string& right) {
@@ -75,4 +75,4 @@ string Path::GetDirectoryPath(const string& path)
 }
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

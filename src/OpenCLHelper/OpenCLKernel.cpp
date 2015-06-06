@@ -10,7 +10,7 @@
 #include <sstream>
 #include <fstream>
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -43,4 +43,4 @@ void OpenCLKernel::SetContext(const OpenCLContext* const context)
 }
 
 } /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */

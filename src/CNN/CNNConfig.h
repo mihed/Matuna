@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_CNNCONFIG_H_
-#define ATML_CNN_CNNCONFIG_H_
+#ifndef MATUNA_CNN_CNNCONFIG_H_
+#define MATUNA_CNN_CNNCONFIG_H_
 
 #include "OutputLayerConfig.h"
 #include "ForwardBackPropLayerConfig.h"
@@ -16,7 +16,7 @@
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -53,6 +53,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_CNNCONFIG_H_ */
+#endif /* MATUNA_CNN_CNNCONFIG_H_ */

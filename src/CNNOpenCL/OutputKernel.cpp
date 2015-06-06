@@ -10,7 +10,7 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML {
+namespace Matuna {
 namespace MachineLearning {
 
 template<class T>
@@ -27,9 +27,9 @@ OutputKernel<T>::OutputKernel(int unitsCount, int inputOffset, int outputOffset)
 	useConstantInput = false;
 	useConstantTarget = false;
 	useRelaxedMath = false;
-	activationFunction = ATMLSigmoidActivation;
-	computationPrecision = ATMLNormalPrecision;
-	errorFunction = ATMLMeanSquareError;
+	activationFunction = MatunaSigmoidActivation;
+	computationPrecision = MatunaNormalPrecision;
+	errorFunction = MatunaMeanSquareError;
 
 	globalWorkSize.push_back(unitsCount);
 }
@@ -56,18 +56,18 @@ void OutputKernel<T>::SetUseRelaxedMath(bool value) {
 
 template<class T>
 void OutputKernel<T>::SetActivationFunction(
-		ATMLActivationFunction activationFunction) {
+		MatunaActivationFunction activationFunction) {
 	this->activationFunction = activationFunction;
 }
 
 template<class T>
 void OutputKernel<T>::SetComputationPrecision(
-		ATMLComputationPrecision computationPrecision) {
+		MatunaComputationPrecision computationPrecision) {
 	this->computationPrecision = computationPrecision;
 }
 
 template<class T>
-void OutputKernel<T>::SetErrorFunction(ATMLErrorFunction errorFunction) {
+void OutputKernel<T>::SetErrorFunction(MatunaErrorFunction errorFunction) {
 	this->errorFunction = errorFunction;
 }
 
@@ -105,19 +105,19 @@ void OutputKernel<T>::InitializeCompilerOptions() {
 		stringStream << "-D" << "CONSTANT_TARGET ";
 
 	//Refer to the notes for this
-	if (errorFunction == ATMLMeanSquareError) {
-		if (activationFunction == ATMLLinearActivation)
+	if (errorFunction == MatunaMeanSquareError) {
+		if (activationFunction == MatunaLinearActivation)
 			stringStream << "-D" << "DIFFERENCE ";
 		else
 			stringStream << "-D" << "MSE_ANY ";
-	} else if (errorFunction == ATMLCrossEntropy) {
+	} else if (errorFunction == MatunaCrossEntropy) {
 		if (unitsCount == 1) {
-			if (activationFunction == ATMLSigmoidActivation)
+			if (activationFunction == MatunaSigmoidActivation)
 				stringStream << "-D" << "DIFFERENCE ";
 			else
 				stringStream << "-D" << "CE_BINARY_ANY ";
 		} else {
-			if (activationFunction == ATMLSoftMaxActivation)
+			if (activationFunction == MatunaSoftMaxActivation)
 				stringStream << "-D" << "DIFFERENCE ";
 			else
 				stringStream << "-D" << "CE_ANY ";
@@ -135,14 +135,14 @@ void OutputKernel<T>::InitializeCompilerOptions() {
 		throw runtime_error(
 				"The template type is not valid. This is an indication of programming error");
 
-	if (activationFunction == ATMLSigmoidActivation)
+	if (activationFunction == MatunaSigmoidActivation)
 		stringStream << "-D" << "SIGMOID ";
-	else if (activationFunction == ATMLTanhActivation)
+	else if (activationFunction == MatunaTanhActivation)
 		stringStream << "-D" << "TANH ";
 
-	if (computationPrecision == ATMLNativePrecision)
+	if (computationPrecision == MatunaNativePrecision)
 		stringStream << "-D" << "NATIVE_MATH ";
-	else if (computationPrecision == ATMLHalfPrecision)
+	else if (computationPrecision == MatunaHalfPrecision)
 		stringStream << "-D" << "HALF_MATH ";
 
 	if (useRelaxedMath)
@@ -193,4 +193,4 @@ template class OutputKernel<cl_float> ;
 template class OutputKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

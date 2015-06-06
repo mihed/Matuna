@@ -8,7 +8,7 @@
 #include "AccumulateVectorKernel.h"
 #include "OpenCLHelper/OpenCLUtility.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -80,4 +80,4 @@ template class AccumulateVectorKernel<cl_float> ;
 template class AccumulateVectorKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

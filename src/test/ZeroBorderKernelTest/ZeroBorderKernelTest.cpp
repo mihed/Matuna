@@ -14,9 +14,9 @@
 #include <random>
 #include <type_traits>
 
-using namespace ATML::Helper;
-using namespace ATML::Math;
-using namespace ATML::MachineLearning;
+using namespace Matuna::Helper;
+using namespace Matuna::Math;
+using namespace Matuna::MachineLearning;
 
 SCENARIO("Adding a zero border around the data")
 {

@@ -7,7 +7,7 @@
 
 #include "Layer.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -23,4 +23,4 @@ Layer::~Layer()
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

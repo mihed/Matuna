@@ -15,9 +15,9 @@
 #include <random>
 #include <type_traits>
 
-using namespace ATML::Helper;
-using namespace ATML::Math;
-using namespace ATML::MachineLearning;
+using namespace Matuna::Helper;
+using namespace Matuna::Math;
+using namespace Matuna::MachineLearning;
 
 
 SCENARIO("Back propagating a fully connected layer with the convolution kernel")
@@ -181,7 +181,7 @@ SCENARIO("Back propagating a fully connected layer with the convolution kernel")
 					INFO("Comparing the kernel result to the manual result");
 					auto difference = (kernelResult - manualResult).Norm2Square() / manualResult.ElementCount();
 					cout << "Difference: " << difference << endl;
-					CHECK(difference < 1E-7);
+					CHECK(difference < 1E-5);
 				}
 			}
 		}
@@ -292,7 +292,7 @@ SCENARIO("Back propagating a fully connected layer with the convolution kernel")
 					INFO("Comparing the kernel result to the manual result");
 					auto difference = (kernelResult - manualResult).Norm2Square() / manualResult.ElementCount();
 					cout << "Difference: " << difference << endl;
-					CHECK(difference < 1E-7);
+					CHECK(difference < 1E-5);
 				}
 			}
 		}

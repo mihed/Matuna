@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -263,4 +263,4 @@ bool InterlockHelper::DataEquals(const vector<LayerDataDescription>& right,
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

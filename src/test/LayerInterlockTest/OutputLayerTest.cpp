@@ -13,7 +13,7 @@ using namespace std;
 
 OutputLayerTest::OutputLayerTest(
 		const vector<LayerDataDescription>& inputLayerDescriptions,
-		ATMLActivationFunction backPropActivation,
+		MatunaActivationFunction backPropActivation,
 		const OutputLayerConfig* config) :
 		OutputLayer(inputLayerDescriptions, backPropActivation, config)
 {

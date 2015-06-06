@@ -12,7 +12,7 @@
 #include <sstream>
 #include <type_traits>
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -41,8 +41,8 @@ ImageForwardPerceptronKernel<T>::ImageForwardPerceptronKernel(int globalUnits,
 	useConstantInput = false;
 	useConstantBiases = false;
 	useRelaxedMath = false;
-	activationFunction = ATMLSigmoidActivation;
-	computationPrecision = ATMLNormalPrecision;
+	activationFunction = MatunaSigmoidActivation;
+	computationPrecision = MatunaNormalPrecision;
 
 	globalWorkSize.push_back(globalUnits);
 }
@@ -82,16 +82,16 @@ void ImageForwardPerceptronKernel<T>::InitializeCompilerOptions()
 	stringStream << "-D" << "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING=" << (inputStride * inputMemoryHeight) << " ";
 	stringStream << "-D" << "INPUT_MEMORY_WIDTH=" << inputStride << " ";
 
-	if (activationFunction == ATMLSigmoidActivation)
+	if (activationFunction == MatunaSigmoidActivation)
 		stringStream << "-D" << "SIGMOID ";
-	else if (activationFunction == ATMLTanhActivation)
+	else if (activationFunction == MatunaTanhActivation)
 		stringStream << "-D" << "TANH ";
-	else if (activationFunction == ATMLSoftMaxActivation)
+	else if (activationFunction == MatunaSoftMaxActivation)
 		stringStream << "-D" << "SOFTMAX ";
 
-	if (computationPrecision == ATMLNativePrecision)
+	if (computationPrecision == MatunaNativePrecision)
 		stringStream << "-D" << "NATIVE_MATH ";
-	else if (computationPrecision == ATMLHalfPrecision)
+	else if (computationPrecision == MatunaHalfPrecision)
 		stringStream << "-D" << "HALF_MATH ";
 
 	if (useRelaxedMath)
@@ -162,14 +162,14 @@ void ImageForwardPerceptronKernel<T>::SetUseConstantBiases(bool value)
 
 template<class T>
 void ImageForwardPerceptronKernel<T>::SetActivationFunction(
-		ATMLActivationFunction activationFunction)
+		MatunaActivationFunction activationFunction)
 {
 	this->activationFunction = activationFunction;
 }
 
 template<class T>
 void ImageForwardPerceptronKernel<T>::SetComputationPrecision(
-		ATMLComputationPrecision computationPrecision)
+		MatunaComputationPrecision computationPrecision)
 {
 	this->computationPrecision = computationPrecision;
 }
@@ -221,4 +221,4 @@ template class ImageForwardPerceptronKernel<cl_float> ;
 template class ImageForwardPerceptronKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

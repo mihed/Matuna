@@ -5,18 +5,18 @@
 *      Author: Mikael
 */
 
-#ifndef ATML_TEST_OPENCLCNNGDTRAININGTEST_TESTCNNTRAINER_H_
-#define ATML_TEST_OPENCLCNNGDTRAININGTEST_TESTCNNTRAINER_H_
+#ifndef MATUNA_TEST_OPENCLCNNGDTRAININGTEST_TESTCNNTRAINER_H_
+#define MATUNA_TEST_OPENCLCNNGDTRAININGTEST_TESTCNNTRAINER_H_
 
 #include "CNN/CNNTrainer.h"
 #include "Math/Matrix.h"
 #include "CNNOpenCL/CNNOpenCL.h"
 
 using namespace std;
-using namespace ATML::MachineLearning;
-using namespace ATML::Math;
+using namespace Matuna::MachineLearning;
+using namespace Matuna::Math;
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -47,6 +47,6 @@ namespace ATML
 		};
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_TEST_OPENCLCNNGDTRAININGTEST_TESTCNNTRAINER_H_ */
+#endif /* MATUNA_TEST_OPENCLCNNGDTRAININGTEST_TESTCNNTRAINER_H_ */

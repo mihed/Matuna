@@ -10,7 +10,7 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -34,8 +34,8 @@ ImageErrorKernel<T>::ImageErrorKernel(int dataWidth, int dataHeight,
 	useConstantInput = false;
 	useConstantTarget = false;
 	useRelaxedMath = false;
-	errorFunction = ATMLMeanSquareError;
-	computationPrecision = ATMLNormalPrecision;
+	errorFunction = MatunaMeanSquareError;
+	computationPrecision = MatunaNormalPrecision;
 }
 
 template<class T>
@@ -63,14 +63,14 @@ void ImageErrorKernel<T>::SetUseRelaxedMath(bool value)
 }
 
 template<class T>
-void ImageErrorKernel<T>::SetErrorFunction(ATMLErrorFunction errorFunction)
+void ImageErrorKernel<T>::SetErrorFunction(MatunaErrorFunction errorFunction)
 {
 	this->errorFunction = errorFunction;
 }
 
 template<class T>
 void ImageErrorKernel<T>::SetComputationPrecision(
-		ATMLComputationPrecision computationPrecision)
+		MatunaComputationPrecision computationPrecision)
 {
 	this->computationPrecision = computationPrecision;
 }
@@ -113,11 +113,11 @@ void ImageErrorKernel<T>::InitializeCompilerOptions()
 		stringStream << "-D" << "CONSTANT_TARGET ";
 
 	//Refer to the notes for this
-	if (errorFunction == ATMLMeanSquareError)
+	if (errorFunction == MatunaMeanSquareError)
 	{
 		stringStream << "-D" << "MSE ";
 	}
-	else if (errorFunction == ATMLCrossEntropy)
+	else if (errorFunction == MatunaCrossEntropy)
 	{
 		if (dataUnits == 1 && dataWidth == 1 && dataHeight == 1)
 			stringStream << "-D" << "CE_BINARY ";
@@ -143,9 +143,9 @@ void ImageErrorKernel<T>::InitializeCompilerOptions()
 		throw runtime_error(
 				"The template type is not valid. This is an indication of programming error");
 
-	if (computationPrecision == ATMLNativePrecision)
+	if (computationPrecision == MatunaNativePrecision)
 		stringStream << "-D" << "NATIVE_MATH ";
-	else if (computationPrecision == ATMLHalfPrecision)
+	else if (computationPrecision == MatunaHalfPrecision)
 		stringStream << "-D" << "HALF_MATH ";
 
 	if (useRelaxedMath)
@@ -201,4 +201,4 @@ template class ImageErrorKernel<cl_float> ;
 template class ImageErrorKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

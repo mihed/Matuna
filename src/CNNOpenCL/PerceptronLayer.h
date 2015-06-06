@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef ATML_CNNOPENCL_PERCEPTRONLAYER_H_
-#define ATML_CNNOPENCL_PERCEPTRONLAYER_H_
+#ifndef MATUNA_CNNOPENCL_PERCEPTRONLAYER_H_
+#define MATUNA_CNNOPENCL_PERCEPTRONLAYER_H_
 
 #include "OpenCLForwardBackPropLayer.h"
 #include "BackPerceptronKernel.h"
@@ -26,10 +26,10 @@
 #include <memory>
 
 using namespace std;
-using namespace ATML::Helper;
-using namespace ATML::Math;
+using namespace Matuna::Helper;
+using namespace Matuna::Math;
 
-namespace ATML
+namespace Matuna
 {
 	namespace MachineLearning
 	{
@@ -60,7 +60,7 @@ namespace ATML
 		public:
 			PerceptronLayer(shared_ptr<OpenCLContext> context,
 				const vector<LayerDataDescription>& inputLayerDescriptions,
-				ATMLActivationFunction backPropActivation,
+				MatunaActivationFunction backPropActivation,
 				const PerceptronLayerConfig* config);
 			virtual ~PerceptronLayer();
 
@@ -111,6 +111,6 @@ namespace ATML
 
 	}
 	/* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_PERCEPTRONLAYER_H_ */
+#endif /* MATUNA_CNNOPENCL_PERCEPTRONLAYER_H_ */

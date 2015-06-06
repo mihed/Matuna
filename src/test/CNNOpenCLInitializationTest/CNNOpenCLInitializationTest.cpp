@@ -17,8 +17,8 @@
 #include <memory>
 
 using namespace std;
-using namespace ATML::MachineLearning;
-using namespace ATML::Helper;
+using namespace Matuna::MachineLearning;
+using namespace Matuna::Helper;
 
 SCENARIO("Creating a CNNOpenCL network", "[CNNOpenCL][OpenCLContext]")
 {

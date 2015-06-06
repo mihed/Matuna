@@ -8,7 +8,7 @@
 #include "GradientDescentConfig.h"
 #include <stdexcept>
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -97,4 +97,4 @@ template class GradientDescentConfig<double> ;
 template class GradientDescentConfig<long double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

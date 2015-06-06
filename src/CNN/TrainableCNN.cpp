@@ -7,7 +7,7 @@
 
 #include "TrainableCNN.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -291,4 +291,4 @@ template class TrainableCNN<double> ;
 template class TrainableCNN<long double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

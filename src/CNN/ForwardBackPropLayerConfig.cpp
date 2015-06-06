@@ -7,13 +7,13 @@
 
 #include "ForwardBackPropLayerConfig.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
 
 ForwardBackPropLayerConfig::ForwardBackPropLayerConfig(bool useRelaxedMath,
-		ATMLComputationPrecision computationPrecision) :
+		MatunaComputationPrecision computationPrecision) :
 		useRelaxedMath(useRelaxedMath), computationPrecision(
 				computationPrecision)
 {
@@ -29,10 +29,10 @@ bool ForwardBackPropLayerConfig::UseRelaxedMath() const
 {
 	return useRelaxedMath;
 }
-ATMLComputationPrecision ForwardBackPropLayerConfig::ComputationPrecision() const
+MatunaComputationPrecision ForwardBackPropLayerConfig::ComputationPrecision() const
 {
 	return computationPrecision;
 }
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

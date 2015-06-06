@@ -5,10 +5,10 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNN_LAYERDESCRIPTIONS_H_
-#define ATML_CNN_LAYERDESCRIPTIONS_H_
+#ifndef MATUNA_CNN_LAYERDESCRIPTIONS_H_
+#define MATUNA_CNN_LAYERDESCRIPTIONS_H_
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -77,6 +77,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNN_LAYERDESCRIPTIONS_H_ */
+#endif /* MATUNA_CNN_LAYERDESCRIPTIONS_H_ */

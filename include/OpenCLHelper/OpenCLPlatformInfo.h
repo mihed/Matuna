@@ -5,15 +5,15 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_OPENCLHELPER_OPENCLPLATFORMINFO_H_
-#define ATML_OPENCLHELPER_OPENCLPLATFORMINFO_H_
+#ifndef MATUNA_OPENCLHELPER_OPENCLPLATFORMINFO_H_
+#define MATUNA_OPENCLHELPER_OPENCLPLATFORMINFO_H_
 
 #include <string>
 #include "OpenCLInclude.h"
 
 using namespace std;
 
-namespace ATML {
+namespace Matuna {
 	namespace Helper {
 
 		/**
@@ -123,6 +123,6 @@ namespace ATML {
 		};
 
 	} /* namespace Helper */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_OPENCLHELPER_OPENCLPLATFORMINFO_H_ */
+#endif /* MATUNA_OPENCLHELPER_OPENCLPLATFORMINFO_H_ */

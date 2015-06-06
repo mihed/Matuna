@@ -17,7 +17,7 @@
 #include "CNN/CNNConfig.h"
 #include "CNN/InterlockHelper.h"
 
-namespace ATML {
+namespace Matuna {
 	namespace MachineLearning {
 
 		template<class T>
@@ -41,10 +41,10 @@ namespace ATML {
 		void CNNOpenCLFactoryVisitor<T>::Visit(
 			const PerceptronLayerConfig* const perceptronConfig) {
 
-			if (backPropActivation == ATMLSoftMaxActivation)
+			if (backPropActivation == MatunaSoftMaxActivation)
 				throw invalid_argument("The soft max is currently only supported on the outmost layer");
 
-			if (perceptronConfig->ConnectionType() != ATMLFullConnection)
+			if (perceptronConfig->ConnectionType() != MatunaFullConnection)
 				throw invalid_argument("We only support full connection on the perceptron layer at the moment");
 
 			unique_ptr<ForwardBackPropLayer> layer(
@@ -58,10 +58,10 @@ namespace ATML {
 		void CNNOpenCLFactoryVisitor<T>::Visit(
 			const ConvolutionLayerConfig* const convolutionConfig) {
 
-			if (backPropActivation == ATMLSoftMaxActivation)
+			if (backPropActivation == MatunaSoftMaxActivation)
 				throw invalid_argument("The soft max is currently only supported on the outmost layer");
 
-			if (convolutionConfig->ConnectionType() != ATMLFullConnection)
+			if (convolutionConfig->ConnectionType() != MatunaFullConnection)
 				throw invalid_argument("We only support full connection on the convolution layer at the moment");
 
 			unique_ptr<ForwardBackPropLayer> layer(
@@ -75,7 +75,7 @@ namespace ATML {
 			const StandardOutputLayerConfig* const outputConfig) {
 
 			for (auto& inputData : inputDataDescriptions)
-				if (backPropActivation == ATMLSoftMaxActivation && inputData.Units == 1)
+				if (backPropActivation == MatunaSoftMaxActivation && inputData.Units == 1)
 					throw invalid_argument("You cannot use Softmax together with only one unit. Use sigmoid instead!");
 
 			unique_ptr<OutputLayer> layer(
@@ -89,4 +89,4 @@ namespace ATML {
 		template class CNNOpenCLFactoryVisitor < cl_double > ;
 
 	} /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

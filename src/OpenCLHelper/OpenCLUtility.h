@@ -1,5 +1,5 @@
-#ifndef ATML_OPENCLHELPER_OPENCLUTILITY_H_
-#define ATML_OPENCLHELPER_OPENCLUTILITY_H_
+#ifndef MATUNA_OPENCLHELPER_OPENCLUTILITY_H_
+#define MATUNA_OPENCLHELPER_OPENCLUTILITY_H_
 
 #include <exception>
 #include <stdexcept>
@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 	namespace Helper
 	{
@@ -277,4 +277,4 @@ namespace ATML
 	}
 }
 
-#endif /* ATML_OPENCLHELPER_OPENCLUTILITY_H_ */
+#endif /* MATUNA_OPENCLHELPER_OPENCLUTILITY_H_ */

@@ -10,7 +10,7 @@
 
 #include "OpenCLInclude.h"
 
-namespace ATML
+namespace Matuna
 {
 namespace Helper
 {
@@ -73,6 +73,6 @@ final
 	};
 
 	} /* namespace Helper */
-	} /* namespace ATML */
+	} /* namespace Matuna */
 
 #endif /* OPENCLHELPER_OPENCLMEMORY_H_ */

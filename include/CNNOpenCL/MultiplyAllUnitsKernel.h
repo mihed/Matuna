@@ -5,17 +5,17 @@
  *      Author: Mikael
  */
 
-#ifndef ATML_CNNOPENCL_MULTIPLYALLUNITSKERNEL_H_
-#define ATML_CNNOPENCL_MULTIPLYALLUNITSKERNEL_H_
+#ifndef MATUNA_CNNOPENCL_MULTIPLYALLUNITSKERNEL_H_
+#define MATUNA_CNNOPENCL_MULTIPLYALLUNITSKERNEL_H_
 
 #include "OpenCLHelper/OpenCLKernelProgram.h"
-#include "CNN/ATMLActivationFunctionEnum.h"
+#include "CNN/MatunaActivationFunctionEnum.h"
 #include "OpenCLHelper/OpenCLMemory.h"
 
-using namespace ATML::Helper;
+using namespace Matuna::Helper;
 using namespace std;
 
-namespace ATML
+namespace Matuna
 {
 namespace MachineLearning
 {
@@ -33,7 +33,7 @@ private:
 	bool useRelaxedMath;
 	bool useConstantInput;
 	bool useConstantInputDelta;
-	ATMLActivationFunction activationFunction;
+	MatunaActivationFunction activationFunction;
 
 	int globalWidth;
 	int globalHeight;
@@ -66,7 +66,7 @@ public:
 	void SetUseConstantInput(bool value);
 	void SetUseConstantInputDelta(bool value);
 
-	void SetActivationFunction(ATMLActivationFunction activationFunction);
+	void SetActivationFunction(MatunaActivationFunction activationFunction);
 
 	void SetInput(OpenCLMemory* input);
 	void SetInputDelta(OpenCLMemory* inputDelta);
@@ -81,6 +81,6 @@ public:
 };
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
 
-#endif /* ATML_CNNOPENCL_MULTIPLYALLUNITSKERNEL_H_ */
+#endif /* MATUNA_CNNOPENCL_MULTIPLYALLUNITSKERNEL_H_ */

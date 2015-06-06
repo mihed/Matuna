@@ -10,7 +10,7 @@
 #include "Helper/FileHelper.h"
 #include "Helper/Path.h"
 
-namespace ATML {
+namespace Matuna {
 namespace MachineLearning {
 
 template<class T>
@@ -26,8 +26,8 @@ ErrorKernel<T>::ErrorKernel(int units, int unitOffset) :
 	useConstantInput = false;
 	useConstantTarget = false;
 	useRelaxedMath = false;
-	errorFunction = ATMLMeanSquareError;
-	computationPrecision = ATMLNormalPrecision;
+	errorFunction = MatunaMeanSquareError;
+	computationPrecision = MatunaNormalPrecision;
 }
 
 template<class T>
@@ -51,13 +51,13 @@ void ErrorKernel<T>::SetUseRelaxedMath(bool value) {
 }
 
 template<class T>
-void ErrorKernel<T>::SetErrorFunction(ATMLErrorFunction errorFunction) {
+void ErrorKernel<T>::SetErrorFunction(MatunaErrorFunction errorFunction) {
 	this->errorFunction = errorFunction;
 }
 
 template<class T>
 void ErrorKernel<T>::SetComputationPrecision(
-		ATMLComputationPrecision computationPrecision) {
+		MatunaComputationPrecision computationPrecision) {
 	this->computationPrecision = computationPrecision;
 }
 
@@ -95,9 +95,9 @@ void ErrorKernel<T>::InitializeCompilerOptions() {
 		stringStream << "-D" << "CONSTANT_TARGET ";
 
 	//Refer to the notes for this
-	if (errorFunction == ATMLMeanSquareError) {
+	if (errorFunction == MatunaMeanSquareError) {
 		stringStream << "-D" << "MSE ";
-	} else if (errorFunction == ATMLCrossEntropy) {
+	} else if (errorFunction == MatunaCrossEntropy) {
 		if (units == 1)
 			stringStream << "-D" << "CE_BINARY ";
 		else
@@ -116,9 +116,9 @@ void ErrorKernel<T>::InitializeCompilerOptions() {
 
 	stringStream << "-D" << "INPUT_COUNT=" << units << " ";
 
-	if (computationPrecision == ATMLNativePrecision)
+	if (computationPrecision == MatunaNativePrecision)
 		stringStream << "-D" << "NATIVE_MATH ";
-	else if (computationPrecision == ATMLHalfPrecision)
+	else if (computationPrecision == MatunaHalfPrecision)
 		stringStream << "-D" << "HALF_MATH ";
 
 	if (useRelaxedMath)
@@ -168,4 +168,4 @@ template class ErrorKernel<cl_float> ;
 template class ErrorKernel<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */

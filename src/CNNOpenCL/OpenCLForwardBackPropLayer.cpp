@@ -8,14 +8,14 @@
 #include "OpenCLForwardBackPropLayer.h"
 #include <stdexcept>
 
-namespace ATML {
+namespace Matuna {
 namespace MachineLearning {
 
 template<class T>
 OpenCLForwardBackPropLayer<T>::OpenCLForwardBackPropLayer(
 		shared_ptr<OpenCLContext> context,
 		const vector<LayerDataDescription>& inputLayerDescriptions,
-		ATMLActivationFunction backPropActivation,
+		MatunaActivationFunction backPropActivation,
 		const ForwardBackPropLayerConfig* config) :
 		ForwardBackPropLayer(inputLayerDescriptions, backPropActivation,
 				config), context(context) {
@@ -31,4 +31,4 @@ template class OpenCLForwardBackPropLayer<cl_float> ;
 template class OpenCLForwardBackPropLayer<cl_double> ;
 
 } /* namespace MachineLearning */
-} /* namespace ATML */
+} /* namespace Matuna */
