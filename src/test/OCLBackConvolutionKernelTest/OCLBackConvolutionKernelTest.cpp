@@ -9,7 +9,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/BackConvolutionKernel.h"
+#include "ConvNetOCL/BackConvolutionKernel.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>

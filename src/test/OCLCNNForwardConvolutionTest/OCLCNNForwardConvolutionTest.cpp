@@ -1,5 +1,5 @@
 /*
- * OCLCNNForwardConvolutionTest.cpp
+ * OCLConvNetForwardConvolutionTest.cpp
  *
  *  Created on: May 25, 2015
  *      Author: Mikael
@@ -8,10 +8,10 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/CNNOCL.h"
-#include "CNNOCL/ConvolutionLayer.h"
-#include "CNN/ConvolutionLayerConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
+#include "ConvNetOCL/ConvNetOCL.h"
+#include "ConvNetOCL/ConvolutionLayer.h"
+#include "ConvNet/ConvolutionLayerConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -42,7 +42,7 @@ double TanhActivationDouble(double x)
 	return 1.7159 *  tanh(0.666666666666666 * x);
 }
 
-unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
+unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 	uniform_int_distribution<int>& layerGenerator,
 	uniform_int_distribution<int>& dimensionGenerator,
 	uniform_int_distribution<int>& unitGenerator,
@@ -58,8 +58,8 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 	int layerCount = layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
-	INFO("Initializing the CNN config");
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	INFO("Initializing the ConvNet config");
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
@@ -91,7 +91,7 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 }
 
 
-SCENARIO("Forward propagating a convolution layer in an OCLCNN")
+SCENARIO("Forward propagating a convolution layer in an OCLConvNet")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
@@ -111,8 +111,8 @@ SCENARIO("Forward propagating a convolution layer in an OCLCNN")
 		for (auto& deviceInfo : deviceInfos)
 		{
 
-			unique_ptr<CNNConfig> config = CreateRandomCNNConvolutionConfig(mt, layerGenerator, dimensionGenerator, unitGenerator, filterGenerator);
-			CNNOCL<float> network(deviceInfo, move(config));
+			unique_ptr<ConvNetConfig> config = CreateRandomConvNetConvolutionConfig(mt, layerGenerator, dimensionGenerator, unitGenerator, filterGenerator);
+			ConvNetOCL<float> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDescription = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDescription = network.OutputForwardDataDescriptions()[0];

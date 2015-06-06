@@ -1,5 +1,5 @@
 /*
-* OCLCNNGradientPerceptronTest.cpp
+* OCLConvNetGradientPerceptronTest.cpp
 *
 *  Created on: May 17, 2015
 *      Author: Mikael
@@ -7,11 +7,11 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/CNNOCL.h"
-#include "CNNOCL/PerceptronLayer.h"
-#include "CNN/PerceptronLayerConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
-#include "CNNOCL/PerceptronLayer.h"
+#include "ConvNetOCL/ConvNetOCL.h"
+#include "ConvNetOCL/PerceptronLayer.h"
+#include "ConvNet/PerceptronLayerConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
+#include "ConvNetOCL/PerceptronLayer.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -22,7 +22,7 @@ using namespace Matuna::MachineLearning;
 using namespace Matuna::Math;
 using namespace Matuna::Helper;
 
-unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
+unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 													  uniform_int_distribution<int>& layerGenerator,
 													  uniform_int_distribution<int>& dimensionGenerator,
 													  bool useSoftMax)
@@ -37,8 +37,8 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 	int layerCount = layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
-	INFO("Initializing the CNN config");
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	INFO("Initializing the ConvNet config");
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
@@ -91,7 +91,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 	return move(config);
 }
 
-unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfigWithImage(mt19937& mt,
+unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfigWithImage(mt19937& mt,
 															   uniform_int_distribution<int>& layerGenerator,
 															   uniform_int_distribution<int>& dimensionGenerator,
 															   uniform_int_distribution<int>& imageGenerator,
@@ -107,8 +107,8 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfigWithImage(mt19937& mt,
 	int layerCount = layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
-	INFO("Initializing the CNN config");
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	INFO("Initializing the ConvNet config");
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
@@ -169,7 +169,7 @@ double CalculateCEError(const Matrix<double>& input, const Matrix<double>& targe
 	return result;
 }
 
-SCENARIO("Calculating the gradient of a CNN using perceptron layers with image input")
+SCENARIO("Calculating the gradient of a ConvNet using perceptron layers with image input")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
@@ -195,8 +195,8 @@ SCENARIO("Calculating the gradient of a CNN using perceptron layers with image i
 
 		for (auto& deviceInfo : deviceInfos)
 		{
-			auto config = CreateRandomCNNPerceptronConfigWithImage(mt, layerGenerator, dimensionGenerator, imageDimensionGenerator,false);
-			CNNOCL<double> network(deviceInfo, move(config));
+			auto config = CreateRandomConvNetPerceptronConfigWithImage(mt, layerGenerator, dimensionGenerator, imageDimensionGenerator,false);
+			ConvNetOCL<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];
@@ -258,7 +258,7 @@ SCENARIO("Calculating the gradient of a CNN using perceptron layers with image i
 	}
 }
 
-SCENARIO("Calculating the gradient of a CNN using softmax")
+SCENARIO("Calculating the gradient of a ConvNet using softmax")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
@@ -283,8 +283,8 @@ SCENARIO("Calculating the gradient of a CNN using softmax")
 
 		for (auto& deviceInfo : deviceInfos)
 		{
-			auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
-			CNNOCL<double> network(deviceInfo, move(config));
+			auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
+			ConvNetOCL<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];
@@ -336,7 +336,7 @@ SCENARIO("Calculating the gradient of a CNN using softmax")
 	}
 }
 
-SCENARIO("Calculating the gradient of a CNN using perceptron layers")
+SCENARIO("Calculating the gradient of a ConvNet using perceptron layers")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
@@ -361,8 +361,8 @@ SCENARIO("Calculating the gradient of a CNN using perceptron layers")
 
 		for (auto& deviceInfo : deviceInfos)
 		{
-			auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
-			CNNOCL<double> network(deviceInfo, move(config));
+			auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
+			ConvNetOCL<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];

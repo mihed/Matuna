@@ -1,5 +1,5 @@
 /*
-* OCLCNNPerceptronTest.cpp
+* OCLConvNetPerceptronTest.cpp
 *
 *  Created on: May 11, 2015
 *      Author: Mikael
@@ -8,10 +8,10 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/CNNOCL.h"
-#include "CNNOCL/PerceptronLayer.h"
-#include "CNN/PerceptronLayerConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
+#include "ConvNetOCL/ConvNetOCL.h"
+#include "ConvNetOCL/PerceptronLayer.h"
+#include "ConvNet/PerceptronLayerConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -48,7 +48,7 @@ vector<vector<T>> GetSimplePerceptronInputs()
 }
 
 template<class T>
-void CalculateORPerceptron(unique_ptr<CNNConfig> config, const vector<OCLDeviceInfo>& deviceInfos,
+void CalculateORPerceptron(unique_ptr<ConvNetConfig> config, const vector<OCLDeviceInfo>& deviceInfos,
 						   unique_ptr<PerceptronLayerConfig> perceptronConfig,
 						   vector<vector<T>> inputs, vector<T> targets)
 {
@@ -82,7 +82,7 @@ void CalculateORPerceptron(unique_ptr<CNNConfig> config, const vector<OCLDeviceI
 	}
 
 	INFO("Initializing the network");
-	CNNOCL<T> network(validatedDevices, move(config));
+	ConvNetOCL<T> network(validatedDevices, move(config));
 	CHECK(network.Interlocked());
 
 	INFO("Creating a pointer with previusly calculated parameters");
@@ -122,7 +122,7 @@ void CalculateORPerceptron(unique_ptr<CNNConfig> config, const vector<OCLDeviceI
 
 
 template<class T>
-void CalculateANDPerceptron(unique_ptr<CNNConfig> config, const vector<OCLDeviceInfo>& deviceInfos,
+void CalculateANDPerceptron(unique_ptr<ConvNetConfig> config, const vector<OCLDeviceInfo>& deviceInfos,
 							unique_ptr<PerceptronLayerConfig> perceptronConfig,
 							vector<vector<T>> inputs, vector<T> targets)
 {
@@ -156,7 +156,7 @@ void CalculateANDPerceptron(unique_ptr<CNNConfig> config, const vector<OCLDevice
 	}
 
 	INFO("Initializing the network");
-	CNNOCL<T> network(validatedDevices, move(config));
+	ConvNetOCL<T> network(validatedDevices, move(config));
 	CHECK(network.Interlocked());
 
 	INFO("Creating a pointer with previusly calculated parameters");
@@ -234,7 +234,7 @@ double TanhActivationDouble(double x)
 }
 
 
-unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
+unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 													  uniform_int_distribution<int>& layerGenerator,
 													  uniform_int_distribution<int>& dimensionGenerator,
 													  bool useSoftMax, bool useImageInput = false)
@@ -256,8 +256,8 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 	int layerCount = layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
-	INFO("Initializing the CNN config");
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	INFO("Initializing the ConvNet config");
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
@@ -311,7 +311,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 
 
 
-SCENARIO("Forward propagating a CNN network using image inputs for a perceptron layer")
+SCENARIO("Forward propagating a ConvNet network using image inputs for a perceptron layer")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
@@ -334,8 +334,8 @@ SCENARIO("Forward propagating a CNN network using image inputs for a perceptron 
 
 				for (auto& deviceInfo : deviceInfos)
 				{
-					auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator, false, true);
-					CNNOCL<float> network(deviceInfo, move(config));
+					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, false, true);
+					ConvNetOCL<float> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<float>*> perceptronlayers;
 					for (auto layer : layers)
@@ -409,7 +409,7 @@ SCENARIO("Forward propagating a CNN network using image inputs for a perceptron 
 
 }
 
-SCENARIO("Forward propagating an OR CNN network")
+SCENARIO("Forward propagating an OR ConvNet network")
 {
 
 	INFO("Initializing the data descriptions for the OR perceptron");
@@ -447,8 +447,8 @@ SCENARIO("Forward propagating an OR CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1));
@@ -464,8 +464,8 @@ SCENARIO("Forward propagating an OR CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaNativePrecision));
@@ -481,8 +481,8 @@ SCENARIO("Forward propagating an OR CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaHalfPrecision));
@@ -497,8 +497,8 @@ SCENARIO("Forward propagating an OR CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, true, MatunaHalfPrecision));
@@ -513,8 +513,8 @@ SCENARIO("Forward propagating an OR CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1));
@@ -529,8 +529,8 @@ SCENARIO("Forward propagating an OR CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaNativePrecision));
@@ -545,8 +545,8 @@ SCENARIO("Forward propagating an OR CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaHalfPrecision));
@@ -561,8 +561,8 @@ SCENARIO("Forward propagating an OR CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, true, MatunaHalfPrecision));
@@ -574,7 +574,7 @@ SCENARIO("Forward propagating an OR CNN network")
 
 
 
-SCENARIO("Forward propagating an AND CNN network")
+SCENARIO("Forward propagating an AND ConvNet network")
 {
 
 	INFO("Initializing the data descriptions for the AND perceptron");
@@ -613,8 +613,8 @@ SCENARIO("Forward propagating an AND CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1));
@@ -630,8 +630,8 @@ SCENARIO("Forward propagating an AND CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaNativePrecision));
@@ -646,8 +646,8 @@ SCENARIO("Forward propagating an AND CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaHalfPrecision));
@@ -662,8 +662,8 @@ SCENARIO("Forward propagating an AND CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				//FIXME: the AMD platform fails with the unsafe math
 				//if (contextPointer->GetPlatformInfo().PlatformName().find("AMD") == string::npos)
@@ -682,8 +682,8 @@ SCENARIO("Forward propagating an AND CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1));
@@ -698,8 +698,8 @@ SCENARIO("Forward propagating an AND CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaNativePrecision));
@@ -714,8 +714,8 @@ SCENARIO("Forward propagating an AND CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, false, MatunaHalfPrecision));
@@ -730,8 +730,8 @@ SCENARIO("Forward propagating an AND CNN network")
 		{
 			for (auto& deviceInfo : deviceInfos)
 			{
-				INFO("Initializing the CNN config");
-				unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+				INFO("Initializing the ConvNet config");
+				unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 				INFO("Creating a perceptron layer config");
 				unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(1, MatunaSigmoidActivation, MatunaFullConnection, true, MatunaHalfPrecision));
@@ -765,8 +765,8 @@ SCENARIO("Forward propagating multi-layer perceptron network using cross entropy
 
 				for (auto& deviceInfo : deviceInfos)
 				{
-					auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
-					CNNOCL<float> network(deviceInfo, move(config));
+					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
+					ConvNetOCL<float> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<float>*> perceptronlayers;
 					for (auto layer : layers)
@@ -868,8 +868,8 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 
 				for (auto& deviceInfo : deviceInfos)
 				{
-					auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
-					CNNOCL<float> network(deviceInfo, move(config));
+					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
+					ConvNetOCL<float> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<float>*> perceptronlayers;
 					for (auto layer : layers)

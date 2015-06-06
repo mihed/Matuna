@@ -6,7 +6,7 @@
 */
 
 #include "StandardOutputLayer.h"
-#include "CNN/InterlockHelper.h"
+#include "ConvNet/InterlockHelper.h"
 #include <stdexcept>
 #include <type_traits>
 

@@ -1,5 +1,5 @@
 /*
-* OCLCNNBackPropPerceptronTest.cpp
+* OCLConvNetBackPropPerceptronTest.cpp
 *
 *  Created on: May 16, 2015
 *      Author: Mikael
@@ -7,12 +7,12 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/CNNOCL.h"
-#include "CNNOCL/PerceptronLayer.h"
-#include "CNN/PerceptronLayerConfig.h"
-#include "CNN/ConvolutionLayerConfig.h"
-#include "CNNOCL/ConvolutionLayer.h"
-#include "CNN/StandardOutputLayerConfig.h"
+#include "ConvNetOCL/ConvNetOCL.h"
+#include "ConvNetOCL/PerceptronLayer.h"
+#include "ConvNet/PerceptronLayerConfig.h"
+#include "ConvNet/ConvolutionLayerConfig.h"
+#include "ConvNetOCL/ConvolutionLayer.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -63,7 +63,7 @@ double TanhActivationDerivativeDouble(double x)
 	return 0.666666666666666 * (1.7159 - (x * x) / 1.7159);
 }
 
-unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
+unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 													  uniform_int_distribution<int>& layerGenerator,
 													  uniform_int_distribution<int>& dimensionGenerator,
 													  bool useSoftMax)
@@ -78,8 +78,8 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 	int layerCount = layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
-	INFO("Initializing the CNN config");
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	INFO("Initializing the ConvNet config");
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
@@ -132,7 +132,7 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfig(mt19937& mt,
 	return move(config);
 }
 
-unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfigWithImage(mt19937& mt,
+unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfigWithImage(mt19937& mt,
 															   uniform_int_distribution<int>& layerGenerator,
 															   uniform_int_distribution<int>& imageDimensionGenerator,
 															   uniform_int_distribution<int>& filterDimensionGenerator,
@@ -149,8 +149,8 @@ unique_ptr<CNNConfig> CreateRandomCNNPerceptronConfigWithImage(mt19937& mt,
 	int layerCount = layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
-	INFO("Initializing the CNN config");
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	INFO("Initializing the ConvNet config");
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 	unique_ptr<ConvolutionLayerConfig> convConfig(new ConvolutionLayerConfig(dimensionGenerator(mt), 
 		filterDimensionGenerator(mt), filterDimensionGenerator(mt)));
@@ -237,8 +237,8 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 
 				for (auto& deviceInfo : deviceInfos)
 				{
-					auto config = CreateRandomCNNPerceptronConfigWithImage(mt, layerGenerator, imageDimensionGenerator, filterGenerator, dimensionGenerator, true);
-					CNNOCL<double> network(deviceInfo, move(config));
+					auto config = CreateRandomConvNetPerceptronConfigWithImage(mt, layerGenerator, imageDimensionGenerator, filterGenerator, dimensionGenerator, true);
+					ConvNetOCL<double> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					auto layerCount = layers.size();
 
@@ -467,8 +467,8 @@ SCENARIO("Back propagating a perceptron using Softmax")
 
 				for (auto& deviceInfo : deviceInfos)
 				{
-					auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
-					CNNOCL<double> network(deviceInfo, move(config));
+					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
+					ConvNetOCL<double> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<double>*> perceptronlayers;
 					for (auto layer : layers)
@@ -610,8 +610,8 @@ SCENARIO("Back propagating a perceptron using MSE")
 
 				for (auto& deviceInfo : deviceInfos)
 				{
-					auto config = CreateRandomCNNPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
-					CNNOCL<double> network(deviceInfo, move(config));
+					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
+					ConvNetOCL<double> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<double>*> perceptronlayers;
 					for (auto layer : layers)

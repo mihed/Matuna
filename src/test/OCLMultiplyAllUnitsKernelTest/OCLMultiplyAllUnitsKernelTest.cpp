@@ -8,7 +8,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/MultiplyAllUnitsKernel.h"
+#include "ConvNetOCL/MultiplyAllUnitsKernel.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>

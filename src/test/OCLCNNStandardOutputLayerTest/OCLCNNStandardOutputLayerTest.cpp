@@ -8,11 +8,11 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/CNNOCL.h"
-#include "CNN/CNNConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
-#include "CNN/LayerDescriptions.h"
+#include "ConvNetOCL/ConvNetOCL.h"
+#include "ConvNet/ConvNetConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
+#include "ConvNet/LayerDescriptions.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -23,7 +23,7 @@ using namespace Matuna::MachineLearning;
 using namespace Matuna::Helper;
 using namespace Matuna::Math;
 
-SCENARIO("Creating a CNN with an standard output layer")
+SCENARIO("Creating a ConvNet with an standard output layer")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
@@ -51,9 +51,9 @@ SCENARIO("Creating a CNN with an standard output layer")
 					inputDescription.Units = dimensionGenerator(mt);
 					vector<LayerDataDescription> temp;
 					temp.push_back(inputDescription);
-					unique_ptr<CNNConfig> config(new CNNConfig(temp));
+					unique_ptr<ConvNetConfig> config(new ConvNetConfig(temp));
 					config->SetOutputConfig(move(outputLayerConfig));
-					CNNOCL<float> network(deviceInfo, move(config));
+					ConvNetOCL<float> network(deviceInfo, move(config));
 					auto randomInputs = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 					auto randomTargets = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 
@@ -78,7 +78,7 @@ SCENARIO("Creating a CNN with an standard output layer")
 		}
 	}
 
-	WHEN("Creating a float CNN with MSE and Linear activation with normal math")
+	WHEN("Creating a float ConvNet with MSE and Linear activation with normal math")
 	{
 		THEN("The back propagation must be equal to difference between target and input")
 		{
@@ -93,9 +93,9 @@ SCENARIO("Creating a CNN with an standard output layer")
 					inputDescription.Units = dimensionGenerator(mt);
 					vector<LayerDataDescription> temp;
 					temp.push_back(inputDescription);
-					unique_ptr<CNNConfig> config(new CNNConfig(temp));
+					unique_ptr<ConvNetConfig> config(new ConvNetConfig(temp));
 					config->SetOutputConfig(move(outputLayerConfig));
-					CNNOCL<float> network(deviceInfo, move(config));
+					ConvNetOCL<float> network(deviceInfo, move(config));
 					auto randomInputs = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 					auto randomTargets = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 
@@ -113,7 +113,7 @@ SCENARIO("Creating a CNN with an standard output layer")
 		}
 	}
 
-	WHEN("Creating a float CNN with MSE and Linear activation and relaxed math")
+	WHEN("Creating a float ConvNet with MSE and Linear activation and relaxed math")
 	{
 		THEN("The back propagation must be equal to difference between target and input")
 		{
@@ -128,9 +128,9 @@ SCENARIO("Creating a CNN with an standard output layer")
 					inputDescription.Units = dimensionGenerator(mt);
 					vector<LayerDataDescription> temp;
 					temp.push_back(inputDescription);
-					unique_ptr<CNNConfig> config(new CNNConfig(temp));
+					unique_ptr<ConvNetConfig> config(new ConvNetConfig(temp));
 					config->SetOutputConfig(move(outputLayerConfig));
-					CNNOCL<float> network(deviceInfo, move(config));
+					ConvNetOCL<float> network(deviceInfo, move(config));
 					auto randomInputs = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 					auto randomTargets = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 

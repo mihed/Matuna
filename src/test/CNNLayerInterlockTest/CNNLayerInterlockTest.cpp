@@ -7,20 +7,20 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 
-#include "CNN/CNNConfig.h"
-#include "CNN/ILayerConfig.h"
-#include "CNN/ILayerConfigVisitor.h"
-#include "CNN/InterlockHelper.h"
-#include "CNN/ForwardBackPropLayerConfig.h"
-#include "CNN/OutputLayerConfig.h"
-#include "CNN/PerceptronLayerConfig.h"
-#include "CNN/ConvolutionLayerConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
-#include "CNN/CNN.h"
+#include "ConvNet/ConvNetConfig.h"
+#include "ConvNet/ILayerConfig.h"
+#include "ConvNet/ILayerConfigVisitor.h"
+#include "ConvNet/InterlockHelper.h"
+#include "ConvNet/ForwardBackPropLayerConfig.h"
+#include "ConvNet/OutputLayerConfig.h"
+#include "ConvNet/PerceptronLayerConfig.h"
+#include "ConvNet/ConvolutionLayerConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
+#include "ConvNet/ConvNet.h"
 
 #include "ForthBackPropLayerTest.h"
 #include "OutputLayerTest.h"
-#include "CNNFactoryVisitorTest.h"
+#include "ConvNetFactoryVisitorTest.h"
 
 #include <memory>
 #include <chrono>
@@ -187,7 +187,7 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 		inputDescription.Units = unitGenerator(generator);
 		vector<LayerDataDescription> inputDescriptions;
 		inputDescriptions.push_back(inputDescription);
-		CNNConfig cnnConfig(inputDescriptions);
+		ConvNetConfig cnnConfig(inputDescriptions);
 
 		for (int i = 0; i < count; i++)
 		{
@@ -201,8 +201,8 @@ SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerCon
 		cnnConfig.SetOutputConfig(move(oConfig));
 
 		INFO("Visiting the factory");
-		CNN networkDummy(cnnConfig);
-		CNNFactoryVisitorTest factory(&networkDummy);
+		ConvNet networkDummy(cnnConfig);
+		ConvNetFactoryVisitorTest factory(&networkDummy);
 		cnnConfig.Accept(&factory);
 
 		WHEN("Fetching all the layers from the factory")

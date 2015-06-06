@@ -1,5 +1,5 @@
 /*
-* OCLCNNGradientConvolutionTest.cpp
+* OCLConvNetGradientConvolutionTest.cpp
 *
 *  Created on: Jun 1, 2015
 *      Author: Mikael
@@ -7,11 +7,11 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/CNNOCL.h"
-#include "CNNOCL/ConvolutionLayer.h"
-#include "CNN/ConvolutionLayerConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
-#include "CNNOCL/PerceptronLayer.h"
+#include "ConvNetOCL/ConvNetOCL.h"
+#include "ConvNetOCL/ConvolutionLayer.h"
+#include "ConvNet/ConvolutionLayerConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
+#include "ConvNetOCL/PerceptronLayer.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -23,7 +23,7 @@ using namespace Matuna::Math;
 using namespace Matuna::Helper;
 
 
-unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
+unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 													   uniform_int_distribution<int>& layerGenerator,
 													   uniform_int_distribution<int>& dimensionGenerator,
 													   uniform_int_distribution<int>& unitGenerator,
@@ -39,8 +39,8 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 	int layerCount = layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
-	INFO("Initializing the CNN config");
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	INFO("Initializing the ConvNet config");
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 	MatunaActivationFunction activationFunction;
 	INFO("Creating the layers config");
@@ -71,7 +71,7 @@ unique_ptr<CNNConfig> CreateRandomCNNConvolutionConfig(mt19937& mt,
 	return move(config);
 }
 
-SCENARIO("Calculating the gradient of a CNN using convolution layers")
+SCENARIO("Calculating the gradient of a ConvNet using convolution layers")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
@@ -98,8 +98,8 @@ SCENARIO("Calculating the gradient of a CNN using convolution layers")
 
 		for (auto& deviceInfo : deviceInfos)
 		{
-			unique_ptr<CNNConfig> config = CreateRandomCNNConvolutionConfig(mt, layerGenerator, dimensionGenerator, unitGenerator, filterGenerator);
-			CNNOCL<double> network(deviceInfo, move(config));
+			unique_ptr<ConvNetConfig> config = CreateRandomConvNetConvolutionConfig(mt, layerGenerator, dimensionGenerator, unitGenerator, filterGenerator);
+			ConvNetOCL<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDescription = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDescription = network.OutputForwardDataDescriptions()[0];

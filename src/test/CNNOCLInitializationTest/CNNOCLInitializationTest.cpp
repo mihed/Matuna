@@ -1,5 +1,5 @@
 /*
- * CNNOCLInitializationTest.cpp
+ * ConvNetOCLInitializationTest.cpp
  *
  *  Created on: May 9, 2015
  *      Author: Mikael
@@ -7,12 +7,12 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "CNNOCL/CNNOCL.h"
+#include "ConvNetOCL/ConvNetOCL.h"
 #include "OCLHelper/OCLHelper.h"
 #include "OCLHelper/OCLContext.h"
-#include "CNN/PerceptronLayerConfig.h"
-#include "CNN/LayerDescriptions.h"
-#include "CNN/StandardOutputLayerConfig.h"
+#include "ConvNet/PerceptronLayerConfig.h"
+#include "ConvNet/LayerDescriptions.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
 #include <vector>
 #include <memory>
 
@@ -20,7 +20,7 @@ using namespace std;
 using namespace Matuna::MachineLearning;
 using namespace Matuna::Helper;
 
-SCENARIO("Creating a CNNOCL network", "[CNNOCL][OCLContext]")
+SCENARIO("Creating a ConvNetOCL network", "[ConvNetOCL][OCLContext]")
 {
 	INFO("Getting the platform infos");
 	auto platformInfos = OCLHelper::GetPlatformInfos();
@@ -36,7 +36,7 @@ SCENARIO("Creating a CNNOCL network", "[CNNOCL][OCLContext]")
 	INFO("Creating a OCL Context");
 	auto deviceInfos = OCLHelper::GetDeviceInfos(platformInfos[0]);
 
-	INFO("Creating a suitable CNNConfig");
+	INFO("Creating a suitable ConvNetConfig");
 
 	vector<LayerDataDescription> dataDescriptions;
 	LayerDataDescription desc1;
@@ -51,7 +51,7 @@ SCENARIO("Creating a CNNOCL network", "[CNNOCL][OCLContext]")
 	desc2.Units = 100;
 	dataDescriptions.push_back(desc2);
 
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 	unique_ptr<ForwardBackPropLayerConfig> config1(new PerceptronLayerConfig(18));
 	unique_ptr<ForwardBackPropLayerConfig> config2(new PerceptronLayerConfig(120));
 	unique_ptr<ForwardBackPropLayerConfig> config3(new PerceptronLayerConfig(14));
@@ -61,7 +61,7 @@ SCENARIO("Creating a CNNOCL network", "[CNNOCL][OCLContext]")
 	config->AddToBack(move(config2));
 	config->AddToBack(move(config3));
 
-	INFO("Creating a CNNOCL<cl_float> network from the config");
-	CNNOCL<cl_float> network(deviceInfos, move(config));
+	INFO("Creating a ConvNetOCL<cl_float> network from the config");
+	ConvNetOCL<cl_float> network(deviceInfos, move(config));
 	CHECK(network.Interlocked());
 }

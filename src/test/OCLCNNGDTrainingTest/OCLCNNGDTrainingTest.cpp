@@ -1,5 +1,5 @@
 /*
-* OCLCNNGDTrainingTest.cpp
+* OCLConvNetGDTrainingTest.cpp
 *
 *  Created on: Jun 3, 2015
 *      Author: Mikael
@@ -8,14 +8,14 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/CNNOCL.h"
-#include "CNNOCL/PerceptronLayer.h"
-#include "CNN/GradientDescentConfig.h"
-#include "CNN/PerceptronLayerConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
-#include "CNN/ConvolutionLayerConfig.h"
-#include "CNNOCL/PerceptronLayer.h"
-#include "TestCNNTrainer.h"
+#include "ConvNetOCL/ConvNetOCL.h"
+#include "ConvNetOCL/PerceptronLayer.h"
+#include "ConvNet/GradientDescentConfig.h"
+#include "ConvNet/PerceptronLayerConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
+#include "ConvNet/ConvolutionLayerConfig.h"
+#include "ConvNetOCL/PerceptronLayer.h"
+#include "TestConvNetTrainer.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -26,7 +26,7 @@ using namespace Matuna::MachineLearning;
 using namespace Matuna::Math;
 using namespace Matuna::Helper;
 
-unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
+unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 											uniform_int_distribution<int>& perceptronLayerGenerator,
 											uniform_int_distribution<int>& convolutionLayerGenerator,
 											uniform_int_distribution<int>& imageDimensionGenerator,
@@ -44,8 +44,8 @@ unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
 	int convolutionLayerCount = convolutionLayerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
-	INFO("Initializing the CNN config");
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	INFO("Initializing the ConvNet config");
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 	MatunaActivationFunction activationFunction;
 
@@ -154,13 +154,13 @@ SCENARIO("Testing the gradient descent training algorithm")
 
 		for (auto& deviceInfo : deviceInfos)
 		{
-			auto config = CreateRandomCNNConfig(mt, perceptronLayerGenerator,
+			auto config = CreateRandomConvNetConfig(mt, perceptronLayerGenerator,
 				convolutionLayerGenerator, imageDimensionGenerator,
 				filterGenerator, dimensionGenerator, false);
 
-			CNNOCL<double> network(deviceInfo, move(config));
+			ConvNetOCL<double> network(deviceInfo, move(config));
 
-			auto trainer = new TestCNNTrainer<double>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
+			auto trainer = new TestConvNetTrainer<double>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
 				network.InputForwardMemoryDescriptions(), network.OutputForwardMemoryDescriptions(), &network);
 
 			auto algorithmConfig = new GradientDescentConfig<double>();
@@ -222,7 +222,7 @@ SCENARIO("Testing the gradient descent training algorithm")
 			cout << "Error before iteration: " << errorBefore << endl;
 			trainer->SetInput(inputs.get());
 			trainer->SetTarget(target.get());
-			network.TrainNetwork(unique_ptr<TestCNNTrainer<double>>(trainer), unique_ptr<GradientDescentConfig<double>>(algorithmConfig));
+			network.TrainNetwork(unique_ptr<TestConvNetTrainer<double>>(trainer), unique_ptr<GradientDescentConfig<double>>(algorithmConfig));
 			double errorAfter = network.CalculateErrorUnaligned(inputs.get(), 0, target.get());
 			cout << "Error after iteration: " << errorAfter << endl;
 

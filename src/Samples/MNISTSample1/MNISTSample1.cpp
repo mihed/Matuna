@@ -8,14 +8,14 @@
 #include "AssetLoader.h"
 
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/CNNOCL.h"
-#include "CNNOCL/PerceptronLayer.h"
-#include "CNN/GradientDescentConfig.h"
-#include "CNN/PerceptronLayerConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
-#include "CNN/ConvolutionLayerConfig.h"
-#include "CNN/CNNTrainer.h"
-#include "CNN/GradientDescentConfig.h"
+#include "ConvNetOCL/ConvNetOCL.h"
+#include "ConvNetOCL/PerceptronLayer.h"
+#include "ConvNet/GradientDescentConfig.h"
+#include "ConvNet/PerceptronLayerConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
+#include "ConvNet/ConvolutionLayerConfig.h"
+#include "ConvNet/ConvNetTrainer.h"
+#include "ConvNet/GradientDescentConfig.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -27,10 +27,10 @@ using namespace Matuna::Math;
 using namespace Matuna::Helper;
 
 template<class T> 
-class TestCNNTrainer: public CNNTrainer<T>
+class TestConvNetTrainer: public ConvNetTrainer<T>
 {
 private:
-	CNNOCL<T>* network;
+	ConvNetOCL<T>* network;
 	vector<Matrix<T>> inputs;
 	vector<Matrix<T>> targets;
 	vector<Matrix<T>> tests;
@@ -38,17 +38,17 @@ private:
 	int counter;
 
 public:
-	TestCNNTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
+	TestConvNetTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
 		const vector<LayerDataDescription>& targetDataDescriptions,
 		const vector<LayerMemoryDescription>& inputMemoryDescriptions,
 		const vector<LayerMemoryDescription>& targetMemoryDescriptions, 
-		CNNOCL<T>* network) : CNNTrainer<T>(inputDataDescriptions, targetDataDescriptions, inputMemoryDescriptions, targetMemoryDescriptions)
+		ConvNetOCL<T>* network) : ConvNetTrainer<T>(inputDataDescriptions, targetDataDescriptions, inputMemoryDescriptions, targetMemoryDescriptions)
 	{
 		counter = 0;
 		this->network = network;
 	}
 
-	~TestCNNTrainer()
+	~TestConvNetTrainer()
 	{
 
 	}
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 	inputDesc.Width = trainingImages[0].ColumnCount();
 	inputDesc.Units = 1;
 	inputDataDescriptions.push_back(inputDesc);
-	unique_ptr<CNNConfig> config(new CNNConfig(inputDataDescriptions));
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(inputDataDescriptions));
 	vector<OCLDeviceInfo> deviceInfos;
 	deviceInfos.push_back(deviceInfo);
 
@@ -181,9 +181,9 @@ int main(int argc, char* argv[])
 	config->AddToBack(move(perceptronConfig1));
 	config->AddToBack(move(perceptronConfig2));
 	config->SetOutputConfig(move(outputLayerConfig));
-	CNNOCL<float> network(deviceInfos, move(config));
+	ConvNetOCL<float> network(deviceInfos, move(config));
 
-	auto tempTrainer = new TestCNNTrainer<float>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
+	auto tempTrainer = new TestConvNetTrainer<float>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
 		network.InputForwardMemoryDescriptions(),
 		network.OutputForwardMemoryDescriptions(), &network);
 	tempTrainer->SetInputs(trainingImages);
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
 	tempTrainer->SetTests(testImages);
 	tempTrainer->SetTestTargets(testTargets);
 
-	unique_ptr<CNNTrainer<float>> trainer(tempTrainer);
+	unique_ptr<ConvNetTrainer<float>> trainer(tempTrainer);
 
 	unique_ptr<GradientDescentConfig<float>> trainingConfig(new GradientDescentConfig<float>());
 	trainingConfig->SetBatchSize(60);

@@ -8,7 +8,7 @@
 #ifndef MATUNA_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_
 #define MATUNA_TEST_LAYERINTERLOCKTEST_OUTPUTLAYERTEST_H_
 
-#include "CNN/OutputLayer.h"
+#include "ConvNet/OutputLayer.h"
 
 using namespace Matuna::MachineLearning;
 

@@ -1,5 +1,5 @@
 /*
-* OCLCNNGradientTest.cpp
+* OCLConvNetGradientTest.cpp
 *
 *  Created on: Jun 3, 2015
 *      Author: Mikael
@@ -8,11 +8,11 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "CNNOCL/CNNOCL.h"
-#include "CNNOCL/PerceptronLayer.h"
-#include "CNN/PerceptronLayerConfig.h"
-#include "CNN/ConvolutionLayerConfig.h"
-#include "CNN/StandardOutputLayerConfig.h"
+#include "ConvNetOCL/ConvNetOCL.h"
+#include "ConvNetOCL/PerceptronLayer.h"
+#include "ConvNet/PerceptronLayerConfig.h"
+#include "ConvNet/ConvolutionLayerConfig.h"
+#include "ConvNet/StandardOutputLayerConfig.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -23,7 +23,7 @@ using namespace Matuna::MachineLearning;
 using namespace Matuna::Math;
 using namespace Matuna::Helper;
 
-unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
+unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 											uniform_int_distribution<int>& perceptronLayerGenerator,
 											uniform_int_distribution<int>& convolutionLayerGenerator,
 											uniform_int_distribution<int>& imageDimensionGenerator,
@@ -41,8 +41,8 @@ unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
 	int convolutionLayerCount = convolutionLayerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
-	INFO("Initializing the CNN config");
-	unique_ptr<CNNConfig> config(new CNNConfig(dataDescriptions));
+	INFO("Initializing the ConvNet config");
+	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
 
 	MatunaActivationFunction activationFunction;
 
@@ -124,7 +124,7 @@ unique_ptr<CNNConfig> CreateRandomCNNConfig(mt19937& mt,
 	return move(config);
 }
 
-SCENARIO("Calcultating the gradient of a CNN using random convolution and perceptron layers")
+SCENARIO("Calcultating the gradient of a ConvNet using random convolution and perceptron layers")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
@@ -151,11 +151,11 @@ SCENARIO("Calcultating the gradient of a CNN using random convolution and percep
 
 		for (auto& deviceInfo : deviceInfos)
 		{
-			auto config = CreateRandomCNNConfig(mt, perceptronLayerGenerator,
+			auto config = CreateRandomConvNetConfig(mt, perceptronLayerGenerator,
 				convolutionLayerGenerator, imageDimensionGenerator,
 				filterGenerator, dimensionGenerator, false);
 
-			CNNOCL<double> network(deviceInfo, move(config));
+			ConvNetOCL<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDataDesc =
 				network.InputForwardDataDescriptions()[0];
