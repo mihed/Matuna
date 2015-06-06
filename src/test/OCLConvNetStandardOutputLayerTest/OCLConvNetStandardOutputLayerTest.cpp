@@ -8,7 +8,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "ConvNetOCL/ConvNetOCL.h"
+#include "OCLConvNet/OCLConvNet.h"
 #include "ConvNet/ConvNetConfig.h"
 #include "ConvNet/StandardOutputLayerConfig.h"
 #include "ConvNet/StandardOutputLayerConfig.h"
@@ -53,7 +53,7 @@ SCENARIO("Creating a ConvNet with an standard output layer")
 					temp.push_back(inputDescription);
 					unique_ptr<ConvNetConfig> config(new ConvNetConfig(temp));
 					config->SetOutputConfig(move(outputLayerConfig));
-					ConvNetOCL<float> network(deviceInfo, move(config));
+					OCLConvNet<float> network(deviceInfo, move(config));
 					auto randomInputs = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 					auto randomTargets = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 
@@ -95,7 +95,7 @@ SCENARIO("Creating a ConvNet with an standard output layer")
 					temp.push_back(inputDescription);
 					unique_ptr<ConvNetConfig> config(new ConvNetConfig(temp));
 					config->SetOutputConfig(move(outputLayerConfig));
-					ConvNetOCL<float> network(deviceInfo, move(config));
+					OCLConvNet<float> network(deviceInfo, move(config));
 					auto randomInputs = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 					auto randomTargets = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 
@@ -130,7 +130,7 @@ SCENARIO("Creating a ConvNet with an standard output layer")
 					temp.push_back(inputDescription);
 					unique_ptr<ConvNetConfig> config(new ConvNetConfig(temp));
 					config->SetOutputConfig(move(outputLayerConfig));
-					ConvNetOCL<float> network(deviceInfo, move(config));
+					OCLConvNet<float> network(deviceInfo, move(config));
 					auto randomInputs = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 					auto randomTargets = Matrix<float>::RandomNormal(inputDescription.Units, 1);
 

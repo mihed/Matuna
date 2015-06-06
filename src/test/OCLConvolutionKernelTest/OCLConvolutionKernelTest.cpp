@@ -9,7 +9,7 @@
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
 #include "OCLHelper/OCLKernelInfo.h"
-#include "ConvNetOCL/ConvolutionKernel.h"
+#include "OCLConvNet/ConvolutionKernel.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>

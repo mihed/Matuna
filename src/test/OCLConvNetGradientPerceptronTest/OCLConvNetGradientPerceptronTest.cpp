@@ -7,11 +7,11 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "ConvNetOCL/ConvNetOCL.h"
-#include "ConvNetOCL/PerceptronLayer.h"
+#include "OCLConvNet/OCLConvNet.h"
+#include "OCLConvNet/PerceptronLayer.h"
 #include "ConvNet/PerceptronLayerConfig.h"
 #include "ConvNet/StandardOutputLayerConfig.h"
-#include "ConvNetOCL/PerceptronLayer.h"
+#include "OCLConvNet/PerceptronLayer.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -196,7 +196,7 @@ SCENARIO("Calculating the gradient of a ConvNet using perceptron layers with ima
 		for (auto& deviceInfo : deviceInfos)
 		{
 			auto config = CreateRandomConvNetPerceptronConfigWithImage(mt, layerGenerator, dimensionGenerator, imageDimensionGenerator,false);
-			ConvNetOCL<double> network(deviceInfo, move(config));
+			OCLConvNet<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];
@@ -284,7 +284,7 @@ SCENARIO("Calculating the gradient of a ConvNet using softmax")
 		for (auto& deviceInfo : deviceInfos)
 		{
 			auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
-			ConvNetOCL<double> network(deviceInfo, move(config));
+			OCLConvNet<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];
@@ -362,7 +362,7 @@ SCENARIO("Calculating the gradient of a ConvNet using perceptron layers")
 		for (auto& deviceInfo : deviceInfos)
 		{
 			auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
-			ConvNetOCL<double> network(deviceInfo, move(config));
+			OCLConvNet<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDataDesc = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDataDesc = network.OutputForwardDataDescriptions()[0];

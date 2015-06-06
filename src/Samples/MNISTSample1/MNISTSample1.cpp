@@ -8,8 +8,8 @@
 #include "AssetLoader.h"
 
 #include "OCLHelper/OCLHelper.h"
-#include "ConvNetOCL/ConvNetOCL.h"
-#include "ConvNetOCL/PerceptronLayer.h"
+#include "OCLConvNet/OCLConvNet.h"
+#include "OCLConvNet/PerceptronLayer.h"
 #include "ConvNet/GradientDescentConfig.h"
 #include "ConvNet/PerceptronLayerConfig.h"
 #include "ConvNet/StandardOutputLayerConfig.h"
@@ -30,7 +30,7 @@ template<class T>
 class TestConvNetTrainer: public ConvNetTrainer<T>
 {
 private:
-	ConvNetOCL<T>* network;
+	OCLConvNet<T>* network;
 	vector<Matrix<T>> inputs;
 	vector<Matrix<T>> targets;
 	vector<Matrix<T>> tests;
@@ -42,7 +42,7 @@ public:
 		const vector<LayerDataDescription>& targetDataDescriptions,
 		const vector<LayerMemoryDescription>& inputMemoryDescriptions,
 		const vector<LayerMemoryDescription>& targetMemoryDescriptions, 
-		ConvNetOCL<T>* network) : ConvNetTrainer<T>(inputDataDescriptions, targetDataDescriptions, inputMemoryDescriptions, targetMemoryDescriptions)
+		OCLConvNet<T>* network) : ConvNetTrainer<T>(inputDataDescriptions, targetDataDescriptions, inputMemoryDescriptions, targetMemoryDescriptions)
 	{
 		counter = 0;
 		this->network = network;
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 	config->AddToBack(move(perceptronConfig1));
 	config->AddToBack(move(perceptronConfig2));
 	config->SetOutputConfig(move(outputLayerConfig));
-	ConvNetOCL<float> network(deviceInfos, move(config));
+	OCLConvNet<float> network(deviceInfos, move(config));
 
 	auto tempTrainer = new TestConvNetTrainer<float>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
 		network.InputForwardMemoryDescriptions(),

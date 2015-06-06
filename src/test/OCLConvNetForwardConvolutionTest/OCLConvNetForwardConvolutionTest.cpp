@@ -8,8 +8,8 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "ConvNetOCL/ConvNetOCL.h"
-#include "ConvNetOCL/ConvolutionLayer.h"
+#include "OCLConvNet/OCLConvNet.h"
+#include "OCLConvNet/ConvolutionLayer.h"
 #include "ConvNet/ConvolutionLayerConfig.h"
 #include "ConvNet/StandardOutputLayerConfig.h"
 #include "Math/Matrix.h"
@@ -112,7 +112,7 @@ SCENARIO("Forward propagating a convolution layer in an OCLConvNet")
 		{
 
 			unique_ptr<ConvNetConfig> config = CreateRandomConvNetConvolutionConfig(mt, layerGenerator, dimensionGenerator, unitGenerator, filterGenerator);
-			ConvNetOCL<float> network(deviceInfo, move(config));
+			OCLConvNet<float> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDescription = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDescription = network.OutputForwardDataDescriptions()[0];

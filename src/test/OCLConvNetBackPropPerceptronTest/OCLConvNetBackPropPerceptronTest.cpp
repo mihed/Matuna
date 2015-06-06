@@ -7,11 +7,11 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "ConvNetOCL/ConvNetOCL.h"
-#include "ConvNetOCL/PerceptronLayer.h"
+#include "OCLConvNet/OCLConvNet.h"
+#include "OCLConvNet/PerceptronLayer.h"
 #include "ConvNet/PerceptronLayerConfig.h"
 #include "ConvNet/ConvolutionLayerConfig.h"
-#include "ConvNetOCL/ConvolutionLayer.h"
+#include "OCLConvNet/ConvolutionLayer.h"
 #include "ConvNet/StandardOutputLayerConfig.h"
 #include "Math/Matrix.h"
 #include <memory>
@@ -238,7 +238,7 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 				for (auto& deviceInfo : deviceInfos)
 				{
 					auto config = CreateRandomConvNetPerceptronConfigWithImage(mt, layerGenerator, imageDimensionGenerator, filterGenerator, dimensionGenerator, true);
-					ConvNetOCL<double> network(deviceInfo, move(config));
+					OCLConvNet<double> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					auto layerCount = layers.size();
 
@@ -468,7 +468,7 @@ SCENARIO("Back propagating a perceptron using Softmax")
 				for (auto& deviceInfo : deviceInfos)
 				{
 					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
-					ConvNetOCL<double> network(deviceInfo, move(config));
+					OCLConvNet<double> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<double>*> perceptronlayers;
 					for (auto layer : layers)
@@ -611,7 +611,7 @@ SCENARIO("Back propagating a perceptron using MSE")
 				for (auto& deviceInfo : deviceInfos)
 				{
 					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
-					ConvNetOCL<double> network(deviceInfo, move(config));
+					OCLConvNet<double> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<double>*> perceptronlayers;
 					for (auto layer : layers)

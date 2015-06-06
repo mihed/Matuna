@@ -1,7 +1,7 @@
 FILE (GLOB_RECURSE sources_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp)
 
 ADD_EXECUTABLE(OCLConvNetBackPropPerceptronTest ${sources_SRCS})
-TARGET_LINK_LIBRARIES(OCLConvNetBackPropPerceptronTest ConvNetOCL ConvNet Math)
+TARGET_LINK_LIBRARIES(OCLConvNetBackPropPerceptronTest OCLConvNet ConvNet Math)
 SET_TARGET_PROPERTIES(OCLConvNetBackPropPerceptronTest PROPERTIES LINKER_LANGUAGE CXX)
 SET_TARGET_PROPERTIES(OCLConvNetBackPropPerceptronTest PROPERTIES VERSION "${APPLICATION_VERSION_MAJOR}.${APPLICATION_VERSION_MINOR}" OUTPUT_NAME "OCLConvNetBackPropPerceptronTest" CLEAN_DIRECT_OUTPUT 1)
 

@@ -10,7 +10,7 @@
 
 #include "ConvNet/ConvNetTrainer.h"
 #include "Math/Matrix.h"
-#include "ConvNetOCL/ConvNetOCL.h"
+#include "OCLConvNet/OCLConvNet.h"
 
 using namespace std;
 using namespace Matuna::MachineLearning;
@@ -25,14 +25,14 @@ namespace Matuna
 		class TestConvNetTrainer: public ConvNetTrainer<T>
 		{
 		private:
-			ConvNetOCL<T>* network;
+			OCLConvNet<T>* network;
 			T* input;
 			T* target;
 		public:
 			TestConvNetTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
 				const vector<LayerDataDescription>& targetDataDescriptions,
 				const vector<LayerMemoryDescription>& inputMemoryDescriptions,
-				const vector<LayerMemoryDescription>& targetMemoryDescriptions, ConvNetOCL<T>* network);
+				const vector<LayerMemoryDescription>& targetMemoryDescriptions, OCLConvNet<T>* network);
 			~TestConvNetTrainer();
 
 			virtual void MapInputAndTarget(T*& input, T*& target,int& formatIndex) override;

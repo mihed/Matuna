@@ -1,5 +1,5 @@
 /*
- * ConvNetOCLInitializationTest.cpp
+ * OCLConvNetInitializationTest.cpp
  *
  *  Created on: May 9, 2015
  *      Author: Mikael
@@ -7,7 +7,7 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "ConvNetOCL/ConvNetOCL.h"
+#include "OCLConvNet/OCLConvNet.h"
 #include "OCLHelper/OCLHelper.h"
 #include "OCLHelper/OCLContext.h"
 #include "ConvNet/PerceptronLayerConfig.h"
@@ -20,7 +20,7 @@ using namespace std;
 using namespace Matuna::MachineLearning;
 using namespace Matuna::Helper;
 
-SCENARIO("Creating a ConvNetOCL network", "[ConvNetOCL][OCLContext]")
+SCENARIO("Creating a OCLConvNet network", "[OCLConvNet][OCLContext]")
 {
 	INFO("Getting the platform infos");
 	auto platformInfos = OCLHelper::GetPlatformInfos();
@@ -61,7 +61,7 @@ SCENARIO("Creating a ConvNetOCL network", "[ConvNetOCL][OCLContext]")
 	config->AddToBack(move(config2));
 	config->AddToBack(move(config3));
 
-	INFO("Creating a ConvNetOCL<cl_float> network from the config");
-	ConvNetOCL<cl_float> network(deviceInfos, move(config));
+	INFO("Creating a OCLConvNet<cl_float> network from the config");
+	OCLConvNet<cl_float> network(deviceInfos, move(config));
 	CHECK(network.Interlocked());
 }

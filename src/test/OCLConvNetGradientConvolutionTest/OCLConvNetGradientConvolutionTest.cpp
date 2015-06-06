@@ -7,11 +7,11 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "ConvNetOCL/ConvNetOCL.h"
-#include "ConvNetOCL/ConvolutionLayer.h"
+#include "OCLConvNet/OCLConvNet.h"
+#include "OCLConvNet/ConvolutionLayer.h"
 #include "ConvNet/ConvolutionLayerConfig.h"
 #include "ConvNet/StandardOutputLayerConfig.h"
-#include "ConvNetOCL/PerceptronLayer.h"
+#include "OCLConvNet/PerceptronLayer.h"
 #include "Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -99,7 +99,7 @@ SCENARIO("Calculating the gradient of a ConvNet using convolution layers")
 		for (auto& deviceInfo : deviceInfos)
 		{
 			unique_ptr<ConvNetConfig> config = CreateRandomConvNetConvolutionConfig(mt, layerGenerator, dimensionGenerator, unitGenerator, filterGenerator);
-			ConvNetOCL<double> network(deviceInfo, move(config));
+			OCLConvNet<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDescription = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outputDescription = network.OutputForwardDataDescriptions()[0];

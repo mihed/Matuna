@@ -8,13 +8,13 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "ConvNetOCL/ConvNetOCL.h"
-#include "ConvNetOCL/PerceptronLayer.h"
+#include "OCLConvNet/OCLConvNet.h"
+#include "OCLConvNet/PerceptronLayer.h"
 #include "ConvNet/GradientDescentConfig.h"
 #include "ConvNet/PerceptronLayerConfig.h"
 #include "ConvNet/StandardOutputLayerConfig.h"
 #include "ConvNet/ConvolutionLayerConfig.h"
-#include "ConvNetOCL/PerceptronLayer.h"
+#include "OCLConvNet/PerceptronLayer.h"
 #include "TestConvNetTrainer.h"
 #include "Math/Matrix.h"
 #include <memory>
@@ -158,7 +158,7 @@ SCENARIO("Testing the gradient descent training algorithm")
 				convolutionLayerGenerator, imageDimensionGenerator,
 				filterGenerator, dimensionGenerator, false);
 
-			ConvNetOCL<double> network(deviceInfo, move(config));
+			OCLConvNet<double> network(deviceInfo, move(config));
 
 			auto trainer = new TestConvNetTrainer<double>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
 				network.InputForwardMemoryDescriptions(), network.OutputForwardMemoryDescriptions(), &network);

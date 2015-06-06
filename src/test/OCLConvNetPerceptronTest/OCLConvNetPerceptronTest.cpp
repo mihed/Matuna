@@ -8,8 +8,8 @@
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 #include "OCLHelper/OCLHelper.h"
-#include "ConvNetOCL/ConvNetOCL.h"
-#include "ConvNetOCL/PerceptronLayer.h"
+#include "OCLConvNet/OCLConvNet.h"
+#include "OCLConvNet/PerceptronLayer.h"
 #include "ConvNet/PerceptronLayerConfig.h"
 #include "ConvNet/StandardOutputLayerConfig.h"
 #include "Math/Matrix.h"
@@ -82,7 +82,7 @@ void CalculateORPerceptron(unique_ptr<ConvNetConfig> config, const vector<OCLDev
 	}
 
 	INFO("Initializing the network");
-	ConvNetOCL<T> network(validatedDevices, move(config));
+	OCLConvNet<T> network(validatedDevices, move(config));
 	CHECK(network.Interlocked());
 
 	INFO("Creating a pointer with previusly calculated parameters");
@@ -156,7 +156,7 @@ void CalculateANDPerceptron(unique_ptr<ConvNetConfig> config, const vector<OCLDe
 	}
 
 	INFO("Initializing the network");
-	ConvNetOCL<T> network(validatedDevices, move(config));
+	OCLConvNet<T> network(validatedDevices, move(config));
 	CHECK(network.Interlocked());
 
 	INFO("Creating a pointer with previusly calculated parameters");
@@ -335,7 +335,7 @@ SCENARIO("Forward propagating a ConvNet network using image inputs for a percept
 				for (auto& deviceInfo : deviceInfos)
 				{
 					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, false, true);
-					ConvNetOCL<float> network(deviceInfo, move(config));
+					OCLConvNet<float> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<float>*> perceptronlayers;
 					for (auto layer : layers)
@@ -766,7 +766,7 @@ SCENARIO("Forward propagating multi-layer perceptron network using cross entropy
 				for (auto& deviceInfo : deviceInfos)
 				{
 					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, true);
-					ConvNetOCL<float> network(deviceInfo, move(config));
+					OCLConvNet<float> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<float>*> perceptronlayers;
 					for (auto layer : layers)
@@ -869,7 +869,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 				for (auto& deviceInfo : deviceInfos)
 				{
 					auto config = CreateRandomConvNetPerceptronConfig(mt, layerGenerator, dimensionGenerator, false);
-					ConvNetOCL<float> network(deviceInfo, move(config));
+					OCLConvNet<float> network(deviceInfo, move(config));
 					auto layers = network.GetLayers();
 					vector<PerceptronLayer<float>*> perceptronlayers;
 					for (auto layer : layers)

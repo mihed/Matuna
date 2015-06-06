@@ -19,7 +19,7 @@ namespace Matuna
 		TestConvNetTrainer<T>::TestConvNetTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
 			const vector<LayerDataDescription>& targetDataDescriptions,
 			const vector<LayerMemoryDescription>& inputMemoryDescriptions,
-			const vector<LayerMemoryDescription>& targetMemoryDescriptions, ConvNetOCL<T>* network) :
+			const vector<LayerMemoryDescription>& targetMemoryDescriptions, OCLConvNet<T>* network) :
 		ConvNetTrainer<T>(inputDataDescriptions, targetDataDescriptions, inputMemoryDescriptions, targetMemoryDescriptions),
 			network(network)
 		{
