@@ -6,7 +6,7 @@
  */
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "OCLHelper/OCLHelper.h"
+#include "Matuna.OCLHelper/OCLHelper.h"
 #include <stdio.h>
 
 using namespace Matuna::Helper;

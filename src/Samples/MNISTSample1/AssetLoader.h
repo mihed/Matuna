@@ -8,9 +8,9 @@
 #ifndef MATUNA_SAMPLES_MNISTSAMPLE1_ASSETLOADER_H_
 #define MATUNA_SAMPLES_MNISTSAMPLE1_ASSETLOADER_H_
 
-#include "Math/Matrix.h"
-#include "Helper/Path.h"
-#include "Helper/FileHelper.h"
+#include "Matuna.Math/Matrix.h"
+#include "Matuna.Helper/Path.h"
+#include "Matuna.Helper/FileHelper.h"
 #include <vector>
 #include <ios>
 #include <fstream>

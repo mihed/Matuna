@@ -8,8 +8,8 @@
 #ifndef MATUNA_TEST_OCLDEVICETEST_TESTKERNEL_H_
 #define MATUNA_TEST_OCLDEVICETEST_TESTKERNEL_H_
 
-#include <OCLHelper/OCLKernelProgram.h>
-#include <OCLHelper/OCLMemory.h>
+#include <Matuna.OCLHelper/OCLKernelProgram.h>
+#include <Matuna.OCLHelper/OCLMemory.h>
 #include <memory>
 #include <vector>
 #include <tuple>

@@ -7,7 +7,7 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "Math/Matrix.h"
+#include "Matuna.Math/Matrix.h"
 #include <math.h>
 #include <random>
 

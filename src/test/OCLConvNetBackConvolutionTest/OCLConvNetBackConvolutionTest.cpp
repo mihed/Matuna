@@ -8,12 +8,12 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "OCLHelper/OCLHelper.h"
-#include "OCLConvNet/OCLConvNet.h"
-#include "OCLConvNet/ConvolutionLayer.h"
-#include "ConvNet/ConvolutionLayerConfig.h"
-#include "ConvNet/StandardOutputLayerConfig.h"
-#include "Math/Matrix.h"
+#include "Matuna.OCLHelper/OCLHelper.h"
+#include "Matuna.OCLConvNet/OCLConvNet.h"
+#include "Matuna.OCLConvNet/ConvolutionLayer.h"
+#include "Matuna.ConvNet/ConvolutionLayerConfig.h"
+#include "Matuna.ConvNet/StandardOutputLayerConfig.h"
+#include "Matuna.Math/Matrix.h"
 #include <memory>
 #include <random>
 #include <type_traits>

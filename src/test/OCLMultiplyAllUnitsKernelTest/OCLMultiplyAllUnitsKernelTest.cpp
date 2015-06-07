@@ -7,9 +7,9 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "OCLHelper/OCLHelper.h"
-#include "OCLConvNet/MultiplyAllUnitsKernel.h"
-#include "Math/Matrix.h"
+#include "Matuna.OCLHelper/OCLHelper.h"
+#include "Matuna.OCLConvNet/MultiplyAllUnitsKernel.h"
+#include "Matuna.Math/Matrix.h"
 #include <memory>
 #include <random>
 #include <type_traits>

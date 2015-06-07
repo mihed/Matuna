@@ -5,12 +5,12 @@
  *      Author: Mikael
  */
 
-#include "ConvNet/PerceptronLayerConfig.h"
-#include "ConvNet/StandardOutputLayerConfig.h"
-#include "ConvNet/ConvolutionLayerConfig.h"
-#include "ConvNet/ConvNetConfig.h"
-#include "ConvNet/ConvNet.h"
-#include "ConvNet/InterlockHelper.h"
+#include "Matuna.ConvNet/PerceptronLayerConfig.h"
+#include "Matuna.ConvNet/StandardOutputLayerConfig.h"
+#include "Matuna.ConvNet/ConvolutionLayerConfig.h"
+#include "Matuna.ConvNet/ConvNetConfig.h"
+#include "Matuna.ConvNet/ConvNet.h"
+#include "Matuna.ConvNet/InterlockHelper.h"
 #include "ConvNetFactoryVisitorTest.h"
 #include "ForthBackPropLayerTest.h"
 #include "OutputLayerTest.h"

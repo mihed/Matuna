@@ -8,9 +8,9 @@
 #ifndef MATUNA_TEST_OCLConvNetGDTRAININGTEST_TESTConvNetTRAINER_H_
 #define MATUNA_TEST_OCLConvNetGDTRAININGTEST_TESTConvNetTRAINER_H_
 
-#include "ConvNet/ConvNetTrainer.h"
-#include "Math/Matrix.h"
-#include "OCLConvNet/OCLConvNet.h"
+#include "Matuna.ConvNet/ConvNetTrainer.h"
+#include "Matuna.Math/Matrix.h"
+#include "Matuna.OCLConvNet/OCLConvNet.h"
 
 using namespace std;
 using namespace Matuna::MachineLearning;

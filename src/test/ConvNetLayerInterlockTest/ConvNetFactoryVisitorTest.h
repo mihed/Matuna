@@ -8,7 +8,7 @@
 #ifndef MATUNA_TEST_LAYERINTERLOCKTEST_CONVNETFACTORYVISITORTEST_H_
 #define MATUNA_TEST_LAYERINTERLOCKTEST_CONVNETFACTORYVISITORTEST_H_
 
-#include "ConvNet/ConvNetFactoryVisitor.h"
+#include "Matuna.ConvNet/ConvNetFactoryVisitor.h"
 
 using namespace Matuna::MachineLearning;
 

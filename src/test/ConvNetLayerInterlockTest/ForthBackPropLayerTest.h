@@ -8,7 +8,7 @@
 #ifndef MATUNA_TEST_LAYERINTERLOCKTEST_FORTHBACKPROPLAYERTEST_H_
 #define MATUNA_TEST_LAYERINTERLOCKTEST_FORTHBACKPROPLAYERTEST_H_
 
-#include "ConvNet/ForwardBackPropLayer.h"
+#include "Matuna.ConvNet/ForwardBackPropLayer.h"
 
 using namespace Matuna::MachineLearning;
 

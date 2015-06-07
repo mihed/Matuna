@@ -7,16 +7,16 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "OCLHelper/OCLHelper.h"
-#include "OCLConvNet/OCLConvNet.h"
-#include "OCLConvNet/PerceptronLayer.h"
-#include "ConvNet/GradientDescentConfig.h"
-#include "ConvNet/PerceptronLayerConfig.h"
-#include "ConvNet/StandardOutputLayerConfig.h"
-#include "ConvNet/ConvolutionLayerConfig.h"
-#include "OCLConvNet/PerceptronLayer.h"
+#include "Matuna.OCLHelper/OCLHelper.h"
+#include "Matuna.OCLConvNet/OCLConvNet.h"
+#include "Matuna.OCLConvNet/PerceptronLayer.h"
+#include "Matuna.ConvNet/GradientDescentConfig.h"
+#include "Matuna.ConvNet/PerceptronLayerConfig.h"
+#include "Matuna.ConvNet/StandardOutputLayerConfig.h"
+#include "Matuna.ConvNet/ConvolutionLayerConfig.h"
+#include "Matuna.OCLConvNet/PerceptronLayer.h"
 #include "TestConvNetTrainer.h"
-#include "Math/Matrix.h"
+#include "Matuna.Math/Matrix.h"
 #include <memory>
 #include <random>
 #include <type_traits>

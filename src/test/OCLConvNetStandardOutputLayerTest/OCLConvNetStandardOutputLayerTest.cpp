@@ -7,13 +7,13 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "OCLHelper/OCLHelper.h"
-#include "OCLConvNet/OCLConvNet.h"
-#include "ConvNet/ConvNetConfig.h"
-#include "ConvNet/StandardOutputLayerConfig.h"
-#include "ConvNet/StandardOutputLayerConfig.h"
-#include "ConvNet/LayerDescriptions.h"
-#include "Math/Matrix.h"
+#include "Matuna.OCLHelper/OCLHelper.h"
+#include "Matuna.OCLConvNet/OCLConvNet.h"
+#include "Matuna.ConvNet/ConvNetConfig.h"
+#include "Matuna.ConvNet/StandardOutputLayerConfig.h"
+#include "Matuna.ConvNet/StandardOutputLayerConfig.h"
+#include "Matuna.ConvNet/LayerDescriptions.h"
+#include "Matuna.Math/Matrix.h"
 #include <memory>
 #include <random>
 #include <type_traits>

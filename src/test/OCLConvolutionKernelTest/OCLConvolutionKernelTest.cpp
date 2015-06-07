@@ -7,10 +7,10 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
-#include "OCLHelper/OCLHelper.h"
-#include "OCLHelper/OCLKernelInfo.h"
-#include "OCLConvNet/ConvolutionKernel.h"
-#include "Math/Matrix.h"
+#include "Matuna.OCLHelper/OCLHelper.h"
+#include "Matuna.OCLHelper/OCLKernelInfo.h"
+#include "Matuna.OCLConvNet/ConvolutionKernel.h"
+#include "Matuna.Math/Matrix.h"
 #include <memory>
 #include <random>
 #include <type_traits>

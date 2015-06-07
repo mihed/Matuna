@@ -7,15 +7,15 @@
 
 #include "AssetLoader.h"
 
-#include "OCLHelper/OCLHelper.h"
-#include "OCLConvNet/OCLConvNet.h"
-#include "OCLConvNet/PerceptronLayer.h"
-#include "ConvNet/GradientDescentConfig.h"
-#include "ConvNet/PerceptronLayerConfig.h"
-#include "ConvNet/StandardOutputLayerConfig.h"
-#include "ConvNet/ConvolutionLayerConfig.h"
-#include "ConvNet/ConvNetTrainer.h"
-#include "ConvNet/GradientDescentConfig.h"
+#include "Matuna.OCLHelper/OCLHelper.h"
+#include "Matuna.OCLConvNet/OCLConvNet.h"
+#include "Matuna.OCLConvNet/PerceptronLayer.h"
+#include "Matuna.ConvNet/GradientDescentConfig.h"
+#include "Matuna.ConvNet/PerceptronLayerConfig.h"
+#include "Matuna.ConvNet/StandardOutputLayerConfig.h"
+#include "Matuna.ConvNet/ConvolutionLayerConfig.h"
+#include "Matuna.ConvNet/ConvNetTrainer.h"
+#include "Matuna.ConvNet/GradientDescentConfig.h"
 
 #include <stdio.h>
 #include <iostream>
