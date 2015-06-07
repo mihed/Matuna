@@ -10,10 +10,8 @@
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Path.h"
 
-namespace Matuna
-{
-namespace MachineLearning
-{
+namespace Matuna {
+namespace MachineLearning {
 
 template<class T>
 ImageGradientPerceptronKernel<T>::ImageGradientPerceptronKernel(int weightWidth,
@@ -26,8 +24,7 @@ ImageGradientPerceptronKernel<T>::ImageGradientPerceptronKernel(int weightWidth,
 				inputWidthOffset), inputHeightOffset(inputHeightOffset), inputUnitOffset(
 				inputUnitOffset), inputStride(inputStride), inputMemoryHeight(
 				inputMemoryHeight), inputDeltaOffset(inputDeltaOffset), weightColumnCount(
-				weightColumnCount)
-{
+				weightColumnCount) {
 	stringstream stringStream;
 
 	stringStream << "ImageGradientPerceptronKernelProgram";
@@ -43,32 +40,27 @@ ImageGradientPerceptronKernel<T>::ImageGradientPerceptronKernel(int weightWidth,
 }
 
 template<class T>
-ImageGradientPerceptronKernel<T>::~ImageGradientPerceptronKernel()
-{
+ImageGradientPerceptronKernel<T>::~ImageGradientPerceptronKernel() {
 
 }
 
 template<class T>
-void ImageGradientPerceptronKernel<T>::SetConstantInput(bool value)
-{
+void ImageGradientPerceptronKernel<T>::SetConstantInput(bool value) {
 	useConstantInput = value;
 }
 
 template<class T>
-void ImageGradientPerceptronKernel<T>::SetConstantInputDelta(bool value)
-{
+void ImageGradientPerceptronKernel<T>::SetConstantInputDelta(bool value) {
 	useConstantInputDelta = value;
 }
 
 template<class T>
-void ImageGradientPerceptronKernel<T>::SetUseRelaxedMath(bool value)
-{
+void ImageGradientPerceptronKernel<T>::SetUseRelaxedMath(bool value) {
 	useRelaxedMath = value;
 }
 
 template<class T>
-void ImageGradientPerceptronKernel<T>::SetInput(OCLMemory* input)
-{
+void ImageGradientPerceptronKernel<T>::SetInput(OCLMemory* input) {
 	auto rawInput = input->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -76,8 +68,7 @@ void ImageGradientPerceptronKernel<T>::SetInput(OCLMemory* input)
 }
 
 template<class T>
-void ImageGradientPerceptronKernel<T>::SetInputDelta(OCLMemory* inputDelta)
-{
+void ImageGradientPerceptronKernel<T>::SetInputDelta(OCLMemory* inputDelta) {
 	auto rawInput = inputDelta->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawInput),
@@ -85,8 +76,7 @@ void ImageGradientPerceptronKernel<T>::SetInputDelta(OCLMemory* inputDelta)
 }
 
 template<class T>
-void ImageGradientPerceptronKernel<T>::SetGradient(OCLMemory* gradient)
-{
+void ImageGradientPerceptronKernel<T>::SetGradient(OCLMemory* gradient) {
 	auto rawGradient = gradient->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 2, sizeof(cl_mem), &rawGradient),
@@ -94,8 +84,7 @@ void ImageGradientPerceptronKernel<T>::SetGradient(OCLMemory* gradient)
 }
 
 template<class T>
-void ImageGradientPerceptronKernel<T>::InitializeCompilerOptions()
-{
+void ImageGradientPerceptronKernel<T>::InitializeCompilerOptions() {
 	stringstream stringStream;
 
 	if (useConstantInput)
@@ -122,51 +111,52 @@ void ImageGradientPerceptronKernel<T>::InitializeCompilerOptions()
 	stringStream << "-D" << "WEIGHT_COLUMN_COUNT=" << weightColumnCount << " ";
 
 	if (useRelaxedMath)
-		stringStream << "-cl-fast-relaxed-math";
+		stringStream << "-cl-fast-relaxed-math ";
+
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << "-I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();
 }
 
 template<class T>
-string ImageGradientPerceptronKernel<T>::ProgramName() const
-{
+string ImageGradientPerceptronKernel<T>::ProgramName() const {
 	return programName;
 }
 
 template<class T>
-string ImageGradientPerceptronKernel<T>::GetCompilerOptions() const
-{
+string ImageGradientPerceptronKernel<T>::GetCompilerOptions() const {
 	return compilerOptions;
 }
 
 template<class T>
-vector<string> ImageGradientPerceptronKernel<T>::GetProgramCode() const
-{
+vector<string> ImageGradientPerceptronKernel<T>::GetProgramCode() const {
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath,
 							"ImageGradientPerceptronKernel.cl")));
 	return result;
 }
 
 template<class T>
-string ImageGradientPerceptronKernel<T>::KernelName() const
-{
+string ImageGradientPerceptronKernel<T>::KernelName() const {
 	return kernelName;
 }
 
 template<class T>
-const vector<size_t>& ImageGradientPerceptronKernel<T>::GlobalWorkSize() const
-{
+const vector<size_t>& ImageGradientPerceptronKernel<T>::GlobalWorkSize() const {
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& ImageGradientPerceptronKernel<T>::LocalWorkSize() const
-{
+const vector<size_t>& ImageGradientPerceptronKernel<T>::LocalWorkSize() const {
 	return localWorkSize;
 }
 

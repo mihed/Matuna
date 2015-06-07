@@ -1,3 +1,4 @@
+#include "RealType.h"
 
 // Inclusive
 #ifndef BORDER_START_LEFT 
@@ -67,51 +68,33 @@
 #define INPUT_STRIDE -1
 #endif
 
-#ifdef DOUBLE_PRECISION
-
-#if defined(cl_khr_fp64)  // Khronos extension available?
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#elif defined(cl_amd_fp64)  // AMD extension available?
-#pragma OPENCL EXTENSION cl_amd_fp64 : enable
-#else
-#error "Double precision floating point not supported by OpenCL implementation."
-#endif
-
-typedef double TYPE;
-#else
-
-typedef float TYPE;
-#endif
-
-
-
-__kernel void ZeroBorderKernel(__global TYPE* input)
+__kernel void ZeroBorderKernel(__global real_t* input)
 {
-    const int unitIndex = (get_global_id(0) + INPUT_UNIT_OFFSET) * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
-        
-    //Adding a border in the height direction
-    int tempIndex;
-    const int toNextBorder = INPUT_DATA_WIDTH + BORDER_SIZE_HORIZONTAL;
-    for (int j = BORDER_LIMIT_UP + 1; j < BORDER_START_DOWN; j++)
-    {
-        tempIndex = INPUT_STRIDE * j + unitIndex; 
-        for (int i = BORDER_START_LEFT; i <= BORDER_LIMIT_LEFT; i++)
-        {    
-            input[tempIndex + i] = 0;
-            input[tempIndex + i + toNextBorder] = 0;
-        }
-    }
-    
-    int tempIndex2;
-    const int toNextBorder2 = INPUT_DATA_HEIGHT + BORDER_SIZE_VERTICAL;
-    for (int j = BORDER_START_UP; j <= BORDER_LIMIT_UP; j++)
-    {
-        tempIndex = INPUT_STRIDE * j + unitIndex;
-        tempIndex2 = tempIndex + INPUT_STRIDE * toNextBorder2;
-        for (int i = BORDER_START_LEFT; i <= BORDER_LIMIT_RIGHT; i++)
-        {
-            input[tempIndex + i] = 0;
-            input[tempIndex2 + i] = 0;
-        }
-    }
+	const int unitIndex = (get_global_id(0) + INPUT_UNIT_OFFSET) * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
+
+	//Adding a border in the height direction
+	int tempIndex;
+	const int toNextBorder = INPUT_DATA_WIDTH + BORDER_SIZE_HORIZONTAL;
+	for (int j = BORDER_LIMIT_UP + 1; j < BORDER_START_DOWN; j++)
+	{
+		tempIndex = INPUT_STRIDE * j + unitIndex;
+		for (int i = BORDER_START_LEFT; i <= BORDER_LIMIT_LEFT; i++)
+		{
+			input[tempIndex + i] = 0;
+			input[tempIndex + i + toNextBorder] = 0;
+		}
+	}
+
+	int tempIndex2;
+	const int toNextBorder2 = INPUT_DATA_HEIGHT + BORDER_SIZE_VERTICAL;
+	for (int j = BORDER_START_UP; j <= BORDER_LIMIT_UP; j++)
+	{
+		tempIndex = INPUT_STRIDE * j + unitIndex;
+		tempIndex2 = tempIndex + INPUT_STRIDE * toNextBorder2;
+		for (int i = BORDER_START_LEFT; i <= BORDER_LIMIT_RIGHT; i++)
+		{
+			input[tempIndex + i] = 0;
+			input[tempIndex2 + i] = 0;
+		}
+	}
 }

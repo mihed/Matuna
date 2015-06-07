@@ -87,7 +87,11 @@ void ForwardPerceptronKernel<T>::InitializeCompilerOptions() {
 		stringStream << "-D" << "HALF_MATH ";
 
 	if (useRelaxedMath)
-		stringStream << "-cl-fast-relaxed-math";
+		stringStream << "-cl-fast-relaxed-math ";
+
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << "-I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();
 }
@@ -158,12 +162,18 @@ string ForwardPerceptronKernel<T>::ProgramName() const {
 template<class T>
 vector<string> ForwardPerceptronKernel<T>::GetProgramCode() const {
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
-							"ForwardPerceptronKernel.cl")));
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "ActivationFunction.h")));
+
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "ForwardPerceptronKernel.cl")));
 	return result;
 }
 

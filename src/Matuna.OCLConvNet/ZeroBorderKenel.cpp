@@ -10,22 +10,21 @@
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Path.h"
 
-namespace Matuna
-{
-namespace MachineLearning
-{
+namespace Matuna {
+namespace MachineLearning {
 
 template<class T>
 ZeroBorderKenel<T>::ZeroBorderKenel(int dataWidth, int dataHeight,
 		int dataUnits, int borderStartLeft, int borderStartRight,
-		int borderStartUp, int borderStartDown, int borderHorizontalSize, int borderVerticalSize, int inputStride,
-		int inputMemoryHeight, int inputUnitOffset) :
+		int borderStartUp, int borderStartDown, int borderHorizontalSize,
+		int borderVerticalSize, int inputStride, int inputMemoryHeight,
+		int inputUnitOffset) :
 		dataWidth(dataWidth), dataHeight(dataHeight), borderStartLeft(
 				borderStartLeft), borderStartRight(borderStartRight), borderStartUp(
-				borderStartUp), borderStartDown(borderStartDown), borderHorizontalSize(borderHorizontalSize),
-				borderVerticalSize(borderVerticalSize), inputStride(inputStride), inputMemoryHeight(
-				inputMemoryHeight), inputUnitOffset(inputUnitOffset)
-{
+				borderStartUp), borderStartDown(borderStartDown), borderHorizontalSize(
+				borderHorizontalSize), borderVerticalSize(borderVerticalSize), inputStride(
+				inputStride), inputMemoryHeight(inputMemoryHeight), inputUnitOffset(
+				inputUnitOffset) {
 	stringstream stringStream;
 
 	stringStream << "ZeroBorderKernelProgram";
@@ -40,14 +39,12 @@ ZeroBorderKenel<T>::ZeroBorderKenel(int dataWidth, int dataHeight,
 }
 
 template<class T>
-ZeroBorderKenel<T>::~ZeroBorderKenel()
-{
+ZeroBorderKenel<T>::~ZeroBorderKenel() {
 
 }
 
 template<class T>
-void ZeroBorderKenel<T>::InitializeCompilerOptions()
-{
+void ZeroBorderKenel<T>::InitializeCompilerOptions() {
 	stringstream stringStream;
 
 	if (is_same<cl_double, T>::value)
@@ -56,31 +53,41 @@ void ZeroBorderKenel<T>::InitializeCompilerOptions()
 		throw runtime_error(
 				"The template type is not valid. This is an indication of programming error");
 
-	stringStream << "-D" << "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING=" << (inputStride * inputMemoryHeight) << " ";
+	stringStream << "-D" << "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING="
+			<< (inputStride * inputMemoryHeight) << " ";
 	stringStream << "-D" << "BORDER_START_LEFT=" << borderStartLeft << " ";
 	stringStream << "-D" << "BORDER_START_RIGHT=" << borderStartRight << " ";
 	stringStream << "-D" << "BORDER_START_UP=" << borderStartUp << " ";
 	stringStream << "-D" << "BORDER_START_DOWN=" << borderStartDown << " ";
-	stringStream << "-D" << "BORDER_LIMIT_LEFT=" << (borderStartLeft + borderHorizontalSize - 1) << " ";
-	stringStream << "-D" << "BORDER_LIMIT_RIGHT=" << (borderStartRight + borderHorizontalSize - 1) << " ";
-	stringStream << "-D" << "BORDER_LIMIT_UP=" << (borderStartUp + borderVerticalSize - 1) << " ";
-	stringStream << "-D" << "BORDER_LIMIT_DOWN=" << (borderStartDown + borderVerticalSize - 1) << " ";
-	stringStream << "-D" << "BORDER_SIZE_HORIZONTAL=" << borderHorizontalSize << " ";
-	stringStream << "-D" << "BORDER_SIZE_VERTICAL=" << borderVerticalSize << " ";
+	stringStream << "-D" << "BORDER_LIMIT_LEFT="
+			<< (borderStartLeft + borderHorizontalSize - 1) << " ";
+	stringStream << "-D" << "BORDER_LIMIT_RIGHT="
+			<< (borderStartRight + borderHorizontalSize - 1) << " ";
+	stringStream << "-D" << "BORDER_LIMIT_UP="
+			<< (borderStartUp + borderVerticalSize - 1) << " ";
+	stringStream << "-D" << "BORDER_LIMIT_DOWN="
+			<< (borderStartDown + borderVerticalSize - 1) << " ";
+	stringStream << "-D" << "BORDER_SIZE_HORIZONTAL=" << borderHorizontalSize
+			<< " ";
+	stringStream << "-D" << "BORDER_SIZE_VERTICAL=" << borderVerticalSize
+			<< " ";
 	stringStream << "-D" << "INPUT_UNIT_OFFSET=" << inputUnitOffset << " ";
 	stringStream << "-D" << "INPUT_DATA_WIDTH=" << dataWidth << " ";
 	stringStream << "-D" << "INPUT_DATA_HEIGHT=" << dataHeight << " ";
 	stringStream << "-D" << "INPUT_STRIDE=" << inputStride << " ";
 
 	if (useRelaxedMath)
-		stringStream << "-cl-fast-relaxed-math";
+		stringStream << "-cl-fast-relaxed-math ";
+
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << "-I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();
 }
 
 template<class T>
-void ZeroBorderKenel<T>::SetInputOutput(OCLMemory* input)
-{
+void ZeroBorderKenel<T>::SetInputOutput(OCLMemory* input) {
 	auto rawInput = input->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -88,51 +95,46 @@ void ZeroBorderKenel<T>::SetInputOutput(OCLMemory* input)
 }
 
 template<class T>
-void ZeroBorderKenel<T>::SetUseRelaxedMath(bool value)
-{
+void ZeroBorderKenel<T>::SetUseRelaxedMath(bool value) {
 	this->useRelaxedMath = value;
 }
 
 template<class T>
-string ZeroBorderKenel<T>::ProgramName() const
-{
+string ZeroBorderKenel<T>::ProgramName() const {
 	return programName;
 }
 
 template<class T>
-string ZeroBorderKenel<T>::GetCompilerOptions() const
-{
+string ZeroBorderKenel<T>::GetCompilerOptions() const {
 	return compilerOptions;
 }
 
 template<class T>
-vector<string> ZeroBorderKenel<T>::GetProgramCode() const
-{
+vector<string> ZeroBorderKenel<T>::GetProgramCode() const {
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
-							"ZeroBorderKernel.cl")));
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "ZeroBorderKernel.cl")));
 	return result;
 }
 
 template<class T>
-string ZeroBorderKenel<T>::KernelName() const
-{
+string ZeroBorderKenel<T>::KernelName() const {
 	return kernelName;
 }
 
 template<class T>
-const vector<size_t>& ZeroBorderKenel<T>::GlobalWorkSize() const
-{
+const vector<size_t>& ZeroBorderKenel<T>::GlobalWorkSize() const {
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& ZeroBorderKenel<T>::LocalWorkSize() const
-{
+const vector<size_t>& ZeroBorderKenel<T>::LocalWorkSize() const {
 	return localWorkSize;
 }
 

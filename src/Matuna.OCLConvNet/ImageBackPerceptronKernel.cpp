@@ -10,10 +10,8 @@
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Path.h"
 
-namespace Matuna
-{
-namespace MachineLearning
-{
+namespace Matuna {
+namespace MachineLearning {
 
 template<class T>
 ImageBackPerceptronKernel<T>::ImageBackPerceptronKernel(int globalWidth,
@@ -29,8 +27,7 @@ ImageBackPerceptronKernel<T>::ImageBackPerceptronKernel(int globalWidth,
 				inputUnitOffset), outputStride(outputStride), outputMemoryHeight(
 				outputMemoryHeight), inputStride(inputStride), inputMemoryHeight(
 				inputMemoryHeight), weightColumnCount(weightColumnCount), inputDeltaOffset(
-				inputDeltaOffset), inputDeltaDataUnits(inputDeltaDataUnits)
-{
+				inputDeltaOffset), inputDeltaDataUnits(inputDeltaDataUnits) {
 	useRelaxedMath = false;
 	useConstantInput = false;
 	useConstantDeltaInput = false;
@@ -49,45 +46,38 @@ ImageBackPerceptronKernel<T>::ImageBackPerceptronKernel(int globalWidth,
 }
 
 template<class T>
-ImageBackPerceptronKernel<T>::~ImageBackPerceptronKernel()
-{
+ImageBackPerceptronKernel<T>::~ImageBackPerceptronKernel() {
 
 }
 
 template<class T>
-void ImageBackPerceptronKernel<T>::SetUseConstantWeights(bool value)
-{
+void ImageBackPerceptronKernel<T>::SetUseConstantWeights(bool value) {
 	useConstantWeights = value;
 }
 
 template<class T>
-void ImageBackPerceptronKernel<T>::SetUseConstantInput(bool value)
-{
+void ImageBackPerceptronKernel<T>::SetUseConstantInput(bool value) {
 	useConstantInput = value;
 }
 
 template<class T>
-void ImageBackPerceptronKernel<T>::SetUseConstantDeltaInput(bool value)
-{
+void ImageBackPerceptronKernel<T>::SetUseConstantDeltaInput(bool value) {
 	useConstantDeltaInput = value;
 }
 
 template<class T>
-void ImageBackPerceptronKernel<T>::SetUseRelaxedMath(bool value)
-{
+void ImageBackPerceptronKernel<T>::SetUseRelaxedMath(bool value) {
 	useRelaxedMath = value;
 }
 
 template<class T>
 void ImageBackPerceptronKernel<T>::SetActivationFunction(
-		MatunaActivationFunction activationFunction)
-{
+		MatunaActivationFunction activationFunction) {
 	this->activationFunction = activationFunction;
 }
 
 template<class T>
-void ImageBackPerceptronKernel<T>::SetWeights(OCLMemory* weights)
-{
+void ImageBackPerceptronKernel<T>::SetWeights(OCLMemory* weights) {
 	auto rawWeights = weights->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 3, sizeof(cl_mem), &rawWeights),
@@ -95,8 +85,7 @@ void ImageBackPerceptronKernel<T>::SetWeights(OCLMemory* weights)
 }
 
 template<class T>
-void ImageBackPerceptronKernel<T>::SetInput(OCLMemory* input)
-{
+void ImageBackPerceptronKernel<T>::SetInput(OCLMemory* input) {
 	auto rawInput = input->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -104,8 +93,7 @@ void ImageBackPerceptronKernel<T>::SetInput(OCLMemory* input)
 }
 
 template<class T>
-void ImageBackPerceptronKernel<T>::SetDeltaInput(OCLMemory* deltaInput)
-{
+void ImageBackPerceptronKernel<T>::SetDeltaInput(OCLMemory* deltaInput) {
 	auto rawInput = deltaInput->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawInput),
@@ -113,8 +101,7 @@ void ImageBackPerceptronKernel<T>::SetDeltaInput(OCLMemory* deltaInput)
 }
 
 template<class T>
-void ImageBackPerceptronKernel<T>::SetOutput(OCLMemory* output)
-{
+void ImageBackPerceptronKernel<T>::SetOutput(OCLMemory* output) {
 	auto rawOutput = output->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 2, sizeof(cl_mem), &rawOutput),
@@ -122,8 +109,7 @@ void ImageBackPerceptronKernel<T>::SetOutput(OCLMemory* output)
 }
 
 template<class T>
-void ImageBackPerceptronKernel<T>::InitializeCompilerOptions()
-{
+void ImageBackPerceptronKernel<T>::InitializeCompilerOptions() {
 	stringstream stringStream;
 
 	if (useConstantWeights)
@@ -163,51 +149,55 @@ void ImageBackPerceptronKernel<T>::InitializeCompilerOptions()
 		stringStream << "-D" << "TANH ";
 
 	if (useRelaxedMath)
-		stringStream << "-cl-fast-relaxed-math";
+		stringStream << "-cl-fast-relaxed-math ";
+
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << "-I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();
 }
 
 template<class T>
-string ImageBackPerceptronKernel<T>::ProgramName() const
-{
+string ImageBackPerceptronKernel<T>::ProgramName() const {
 	return programName;
 }
 
 template<class T>
-string ImageBackPerceptronKernel<T>::GetCompilerOptions() const
-{
+string ImageBackPerceptronKernel<T>::GetCompilerOptions() const {
 	return compilerOptions;
 }
 
 template<class T>
-vector<string> ImageBackPerceptronKernel<T>::GetProgramCode() const
-{
+vector<string> ImageBackPerceptronKernel<T>::GetProgramCode() const {
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "ActivationFunction.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath,
 							"ImageBackPropPerceptronKernel.cl")));
 	return result;
 }
 
 template<class T>
-string ImageBackPerceptronKernel<T>::KernelName() const
-{
+string ImageBackPerceptronKernel<T>::KernelName() const {
 	return kernelName;
 }
 
 template<class T>
-const vector<size_t>& ImageBackPerceptronKernel<T>::GlobalWorkSize() const
-{
+const vector<size_t>& ImageBackPerceptronKernel<T>::GlobalWorkSize() const {
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& ImageBackPerceptronKernel<T>::LocalWorkSize() const
-{
+const vector<size_t>& ImageBackPerceptronKernel<T>::LocalWorkSize() const {
 	return localWorkSize;
 }
 

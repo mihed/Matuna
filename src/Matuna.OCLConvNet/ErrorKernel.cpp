@@ -122,7 +122,11 @@ void ErrorKernel<T>::InitializeCompilerOptions() {
 		stringStream << "-D" << "HALF_MATH ";
 
 	if (useRelaxedMath)
-		stringStream << "-cl-fast-relaxed-math";
+		stringStream << "-cl-fast-relaxed-math ";
+
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << "-I " << folderPath << " ";
 
 	compilerOptions = stringStream.str();
 }
@@ -140,12 +144,14 @@ string ErrorKernel<T>::GetCompilerOptions() const {
 template<class T>
 vector<string> ErrorKernel<T>::GetProgramCode() const {
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
-							"OutputError.cl")));
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "OutputError.cl")));
 	return result;
 }
 

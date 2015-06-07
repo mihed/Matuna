@@ -10,10 +10,8 @@
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Path.h"
 
-namespace Matuna
-{
-namespace MachineLearning
-{
+namespace Matuna {
+namespace MachineLearning {
 
 template<class T>
 ImageOutputKernel<T>::ImageOutputKernel(int globalWidth, int globalHeight,
@@ -27,8 +25,7 @@ ImageOutputKernel<T>::ImageOutputKernel(int globalWidth, int globalHeight,
 				outputOffsetHeight), inputUnitOffset(inputUnitOffset), outputUnitOffset(
 				outputUnitOffset), inputStride(inputStride), outputStride(
 				outputStride), outputMemoryHeight(outputMemoryHeight), inputMemoryHeight(
-				inputMemoryHeight)
-{
+				inputMemoryHeight) {
 	stringstream stringStream;
 
 	stringStream << "ImageOutputBackPropProgram";
@@ -49,52 +46,44 @@ ImageOutputKernel<T>::ImageOutputKernel(int globalWidth, int globalHeight,
 }
 
 template<class T>
-ImageOutputKernel<T>::~ImageOutputKernel()
-{
+ImageOutputKernel<T>::~ImageOutputKernel() {
 
 }
 
 template<class T>
-void ImageOutputKernel<T>::SetConstantInput(bool value)
-{
+void ImageOutputKernel<T>::SetConstantInput(bool value) {
 	useConstantInput = value;
 }
 
 template<class T>
-void ImageOutputKernel<T>::SetConstantTarget(bool value)
-{
+void ImageOutputKernel<T>::SetConstantTarget(bool value) {
 	useConstantTarget = value;
 }
 
 template<class T>
-void ImageOutputKernel<T>::SetUseRelaxedMath(bool value)
-{
+void ImageOutputKernel<T>::SetUseRelaxedMath(bool value) {
 	useRelaxedMath = value;
 }
 
 template<class T>
 void ImageOutputKernel<T>::SetActivationFunction(
-		MatunaActivationFunction activationFunction)
-{
+		MatunaActivationFunction activationFunction) {
 	this->activationFunction = activationFunction;
 }
 
 template<class T>
 void ImageOutputKernel<T>::SetComputationPrecision(
-		MatunaComputationPrecision computationPrecision)
-{
+		MatunaComputationPrecision computationPrecision) {
 	this->computationPrecision = computationPrecision;
 }
 
 template<class T>
-void ImageOutputKernel<T>::SetErrorFunction(MatunaErrorFunction errorFunction)
-{
+void ImageOutputKernel<T>::SetErrorFunction(MatunaErrorFunction errorFunction) {
 	this->errorFunction = errorFunction;
 }
 
 template<class T>
-void ImageOutputKernel<T>::SetInput(OCLMemory* input)
-{
+void ImageOutputKernel<T>::SetInput(OCLMemory* input) {
 	auto rawInput = input->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -102,8 +91,7 @@ void ImageOutputKernel<T>::SetInput(OCLMemory* input)
 }
 
 template<class T>
-void ImageOutputKernel<T>::SetTarget(OCLMemory* target)
-{
+void ImageOutputKernel<T>::SetTarget(OCLMemory* target) {
 	auto rawTarget = target->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawTarget),
@@ -111,8 +99,7 @@ void ImageOutputKernel<T>::SetTarget(OCLMemory* target)
 }
 
 template<class T>
-void ImageOutputKernel<T>::SetOutput(OCLMemory* output)
-{
+void ImageOutputKernel<T>::SetOutput(OCLMemory* output) {
 	auto rawOutput = output->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 2, sizeof(cl_mem), &rawOutput),
@@ -120,8 +107,7 @@ void ImageOutputKernel<T>::SetOutput(OCLMemory* output)
 }
 
 template<class T>
-void ImageOutputKernel<T>::InitializeCompilerOptions()
-{
+void ImageOutputKernel<T>::InitializeCompilerOptions() {
 	stringstream stringStream;
 
 	if (useConstantInput)
@@ -130,31 +116,24 @@ void ImageOutputKernel<T>::InitializeCompilerOptions()
 		stringStream << "-D" << "CONSTANT_TARGET ";
 
 	//Refer to the notes for this
-	if (errorFunction == MatunaMeanSquareError)
-	{
+	if (errorFunction == MatunaMeanSquareError) {
 		if (activationFunction == MatunaLinearActivation)
 			stringStream << "-D" << "DIFFERENCE ";
 		else
 			stringStream << "-D" << "MSE_ANY ";
-	}
-	else if (errorFunction == MatunaCrossEntropy)
-	{
-		if (globalUnits == 1 && globalHeight == 1 && globalWidth == 1)
-		{
+	} else if (errorFunction == MatunaCrossEntropy) {
+		if (globalUnits == 1 && globalHeight == 1 && globalWidth == 1) {
 			if (activationFunction == MatunaSigmoidActivation)
 				stringStream << "-D" << "DIFFERENCE ";
 			else
 				stringStream << "-D" << "CE_BINARY_ANY ";
-		}
-		else
-		{
+		} else {
 			if (activationFunction == MatunaSoftMaxActivation)
 				stringStream << "-D" << "DIFFERENCE ";
 			else
 				stringStream << "-D" << "CE_ANY ";
 		}
-	}
-	else
+	} else
 		throw invalid_argument(
 				"The error function is not supported by the output kernel");
 
@@ -189,52 +168,56 @@ void ImageOutputKernel<T>::InitializeCompilerOptions()
 		stringStream << "-D" << "HALF_MATH ";
 
 	if (useRelaxedMath)
-		stringStream << "-cl-fast-relaxed-math";
+		stringStream << "-cl-fast-relaxed-math ";
+
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << "-I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();
 
 }
 
 template<class T>
-string ImageOutputKernel<T>::ProgramName() const
-{
+string ImageOutputKernel<T>::ProgramName() const {
 	return programName;
 }
 
 template<class T>
-string ImageOutputKernel<T>::GetCompilerOptions() const
-{
+string ImageOutputKernel<T>::GetCompilerOptions() const {
 	return compilerOptions;
 }
 
 template<class T>
-vector<string> ImageOutputKernel<T>::GetProgramCode() const
-{
+vector<string> ImageOutputKernel<T>::GetProgramCode() const {
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
-							"ImageOutputBackProp.cl")));
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "ActivationFunction.h")));
+
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "ImageOutputBackProp.cl")));
 	return result;
 }
 
 template<class T>
-string ImageOutputKernel<T>::KernelName() const
-{
+string ImageOutputKernel<T>::KernelName() const {
 	return kernelName;
 }
 
 template<class T>
-const vector<size_t>& ImageOutputKernel<T>::GlobalWorkSize() const
-{
+const vector<size_t>& ImageOutputKernel<T>::GlobalWorkSize() const {
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& ImageOutputKernel<T>::LocalWorkSize() const
-{
+const vector<size_t>& ImageOutputKernel<T>::LocalWorkSize() const {
 	return localWorkSize;
 }
 

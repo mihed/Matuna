@@ -1,24 +1,27 @@
 /**
-*Macros to define:
-* - INPUT_UNITS_LIMIT: The limit in the input units 
-* - INPUT_WIDTH: The input width
-* - INPUT_HEIGHT: The input height
-* - INPUT_UNITS_OFFSET: The offset in the units direction
-* - INPUT_WIDTH_OFFSET: The offset in the width direction
-* - INPUT_HEIGHT_OFFSET: The offset in the height direction
-* - COLUMN_COUNT: The amount of columns in the weight matrix
-* - INPUT_UNIT_ELEMENT_COUNT_INC_PADDING: The amount of elements inside one unit with padding
-* - INPUT_MEMORY_WIDTH: The width of the memory
-* - DOUBLE_PRECISION: If the kernel is to be executed with double precision
-* - CONSTANT_INPUT: If we may put the inputs into the constant memory space
-* - CONSTANT_WEIGHTS: If we may put the weights into the constant memory space
-* - CONSTANT_BIASES: If we may put the biases into the constant memory space
-* - SIGMOID: If we are using sigmoid activation
-* - TANH: If we are using tanh activation
-* - SOFTMAX: If we are using the softmax activation
-* - HALF_MATH: If we use half precision math
-* - NATIVE_MATH: If we use native precision math
-*/
+ *Macros to define:
+ * - INPUT_UNITS_LIMIT: The limit in the input units
+ * - INPUT_WIDTH: The input width
+ * - INPUT_HEIGHT: The input height
+ * - INPUT_UNITS_OFFSET: The offset in the units direction
+ * - INPUT_WIDTH_OFFSET: The offset in the width direction
+ * - INPUT_HEIGHT_OFFSET: The offset in the height direction
+ * - COLUMN_COUNT: The amount of columns in the weight matrix
+ * - INPUT_UNIT_ELEMENT_COUNT_INC_PADDING: The amount of elements inside one unit with padding
+ * - INPUT_MEMORY_WIDTH: The width of the memory
+ * - DOUBLE_PRECISION: If the kernel is to be executed with double precision
+ * - CONSTANT_INPUT: If we may put the inputs into the constant memory space
+ * - CONSTANT_WEIGHTS: If we may put the weights into the constant memory space
+ * - CONSTANT_BIASES: If we may put the biases into the constant memory space
+ * - SIGMOID: If we are using sigmoid activation
+ * - TANH: If we are using tanh activation
+ * - SOFTMAX: If we are using the softmax activation
+ * - HALF_MATH: If we use half precision math
+ * - NATIVE_MATH: If we use native precision math
+ */
+
+#include "RealType.h"
+#include "ActivationFunction.h"
 
 #ifndef INPUT_UNITS_LIMIT
 #define INPUT_UNITS_LIMIT -1
@@ -60,98 +63,49 @@
 #define INPUT_MEMORY_WIDTH -1
 #endif
 
-#ifdef DOUBLE_PRECISION
-
-    #if defined(cl_khr_fp64)  // Khronos extension available?
-    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
-    #elif defined(cl_amd_fp64)  // AMD extension available?
-    #pragma OPENCL EXTENSION cl_amd_fp64 : enable
-    #else
-    #error "Double precision floating point not supported by OpenCL implementation."
-    #endif
-
-    #define ONE 1.0
-    #define TANH_OUTER 1.7159
-    #define TANH_INNER 0.666666666666666
-    typedef double TYPE;
-#else
-    #define ONE 1.0f
-    #define TANH_OUTER 1.7159f
-    #define TANH_INNER 0.6666666f
-    typedef float TYPE;
-#endif
-
 __kernel void ForwardPerceptronKernel(
 #ifdef CONSTANT_INPUT
-    __constant TYPE* input,
+		__constant real_t* input,
 #else
-    __global const TYPE* input,
+		__global const real_t* input,
 #endif
 
-    __global TYPE* output,
-    
+		__global real_t* output,
+
 #ifdef CONSTANT_WEIGHTS
-    __constant TYPE* weights,
+		__constant real_t* weights,
 #else
-    __global const TYPE* weights,
+		__global const real_t* weights,
 #endif
 
 #ifdef CONSTANT_BIASES
-    __constant TYPE* biases
+		__constant real_t* biases
 #else
-    __global const TYPE* biases
+		__global const real_t* biases
 #endif
-    )
+)
 {
-    const int outputIndex = get_global_id(0);
-    const int rowIndex = COLUMN_COUNT * outputIndex;
-    
-    TYPE sum = 0;
-    int columnIndex = 0;
-    int tempZIndex = 0;
-    int tempYIndex = 0;
-    for (int unit = INPUT_UNITS_OFFSET; unit < INPUT_UNITS_LIMIT; unit++)
-    {
-        tempZIndex = unit * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
-        for (int row = INPUT_HEIGHT_OFFSET; row < INPUT_HEIGHT_LIMIT; row++)
-        {
-            tempYIndex = row * INPUT_MEMORY_WIDTH + tempZIndex;
-            for(int column = INPUT_WIDTH_OFFSET; column < INPUT_WIDTH_LIMIT; column++)
-            {
-               sum += input[tempYIndex + column] * weights[rowIndex + columnIndex];
+	const int outputIndex = get_global_id(0);
+	const int rowIndex = COLUMN_COUNT * outputIndex;
+
+	real_t sum = 0;
+	int columnIndex = 0;
+	int tempZIndex = 0;
+	int tempYIndex = 0;
+	for (int unit = INPUT_UNITS_OFFSET; unit < INPUT_UNITS_LIMIT; unit++)
+	{
+		tempZIndex = unit * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
+		for (int row = INPUT_HEIGHT_OFFSET; row < INPUT_HEIGHT_LIMIT; row++)
+		{
+			tempYIndex = row * INPUT_MEMORY_WIDTH + tempZIndex;
+			for(int column = INPUT_WIDTH_OFFSET; column < INPUT_WIDTH_LIMIT; column++)
+			{
+				sum += input[tempYIndex + column] * weights[rowIndex + columnIndex];
 				columnIndex++;
-            }
-        }
-    }
+			}
+		}
+	}
 
-#if defined(SIGMOID)
-    #ifndef DOUBLE_PRECISION
-        #if defined(HALF_MATH)
-            output[outputIndex + OUTPUT_UNIT_OFFSET] = ONE / (ONE + half_exp(-(sum + biases[outputIndex])));
-        #elif defined(NATIVE_MATH)
-            output[outputIndex + OUTPUT_UNIT_OFFSET] = ONE / (ONE + native_exp(-(sum + biases[outputIndex])));
-        #else
-            output[outputIndex + OUTPUT_UNIT_OFFSET] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
-        #endif
-    #else
-        output[outputIndex + OUTPUT_UNIT_OFFSET] = ONE / (ONE + exp(-(sum + biases[outputIndex])));
-    #endif
-#elif defined(TANH)
-    output[outputIndex + OUTPUT_UNIT_OFFSET] = TANH_OUTER * tanh(TANH_INNER * (sum + biases[outputIndex]));
-#elif defined(SOFTMAX)
-    #ifndef DOUBLE_PRECISION
-        #if defined(HALF_MATH)
-	        output[outputIndex + OUTPUT_UNIT_OFFSET] = half_exp(sum + biases[outputIndex]);
-        #elif defined(NATIVE_MATH)
-	        output[outputIndex + OUTPUT_UNIT_OFFSET] = native_exp(sum + biases[outputIndex]);
-        #else
-	        output[outputIndex + OUTPUT_UNIT_OFFSET] = exp(sum + biases[outputIndex]);
-        #endif
-    #else
-	    output[outputIndex + OUTPUT_UNIT_OFFSET] = exp(sum + biases[outputIndex]);
-    #endif
-#else
-    output[outputIndex + OUTPUT_UNIT_OFFSET] = sum + biases[outputIndex];
-#endif
-
+	const real_t sumBias = sum + biases[outputIndex];
+	output[outputIndex + OUTPUT_UNIT_OFFSET] = ACTIVATION(sumBias);
 }

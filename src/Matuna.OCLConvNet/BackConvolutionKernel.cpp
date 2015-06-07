@@ -10,10 +10,8 @@
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Path.h"
 
-namespace Matuna
-{
-namespace MachineLearning
-{
+namespace Matuna {
+namespace MachineLearning {
 
 template<class T>
 BackConvolutionKernel<T>::BackConvolutionKernel(int globalWidth,
@@ -27,8 +25,7 @@ BackConvolutionKernel<T>::BackConvolutionKernel(int globalWidth,
 				inputWidthOffset), inputHeightOffset(inputHeightOffset), outputWidthOffset(
 				outputWidthOffset), outputHeightOffset(outputHeightOffset), inputStride(
 				inputStride), outputStride(outputStride), inputMemoryHeight(
-				inputMemoryHeight), useLocalMemory(useLocalmemory)
-{
+				inputMemoryHeight), useLocalMemory(useLocalmemory) {
 	useRelaxedMath = false;
 	useConstantDeltaInput = false;
 	useConstantFilters = false;
@@ -45,14 +42,12 @@ BackConvolutionKernel<T>::BackConvolutionKernel(int globalWidth,
 }
 
 template<class T>
-BackConvolutionKernel<T>::~BackConvolutionKernel()
-{
+BackConvolutionKernel<T>::~BackConvolutionKernel() {
 
 }
 
 template<class T>
-void BackConvolutionKernel<T>::InitializeCompilerOptions()
-{
+void BackConvolutionKernel<T>::InitializeCompilerOptions() {
 	stringstream stringStream;
 
 	if (useConstantFilters)
@@ -87,14 +82,17 @@ void BackConvolutionKernel<T>::InitializeCompilerOptions()
 				"The template type is not valid. This is an indication of programming error");
 
 	if (useRelaxedMath)
-		stringStream << "-cl-fast-relaxed-math";
+		stringStream << "-cl-fast-relaxed-math ";
+
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << "-I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();
 }
 
 template<class T>
-void BackConvolutionKernel<T>::SetFilters(OCLMemory* filters)
-{
+void BackConvolutionKernel<T>::SetFilters(OCLMemory* filters) {
 	auto rawFilters = filters->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 2, sizeof(cl_mem), &rawFilters),
@@ -102,8 +100,7 @@ void BackConvolutionKernel<T>::SetFilters(OCLMemory* filters)
 }
 
 template<class T>
-void BackConvolutionKernel<T>::SetDeltaInput(OCLMemory* deltaInput)
-{
+void BackConvolutionKernel<T>::SetDeltaInput(OCLMemory* deltaInput) {
 	auto rawInput = deltaInput->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -111,8 +108,7 @@ void BackConvolutionKernel<T>::SetDeltaInput(OCLMemory* deltaInput)
 }
 
 template<class T>
-void BackConvolutionKernel<T>::SetOutput(OCLMemory* output)
-{
+void BackConvolutionKernel<T>::SetOutput(OCLMemory* output) {
 	auto rawOutput = output->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawOutput),
@@ -120,8 +116,7 @@ void BackConvolutionKernel<T>::SetOutput(OCLMemory* output)
 }
 
 template<class T>
-void BackConvolutionKernel<T>::SetLocalWorkGroup(int width, int height)
-{
+void BackConvolutionKernel<T>::SetLocalWorkGroup(int width, int height) {
 	if (!useLocalMemory)
 		throw invalid_argument(
 				"Local memory is not used so you may not set any local memory.");
@@ -137,63 +132,56 @@ void BackConvolutionKernel<T>::SetLocalWorkGroup(int width, int height)
 }
 
 template<class T>
-void BackConvolutionKernel<T>::SetConstantInputDelta(bool value)
-{
+void BackConvolutionKernel<T>::SetConstantInputDelta(bool value) {
 	useConstantDeltaInput = value;
 }
 
 template<class T>
-void BackConvolutionKernel<T>::SetConstantFilters(bool value)
-{
+void BackConvolutionKernel<T>::SetConstantFilters(bool value) {
 	useConstantFilters = value;
 }
 
 template<class T>
-void BackConvolutionKernel<T>::SetRelaxedMath(bool value)
-{
+void BackConvolutionKernel<T>::SetRelaxedMath(bool value) {
 	useRelaxedMath = value;
 }
 
 template<class T>
-string BackConvolutionKernel<T>::ProgramName() const
-{
+string BackConvolutionKernel<T>::ProgramName() const {
 	return programName;
 }
 
 template<class T>
-string BackConvolutionKernel<T>::GetCompilerOptions() const
-{
+string BackConvolutionKernel<T>::GetCompilerOptions() const {
 	return compilerOptions;
 }
 
 template<class T>
-vector<string> BackConvolutionKernel<T>::GetProgramCode() const
-{
+vector<string> BackConvolutionKernel<T>::GetProgramCode() const {
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
-							"BackPropConvolutionKernel.cl")));
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "BackPropConvolutionKernel.cl")));
 	return result;
 }
 
 template<class T>
-string BackConvolutionKernel<T>::KernelName() const
-{
+string BackConvolutionKernel<T>::KernelName() const {
 	return kernelName;
 }
 
 template<class T>
-const vector<size_t>& BackConvolutionKernel<T>::GlobalWorkSize() const
-{
+const vector<size_t>& BackConvolutionKernel<T>::GlobalWorkSize() const {
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& BackConvolutionKernel<T>::LocalWorkSize() const
-{
+const vector<size_t>& BackConvolutionKernel<T>::LocalWorkSize() const {
 	return localWorkSize;
 }
 

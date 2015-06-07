@@ -1,6 +1,6 @@
-FILE (GLOB_RECURSE OCLConvNet_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp)
-FILE (GLOB_RECURSE OCLConvNet_HEADERS *.h *.hpp) #WORKS HERE BUT NOT VERY GENERIC
-FILE (GLOB_RECURSE ConvNetKernels *.cl) #FIXME: Works but sucks
+FILE (GLOB OCLConvNet_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp)
+FILE (GLOB OCLConvNet_HEADERS *.h *.hpp) #WORKS HERE BUT NOT VERY GENERIC
+FILE (GLOB_RECURSE ConvNetKernels kernels/*.cl kernels/*.h) #FIXME: Works but sucks
 
 ADD_LIBRARY(Matuna.OCLConvNet STATIC ${OCLConvNet_SRCS})
 TARGET_LINK_LIBRARIES(Matuna.OCLConvNet Matuna.ConvNet Matuna.OCLHelper Matuna.Helper Matuna.Math)

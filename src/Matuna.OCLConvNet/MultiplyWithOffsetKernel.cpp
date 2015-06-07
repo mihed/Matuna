@@ -10,10 +10,8 @@
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Path.h"
 
-namespace Matuna
-{
-namespace MachineLearning
-{
+namespace Matuna {
+namespace MachineLearning {
 
 template<class T>
 MultiplyWithOffsetKernel<T>::MultiplyWithOffsetKernel(int globalWidth,
@@ -32,8 +30,7 @@ MultiplyWithOffsetKernel<T>::MultiplyWithOffsetKernel(int globalWidth,
 				inputDeltaWidthOffset), inputDeltaHeightOffset(
 				inputDeltaHeightOffset), inputDeltaUnitOffset(
 				inputDeltaUnitOffset), outputWidthoffset(outputWidthoffset), outputHeightOffset(
-				outputHeightOffset), outputUnitOffset(outputUnitOffset)
-{
+				outputHeightOffset), outputUnitOffset(outputUnitOffset) {
 	stringstream stringStream;
 
 	stringStream << "MultiplyWithOffsetKernelProgram";
@@ -52,14 +49,12 @@ MultiplyWithOffsetKernel<T>::MultiplyWithOffsetKernel(int globalWidth,
 }
 
 template<class T>
-MultiplyWithOffsetKernel<T>::~MultiplyWithOffsetKernel()
-{
+MultiplyWithOffsetKernel<T>::~MultiplyWithOffsetKernel() {
 
 }
 
 template<class T>
-void MultiplyWithOffsetKernel<T>::InitializeCompilerOptions()
-{
+void MultiplyWithOffsetKernel<T>::InitializeCompilerOptions() {
 	stringstream stringStream;
 
 	if (is_same<cl_double, T>::value)
@@ -97,14 +92,17 @@ void MultiplyWithOffsetKernel<T>::InitializeCompilerOptions()
 		stringStream << "-D" << "CONSTANT_INPUT_DELTA" << " ";
 
 	if (useRelaxedMath)
-		stringStream << "-cl-fast-relaxed-math";
+		stringStream << "-cl-fast-relaxed-math ";
+
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << "-I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();
 }
 
 template<class T>
-void MultiplyWithOffsetKernel<T>::SetInput(OCLMemory* input)
-{
+void MultiplyWithOffsetKernel<T>::SetInput(OCLMemory* input) {
 	auto rawInput = input->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -112,8 +110,7 @@ void MultiplyWithOffsetKernel<T>::SetInput(OCLMemory* input)
 }
 
 template<class T>
-void MultiplyWithOffsetKernel<T>::SetInputDelta(OCLMemory* inputDelta)
-{
+void MultiplyWithOffsetKernel<T>::SetInputDelta(OCLMemory* inputDelta) {
 	auto rawInput = inputDelta->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawInput),
@@ -121,8 +118,7 @@ void MultiplyWithOffsetKernel<T>::SetInputDelta(OCLMemory* inputDelta)
 }
 
 template<class T>
-void MultiplyWithOffsetKernel<T>::SetOutput(OCLMemory* output)
-{
+void MultiplyWithOffsetKernel<T>::SetOutput(OCLMemory* output) {
 	auto rawOutput = output->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 2, sizeof(cl_mem), &rawOutput),
@@ -130,63 +126,56 @@ void MultiplyWithOffsetKernel<T>::SetOutput(OCLMemory* output)
 }
 
 template<class T>
-void MultiplyWithOffsetKernel<T>::SetConstantInput(bool value)
-{
+void MultiplyWithOffsetKernel<T>::SetConstantInput(bool value) {
 	useConstantInput = value;
 }
 
 template<class T>
-void MultiplyWithOffsetKernel<T>::SetConstantInputDelta(bool value)
-{
+void MultiplyWithOffsetKernel<T>::SetConstantInputDelta(bool value) {
 	useConstantInputDelta = value;
 }
 
 template<class T>
-void MultiplyWithOffsetKernel<T>::SetRelaxedMath(bool value)
-{
+void MultiplyWithOffsetKernel<T>::SetRelaxedMath(bool value) {
 	useRelaxedMath = value;
 }
 
 template<class T>
-string MultiplyWithOffsetKernel<T>::ProgramName() const
-{
+string MultiplyWithOffsetKernel<T>::ProgramName() const {
 	return programName;
 }
 
 template<class T>
-string MultiplyWithOffsetKernel<T>::GetCompilerOptions() const
-{
+string MultiplyWithOffsetKernel<T>::GetCompilerOptions() const {
 	return compilerOptions;
 }
 
 template<class T>
-vector<string> MultiplyWithOffsetKernel<T>::GetProgramCode() const
-{
+vector<string> MultiplyWithOffsetKernel<T>::GetProgramCode() const {
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
-							"MultiplyWithOffsetKernel.cl")));
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "MultiplyWithOffsetKernel.cl")));
 	return result;
 }
 
 template<class T>
-string MultiplyWithOffsetKernel<T>::KernelName() const
-{
+string MultiplyWithOffsetKernel<T>::KernelName() const {
 	return kernelName;
 }
 
 template<class T>
-const vector<size_t>& MultiplyWithOffsetKernel<T>::GlobalWorkSize() const
-{
+const vector<size_t>& MultiplyWithOffsetKernel<T>::GlobalWorkSize() const {
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& MultiplyWithOffsetKernel<T>::LocalWorkSize() const
-{
+const vector<size_t>& MultiplyWithOffsetKernel<T>::LocalWorkSize() const {
 	return localWorkSize;
 }
 

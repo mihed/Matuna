@@ -132,7 +132,11 @@ void BackPerceptronKernel<T>::InitializeCompilerOptions() {
 		stringStream << "-D" << "TANH ";
 
 	if (useRelaxedMath)
-		stringStream << "-cl-fast-relaxed-math";
+		stringStream << "-cl-fast-relaxed-math ";
+
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << "-I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();
 }
@@ -149,13 +153,19 @@ string BackPerceptronKernel<T>::GetCompilerOptions() const {
 
 template<class T>
 vector<string> BackPerceptronKernel<T>::GetProgramCode() const {
+
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
-							"BackPropPerceptronKernel.cl")));
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "ActivationFunction.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "BackPropPerceptronKernel.cl")));
 	return result;
 }
 

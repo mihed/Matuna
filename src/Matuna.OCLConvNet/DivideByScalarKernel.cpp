@@ -10,15 +10,12 @@
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Path.h"
 
-namespace Matuna
-{
-namespace MachineLearning
-{
+namespace Matuna {
+namespace MachineLearning {
 
 template<class T>
 DivideByScalarKernel<T>::DivideByScalarKernel(int inputCount) :
-		inputCount(inputCount)
-{
+		inputCount(inputCount) {
 	stringstream stringStream;
 
 	stringStream << "DivideByScalarProgram";
@@ -35,19 +32,21 @@ DivideByScalarKernel<T>::DivideByScalarKernel(int inputCount) :
 		throw runtime_error(
 				"The template type is not valid. This is an indication of programming error");
 
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+	stringStream << " -I" << folderPath << " ";
+
 	compilerOptions = stringStream.str();
 	globalWorkSize.push_back(inputCount);
 }
 
 template<class T>
-DivideByScalarKernel<T>::~DivideByScalarKernel()
-{
+DivideByScalarKernel<T>::~DivideByScalarKernel() {
 
 }
 
 template<class T>
-void DivideByScalarKernel<T>::SetInputOutput(OCLMemory* inputOutput)
-{
+void DivideByScalarKernel<T>::SetInputOutput(OCLMemory* inputOutput) {
 	auto rawInput = inputOutput->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 0, sizeof(cl_mem), &rawInput),
@@ -55,8 +54,7 @@ void DivideByScalarKernel<T>::SetInputOutput(OCLMemory* inputOutput)
 }
 
 template<class T>
-void DivideByScalarKernel<T>::SetScalar(OCLMemory* scalar)
-{
+void DivideByScalarKernel<T>::SetScalar(OCLMemory* scalar) {
 	auto rawOutput = scalar->GetCLMemory();
 	CheckOCLError(
 			clSetKernelArg(this->GetKernel(), 1, sizeof(cl_mem), &rawOutput),
@@ -64,50 +62,46 @@ void DivideByScalarKernel<T>::SetScalar(OCLMemory* scalar)
 }
 
 template<class T>
-string DivideByScalarKernel<T>::ProgramName() const
-{
+string DivideByScalarKernel<T>::ProgramName() const {
 	return programName;
 }
 
 template<class T>
-string DivideByScalarKernel<T>::GetCompilerOptions() const
-{
+string DivideByScalarKernel<T>::GetCompilerOptions() const {
 	return compilerOptions;
 }
 
 template<class T>
-vector<string> DivideByScalarKernel<T>::GetProgramCode() const
-{
+vector<string> DivideByScalarKernel<T>::GetProgramCode() const {
 	vector<string> result;
+	string folderPath = Path::Combine(
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
 	result.push_back(
 			FileHelper::GetTextFromPath(
-					Path::Combine(
-							Path::GetDirectoryPath(
-									FileHelper::GetExecutablePath()), "kernels",
-							"DivideByScalarKernel.cl")));
+					Path::Combine(folderPath, "RealType.h")));
+	result.push_back(
+			FileHelper::GetTextFromPath(
+					Path::Combine(folderPath, "DivideByScalarKernel.cl")));
 	return result;
 }
 
 template<class T>
-string DivideByScalarKernel<T>::KernelName() const
-{
+string DivideByScalarKernel<T>::KernelName() const {
 	return kernelName;
 }
 
 template<class T>
-const vector<size_t>& DivideByScalarKernel<T>::GlobalWorkSize() const
-{
+const vector<size_t>& DivideByScalarKernel<T>::GlobalWorkSize() const {
 	return globalWorkSize;
 }
 
 template<class T>
-const vector<size_t>& DivideByScalarKernel<T>::LocalWorkSize() const
-{
+const vector<size_t>& DivideByScalarKernel<T>::LocalWorkSize() const {
 	return localWorkSize;
 }
 
 template class DivideByScalarKernel<cl_float> ;
-template class DivideByScalarKernel<cl_double>;
+template class DivideByScalarKernel<cl_double> ;
 
 } /* namespace MachineLearning */
 } /* namespace Matuna */
