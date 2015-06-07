@@ -138,7 +138,7 @@ ADD_SUBDIRECTORY(Matuna.Math)
 ADD_SUBDIRECTORY(Matuna.ConvNet)
 ADD_SUBDIRECTORY(Matuna.OCLConvNet)
 ADD_SUBDIRECTORY(test)
-ADD_SUBDIRECTORY(Samples)
+ADD_SUBDIRECTORY(samples)
 
 #
 # Add Install Targets
