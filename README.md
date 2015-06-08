@@ -1,8 +1,15 @@
-# ATML
-Automatically Tuned Machine Learning.
+# Matuna
+Machine learning with Automatically Tuned Algorithms
 
 #Introduction
-There's tons of stuff missing in the current alpha version. However, I try to follow my philosophy of releasing something that works without a ton of features to get additional experience for the next release. The current version was written in about 3-4 weeks (so, about 40 000 lines of code in this period!). To set up the entire cross-platform development system took me another week. There's a lot of duplicated code, no comments and a lot of things that are just partially implemented. The next alpha releases will not focus on any features but mostly tidying, refactoring and commenting in order to make this a usable library. 
+This library was mainly an effort for testing new state-of-the-art machine learning algorithms. Since there's already plenty of libraries out there, I wanted to put some extra focus on applications and optimizations.
+The library is cross platform, and I've compiled it so far for Linux, OS X, iOS, Windows and Android.
+Compilation of OpenCL kernels are automatically supported for almost all OpenCL platform (except some embedded profiles), which leaves a possibility of adjusting the kernel code before compilation and execution.
+This is what Automatically Tuned refers to. The device information such as constant cache size, local cache size, preferred vectorization etc... are read out and the corresponding kernel is adapted.
+The latest alpha version does not contain a lot of functionality, and will not do so before the code has been cleaned up (40 000 lines of code in 3 weeks, does indeed has its side-effects!).
+Depending on my professional engagements, I will try to push out new implementations as fast as possible using the latest research in the Machine Learning community. 
+In the ConvNet, I've tried to avoid as much as possible of memory copies in order to reduce memory usage and kernel executions. Instead, every layer is reading directly from the previous layer's output memory. 
+Check out the ConvNet notes for more information about the memory layout or if you just want to get all the CNN equations OOTB.
 
 ##Development Environment (Sketch)
 ###Windows
