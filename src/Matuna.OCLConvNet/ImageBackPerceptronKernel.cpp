@@ -152,7 +152,7 @@ void ImageBackPerceptronKernel<T>::InitializeCompilerOptions() {
 		stringStream << "-cl-fast-relaxed-math ";
 
 	string folderPath = Path::Combine(
-			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels/");
 	stringStream << "-I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();

@@ -34,7 +34,7 @@ SimpleSumKernel<T>::SimpleSumKernel(int inputCount) :
 				"The template type is not valid. This is an indication of programming error");
 
 	string folderPath = Path::Combine(
-			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels");
+			Path::GetDirectoryPath(FileHelper::GetExecutablePath()), "kernels/");
 	stringStream << " -I" << folderPath << " ";
 
 	compilerOptions = stringStream.str();

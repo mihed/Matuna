@@ -506,7 +506,7 @@ void OCLConvNet<T>::TrainNetwork(unique_ptr<ConvNetTrainer<T>> trainer,
 		throw runtime_error(
 				"The template argument does not match the supported arguments");
 
-	compilerOptions << " -I" << folderPath;
+	compilerOptions << " -I" << folderPath << "/";
 
 	AccumulateVectorKernel<T> accumulateKernel(programName);
 	AccumulateVectorScalarKernel<T> accumulateScalarKernel(programName);
