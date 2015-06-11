@@ -16,38 +16,18 @@
 
 #include "RealType.h"
 
-#ifndef INPUT_OFFSET_WIDTH
+//<!@
 #define INPUT_OFFSET_WIDTH -1
-#endif
-
-#ifndef INPUT_WIDTH_LIMIT
 #define INPUT_WIDTH_LIMIT -1
-#endif
-
-#ifndef INPUT_HEIGHT_LIMIT
 #define INPUT_HEIGHT_LIMIT -1
-#endif
-
-#ifndef INPUT_OFFSET_HEIGHT
 #define INPUT_OFFSET_HEIGHT -1
-#endif
-
-#ifndef INPUT_UNIT_OFFSET
 #define INPUT_UNIT_OFFSET -1
-#endif
-
-#ifndef INPUT_STRIDE
 #define INPUT_STRIDE -1
-#endif
-
-#ifndef INPUT_UNIT_LIMIT
 #define INPUT_UNIT_LIMIT -1
-#endif
-
-//Width * Height
-#ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
+//#define CONSTANT_INPUT
+//#define CONSTANT_TARGET
+//!@>
 
 #ifdef DOUBLE_PRECISION
 #define ONE 1.0

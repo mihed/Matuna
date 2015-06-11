@@ -16,13 +16,16 @@
 
 #include "RealType.h"
 
-#ifndef INPUT_UNIT_OFFSET
+//<!@
 #define INPUT_UNIT_OFFSET 0
-#endif
+#define INPUT_COUNT 0
+//#define MSE
+//#define CE_BINARY
+//#define CE
+//#define CONSTANT_INPUT
+//#define CONSTANT_TARGET
+//!@>
 
-#ifndef INPUT_COUNT
-#define INPUT_COUNT -1
-#endif
 
 #ifdef DOUBLE_PRECISION
 #define ONE 1.0

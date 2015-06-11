@@ -58,6 +58,18 @@ namespace Matuna
 		}
 
 		template<class T>
+		void LayerKernel<T>::ClearGlobalSizes()
+		{
+			globalWorkSize.clear();
+		}
+
+		template<class T>
+		void LayerKernel<T>::ClearLocalSizes()
+		{
+			localWorkSize.clear();
+		}
+
+		template<class T>
 		void LayerKernel<T>::SetMemoryArg(OCLMemory* memory, int index)
 		{
 			if (!this->KernelSet())

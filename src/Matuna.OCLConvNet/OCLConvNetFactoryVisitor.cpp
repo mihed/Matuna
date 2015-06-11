@@ -6,8 +6,8 @@
  */
 
 #include "OCLConvNetFactoryVisitor.h"
-#include "PerceptronLayer.h"
-#include "ConvolutionLayer.h"
+//#include "PerceptronLayer.h"
+//#include "ConvolutionLayer.h"
 #include "StandardOutputLayer.h"
 
 #include "Matuna.ConvNet/ConvNet.h"
@@ -41,34 +41,34 @@ namespace Matuna {
 		void OCLConvNetFactoryVisitor<T>::Visit(
 			const PerceptronLayerConfig* const perceptronConfig) {
 
-			if (backPropActivation == MatunaSoftMaxActivation)
-				throw invalid_argument("The soft max is currently only supported on the outmost layer");
+			//if (backPropActivation == MatunaSoftMaxActivation)
+			//	throw invalid_argument("The soft max is currently only supported on the outmost layer");
 
-			if (perceptronConfig->ConnectionType() != MatunaFullConnection)
-				throw invalid_argument("We only support full connection on the perceptron layer at the moment");
+			//if (perceptronConfig->ConnectionType() != MatunaFullConnection)
+			//	throw invalid_argument("We only support full connection on the perceptron layer at the moment");
 
-			unique_ptr<ForwardBackPropLayer> layer(
-				new PerceptronLayer<T>(context, inputDataDescriptions,
-				backPropActivation, perceptronConfig));
+			//unique_ptr<ForwardBackPropLayer> layer(
+			//	new PerceptronLayer<T>(context, inputDataDescriptions,
+			//	backPropActivation, perceptronConfig));
 
-			this->InterlockAndAddLayer(perceptronConfig, move(layer));
+			//this->InterlockAndAddLayer(perceptronConfig, move(layer));
 		}
 
 		template<class T>
 		void OCLConvNetFactoryVisitor<T>::Visit(
 			const ConvolutionLayerConfig* const convolutionConfig) {
 
-			if (backPropActivation == MatunaSoftMaxActivation)
-				throw invalid_argument("The soft max is currently only supported on the outmost layer");
+			//if (backPropActivation == MatunaSoftMaxActivation)
+			//	throw invalid_argument("The soft max is currently only supported on the outmost layer");
 
-			if (convolutionConfig->ConnectionType() != MatunaFullConnection)
-				throw invalid_argument("We only support full connection on the convolution layer at the moment");
+			//if (convolutionConfig->ConnectionType() != MatunaFullConnection)
+			//	throw invalid_argument("We only support full connection on the convolution layer at the moment");
 
-			unique_ptr<ForwardBackPropLayer> layer(
-				new ConvolutionLayer<T>(context, inputDataDescriptions,
-				backPropActivation, convolutionConfig));
+			//unique_ptr<ForwardBackPropLayer> layer(
+			//	new ConvolutionLayer<T>(context, inputDataDescriptions,
+			//	backPropActivation, convolutionConfig));
 
-			this->InterlockAndAddLayer(convolutionConfig, move(layer));
+			//this->InterlockAndAddLayer(convolutionConfig, move(layer));
 		}
 		template<class T>
 		void OCLConvNetFactoryVisitor<T>::Visit(

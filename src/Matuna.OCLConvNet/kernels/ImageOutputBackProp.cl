@@ -20,47 +20,22 @@
 #include "RealType.h"
 #include "ActivationFunction.h"
 
-#ifndef INPUT_OFFSET_WIDTH
+//<!@
 #define INPUT_OFFSET_WIDTH -1
-#endif
-
-#ifndef INPUT_OFFSET_HEIGHT
 #define INPUT_OFFSET_HEIGHT -1
-#endif
-
-#ifndef OUTPUT_OFFSET_WIDTH
 #define OUTPUT_OFFSET_WIDTH -1
-#endif
-
-#ifndef OUTPUT_OFFSET_HEIGHT
 #define OUTPUT_OFFSET_HEIGHT -1
-#endif
-
-#ifndef INPUT_UNIT_OFFSET
 #define INPUT_UNIT_OFFSET -1
-#endif
-
-#ifndef INPUT_STRIDE
 #define INPUT_STRIDE -1
-#endif
-
-#ifndef OUTPUT_STRIDE
 #define OUTPUT_STRIDE -1
-#endif
-
-//Width * Height
-#ifndef OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-//Width * Height
-#ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef OUTPUT_UNIT_OFFSET
 #define OUTPUT_UNIT_OFFSET -1
-#endif
+//#define DIFFERENCE
+//#define MSE_ANY
+//#define CE_ANY
+//#define CE_BINARY_ANY
+//!@>
 
 #if defined(DIFFERENCE)
 

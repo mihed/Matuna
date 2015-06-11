@@ -20,13 +20,16 @@
 #include "RealType.h"
 #include "ActivationFunction.h"
 
-#ifndef INPUT_UNIT_OFFSET
+//<!@
 #define INPUT_UNIT_OFFSET 0
-#endif
-
-#ifndef OUTPUT_UNIT_OFFSET
 #define OUTPUT_UNIT_OFFSET 0
-#endif
+//#define DIFFERENCE
+//#define MSE_ANY
+//#define CE_BINARY_ANY
+//#define CE_ANY
+//#define CONSTANT_INPUT
+//#define CONSTANT_TARGET
+//!@>
 
 #if defined(DIFFERENCE)
 

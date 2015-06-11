@@ -50,6 +50,8 @@ namespace Matuna
 			void AddGlobalSize(size_t size);
 			void AddLocalSize(size_t size);
 
+			void ClearGlobalSizes();
+			void ClearLocalSizes();
 
 			virtual string Name() const override;
 			virtual const vector<size_t>& GlobalWorkSize() const override;
