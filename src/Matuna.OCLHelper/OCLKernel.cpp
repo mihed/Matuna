@@ -1,46 +1,82 @@
 /*
- * OCLKernel.cpp
- *
- *  Created on: Apr 28, 2015
- *      Author: Mikael
- */
+* OCLKernel.cpp
+*
+*  Created on: Apr 28, 2015
+*      Author: Mikael
+*/
 
 #include "OCLKernel.h"
+#include "OCLUtility.h"
 #include <iostream>
 #include <sstream>
 #include <fstream>
 
 namespace Matuna
 {
-namespace Helper
-{
+	namespace Helper
+	{
 
-int OCLKernel::instanceCounter = 0;
 
-OCLKernel::OCLKernel()
-{
-	instanceCounter++;
-	kernel = nullptr;
-	context = nullptr;
-	kernelSet = false;
-}
+		OCLKernel::OCLKernel()
+		{
+			kernel = nullptr;
+			owningProgram = nullptr;
+		}
 
-OCLKernel::~OCLKernel()
-{
+		OCLKernel::~OCLKernel()
+		{
+			if (KernelSet())
+				CheckOCLError(clReleaseKernel(kernel), "The kernel could not be released");
+		}
 
-}
+		void OCLKernel::ProgramDetach()
+		{
+			if (!ProgramSet())
+				throw runtime_error("The program cannot detach itself if it has not been attached");
 
-void OCLKernel::SetOCLKernel(cl_kernel kernel)
-{
-	this->kernel = kernel;
-	kernelSet = true;
-}
+			if (KernelSet())
+				CheckOCLError(clReleaseKernel(kernel), "The kernel could not be released");
 
-//This function is called by the OCLContext when created
-void OCLKernel::SetContext(const OCLContext* const context)
-{
-	this->context = context;
-}
+			kernel = nullptr;
+			owningProgram = nullptr;
+		}
 
-} /* namespace Helper */
+		bool OCLKernel::KernelSet() const
+		{
+			return kernel == nullptr ? false : true;
+		}
+
+		bool OCLKernel::ProgramSet() const
+		{
+			return owningProgram == nullptr ? false : true;
+		}
+
+		cl_kernel OCLKernel::GetKernel() const
+		{
+			return kernel;
+		}
+
+		void OCLKernel::SetKernel(cl_kernel kernel)
+		{
+			if (kernel == nullptr)
+				throw invalid_argument("Null pointer argument");
+
+			this->kernel = kernel;
+		}
+
+		//This function is called by the OCLContext when created
+		void OCLKernel::SetProgram(const OCLProgram* const program)
+		{
+			if (program == nullptr)
+				throw invalid_argument("Null pointer argument");
+
+			this->owningProgram = program;
+		}
+
+		const OCLProgram* const OCLKernel::GetProgram() const
+		{
+			return this->owningProgram;
+		}
+
+	} /* namespace Helper */
 } /* namespace Matuna */

@@ -36,13 +36,13 @@ OCLDevice::~OCLDevice()
 void OCLDevice::ExecuteTask(const OCLKernel* kernel, int queueIndex,
 		bool blocking)
 {
-	if (!kernel->ContextSet())
+	if (!kernel->GetProgram()->ContextSet())
 		throw invalid_argument(
 				"The kernel has not been attached to any context");
 	if (!kernel->KernelSet())
 		throw invalid_argument(
 				"The kernel has not been set. Make sure you have attached the kernel to the correct context");
-	if (kernel->GetContext() != context)
+	if (kernel->GetProgram()->GetContext() != context)
 		throw invalid_argument(
 				"The kernel has not been attached to the same context as the device.");
 
@@ -60,13 +60,13 @@ void OCLDevice::ExecuteKernel(const OCLKernel* kernel, int queueIndex,
 		bool blocking)
 {
 
-	if (!kernel->ContextSet())
+	if (!kernel->GetProgram()->ContextSet())
 		throw invalid_argument(
 				"The kernel has not been attached to any context");
 	if (!kernel->KernelSet())
 		throw invalid_argument(
 				"The kernel has not been set. Make sure you have attached the kernel to the correct context");
-	if (kernel->GetContext() != context)
+	if (kernel->GetProgram()->GetContext() != context)
 		throw invalid_argument(
 				"The kernel has not been attached to the same context as the device.");
 
@@ -118,13 +118,13 @@ void OCLDevice::WaitForDeviceQueue(int queueIndex)
 
 OCLKernelInfo OCLDevice::GetKernelInfo(const OCLKernel* kernel)
 {
-	if (!kernel->ContextSet())
+	if (!kernel->GetProgram()->ContextSet())
 		throw invalid_argument(
 				"The kernel has not been attached to any context");
 	if (!kernel->KernelSet())
 		throw invalid_argument(
 				"The kernel has not been set. Make sure you have attached the kernel to the correct context");
-	if (kernel->GetContext() != context)
+	if (kernel->GetProgram()->GetContext() != context)
 		throw invalid_argument(
 				"The kernel has not been attached to the same context as the device.");
 

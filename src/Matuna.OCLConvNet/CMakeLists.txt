@@ -1,4 +1,4 @@
-FILE (GLOB OCLConvNet_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp)
+FILE (GLOB_RECURSE OCLConvNet_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp kernels/*.cl kernels/*.h)
 FILE (GLOB OCLConvNet_HEADERS *.h *.hpp) #WORKS HERE BUT NOT VERY GENERIC
 FILE (GLOB_RECURSE ConvNetKernels kernels/*.cl kernels/*.h) #FIXME: Works but sucks
 

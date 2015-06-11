@@ -17,6 +17,8 @@
 #include "OCLDeviceInfo.h"
 #include "OCLKernel.h"
 #include "OCLMemory.h"
+#include "OCLKernel.h"
+#include "OCLProgram.h"
 #include "OCLKernelInfo.h"
 #include "OCLDeviceConfig.h"
 
