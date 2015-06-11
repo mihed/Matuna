@@ -27,6 +27,10 @@
 //!@>
 
 
+//Do not use the double values for these since the specification does not state any particular macro for AMD double extension
+#define ZERO_LIMIT 1.0E-12f
+#define ONE_LIMIT (1.0f - 1.0E-12f)
+
 #ifdef DOUBLE_PRECISION
 #define ONE 1.0
 #define HALF 0.5
@@ -50,17 +54,34 @@ __kernel void Error(
 #endif
 		__global real_t* error)
 {
+
+const real_t tempInput = *input;
+const real_t tempTarget = *target;
+
+//This is simply done to increase the stability of the calculation
+if (tempInput <= ZERO_LIMIT)
+{
+   *error = (tempTarget <= ZERO_LIMIT) ? 0 : FLT_MAX;
+}
+else if (tempInput >= ONE_LIMIT)
+{
+	*error = (tempTarget >= ONE_LIMIT) ? 0 : FLT_MAX;
+}
+else
+{
 #ifndef DOUBLE_PRECISION
 #if defined(HALF_MATH)
-	*error = -(*target * half_log(*input) + (ONE - *target) * half_log(ONE - *input));
+	*error = -(tempTarget * half_log(tempInput) + (ONE - tempTarget) * half_log(ONE - tempInput));
 #elif defined(NATIVE_MATH)
-	*error = -(*target * native_log(*input) + (ONE - *target) * native_log(ONE - *input));
+	*error = -(tempTarget * native_log(tempInput) + (ONE - tempTarget) * native_log(ONE - tempInput));
 #else
-	*error = -(*target * log(*input) + (ONE - *target) * log(ONE - *input));
+	*error = -(tempTarget * log(tempInput) + (ONE - tempTarget) * log(ONE - tempInput));
 #endif
 #else
-	*error = -(*target * log(*input) + (ONE - *target) * log(ONE - *input));
+	*error = -(tempTarget * log(tempInput) + (ONE - tempTarget) * log(ONE - tempInput));
 #endif
+}
+
 }
 
 #elif defined(CE)
@@ -82,17 +103,32 @@ __kernel void Error(
 	real_t sum = 0;
 	for (int i = INPUT_UNIT_OFFSET; i < INPUT_COUNT; i++)
 	{
+		const real_t tempInput = inputs[i];
+		const real_t tempTarget = targets[i];
+
+		//This is done in order to increase the stability of the calculation
+		if (tempInput <= ZERO_LIMIT)
+		{
+			if (tempTarget > ZERO_LIMIT)
+			{
+				*error = FLT_MAX;
+				break;
+			}
+		}
+		else
+		{
 #ifndef DOUBLE_PRECISION
 #if defined(HALF_MATH)
-		sum += targets[i] * half_log(inputs[i]);
+			sum += targets[i] * half_log(inputs[i]);
 #elif defined(NATIVE_MATH)
-		sum += targets[i] * native_log(inputs[i]);
+			sum += targets[i] * native_log(inputs[i]);
 #else
-		sum += targets[i] * log(inputs[i]);
+			sum += targets[i] * log(inputs[i]);
 #endif
 #else
-		sum += targets[i] * log(inputs[i]);
+			sum += targets[i] * log(inputs[i]);
 #endif
+		}
 	}
 	*error = -sum;
 }

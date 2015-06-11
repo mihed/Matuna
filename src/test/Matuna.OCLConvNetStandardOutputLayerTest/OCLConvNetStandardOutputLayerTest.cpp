@@ -16,6 +16,7 @@
 #include "Matuna.Math/Matrix.h"
 #include <memory>
 #include <random>
+#include <cmath>
 #include <type_traits>
 
 using namespace std;
@@ -23,18 +24,78 @@ using namespace Matuna::MachineLearning;
 using namespace Matuna::Helper;
 using namespace Matuna::Math;
 
-SCENARIO("Creating a ConvNet with an standard output layer")
+SCENARIO("Creating a ConvNet with a standard output layer. Image input")
+{
+
+}
+
+SCENARIO("Creating a ConvNet with a standard output layer. No image inputs")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
-	uniform_int_distribution<int> dimensionGenerator(1, 1000);
+	uniform_int_distribution<int> dimensionGenerator(1, 100);
 
 	vector<vector<OCLDeviceInfo>> deviceInfos;
 	for (auto platformInfo : platformInfos)
 		deviceInfos.push_back(OCLHelper::GetDeviceInfos(platformInfo));
 
 	int iterations = 10;
+
+	WHEN("Calculating the CE error output")
+	{
+		THEN("The CE error must be equal to the manually calculated CE error")
+		{
+			for (int dummy = 0; dummy < iterations; dummy++)
+			{
+				for (auto& deviceInfo : deviceInfos)
+				{
+					unique_ptr<OutputLayerConfig> outputLayerConfig(new StandardOutputLayerConfig(MatunaCrossEntropy));
+					LayerDataDescription inputDescription;
+					inputDescription.Height = 1;
+					inputDescription.Width = 1;
+					inputDescription.Units = dimensionGenerator(mt);
+					vector<LayerDataDescription> temp;
+					temp.push_back(inputDescription);
+					unique_ptr<ConvNetConfig> config(new ConvNetConfig(temp));
+					config->SetOutputConfig(move(outputLayerConfig));
+					OCLConvNet<float> network(deviceInfo, move(config));
+
+					auto randomInputs = Matrix<float>::RandomUniform(inputDescription.Units, 1);
+					randomInputs =  (1.0f / randomInputs.Sum()) * randomInputs;
+					auto randomTargets = Matrix<float>::RandomUniform(inputDescription.Units, 1);
+					randomTargets = (1.0f / randomTargets.Sum()) * randomTargets;
+
+					float result;
+					if (network.RequireForwardOutputAlignment(0))
+					{
+						auto alignedOutput = move(network.AlignToForwardOutput(randomInputs.Data, 0));
+						auto alignedTarget = move(network.AlignToForwardOutput(randomTargets.Data, 0));
+						result = network.CalculateErrorFromForwardAligned(alignedOutput.get(), 0, alignedTarget.get());
+					}
+					else
+						result = network.CalculateErrorFromForwardAligned(randomInputs.Data, 0, randomTargets.Data);
+
+					float manualResult = 0;
+					if (inputDescription.Units != 1)
+						for(int i = 0; i < inputDescription.Units; i++)
+							manualResult -= randomTargets.Data[i] * log(randomInputs.Data[i]);
+					else
+						manualResult = -( randomTargets.Data[0] == 0 ? 0 : (randomTargets.Data[0] * log(randomInputs.Data[0])) + 
+						randomTargets.Data[0] == 1 ? 0 : ((1 - randomTargets.Data[0]) * log(1 - randomInputs.Data[0])));
+					
+					if (manualResult == numeric_limits<float>::infinity())
+						manualResult = numeric_limits<float>::max();
+
+					float absDifference = result > manualResult ? (result - manualResult) : (manualResult - result);
+					if (manualResult > 1E-8)
+						absDifference = absDifference / manualResult;
+					printf("Abs difference: %f \n", absDifference);
+					CHECK(absDifference < 1E-6f);
+				}
+			}
+		}
+	}
 
 	WHEN("Calculating the MSE error output")
 	{

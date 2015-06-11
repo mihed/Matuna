@@ -1,9 +1,7 @@
-This is XeTeX, Version 3.1415926-2.5-0.9999.3 (MiKTeX 2.9 64-bit) (preloaded format=xelatex 2015.5.30)  8 JUN 2015 12:03
+This is XeTeX, Version 3.1415926-2.5-0.9999.3 (MiKTeX 2.9 64-bit) (preloaded format=xelatex 2015.5.30)  11 JUN 2015 21:23
 entering extended mode
 **CNN-notes.tex
-
-(D:\Mikael\Documents\GitHub\Matuna\Matuna\docs\Notes\ConvNet\Theory\CNN-notes.t
-ex
+(D:\Mikael\Documents\GitHub\Matuna\docs\Notes\ConvNet\Theory\CNN-notes.tex
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
 abic, armenian, assamese, basque, bengali, bokmal, bulgarian, catalan, coptic, 
@@ -493,8 +491,7 @@ Package: natbib 2010/09/13 8.31b (PWD, AO)
 LaTeX Info: Redefining \cite on input line 694.
 \c@NAT@ctr=\count111
 )
-(D:\Mikael\Documents\GitHub\Matuna\Matuna\docs\Notes\ConvNet\Theory\CNN-notes.a
-ux)
+(D:\Mikael\Documents\GitHub\Matuna\docs\Notes\ConvNet\Theory\CNN-notes.aux)
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 24.
 LaTeX Font Info:    ... okay on input line 24.
 LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 24.
@@ -522,7 +519,8 @@ Requested font "cmex10" at 12.0pt
 Requested font "cmex8" at 8.0pt
 Requested font "cmex7" at 6.0pt
 LaTeX Font Info:    Try loading font information for U+msa on input line 26.
- ("C:\Program Files\MiKTeX 2.9\tex\latex\amsfonts\umsa.fd"
+
+("C:\Program Files\MiKTeX 2.9\tex\latex\amsfonts\umsa.fd"
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
 Requested font "msam10" at 12.0pt
@@ -906,9 +904,7 @@ Requested font "cmti7" at 7.0pt
 Requested font "cmti7" at 5.0pt
 [34]
 Requested font "cmr17" at 20.74pt
-
-(D:\Mikael\Documents\GitHub\Matuna\Matuna\docs\Notes\ConvNet\Theory\CNN-notes.b
-bl
+ (D:\Mikael\Documents\GitHub\Matuna\docs\Notes\ConvNet\Theory\CNN-notes.bbl
 Requested font "cmtt10" at 10.0pt
 
 Overfull \hbox (35.58022pt too wide) in paragraph at lines 9--12
@@ -923,11 +919,10 @@ t.pdf\OT1/cmr/m/n/10 .
  []
 
 ) [36]
-(D:\Mikael\Documents\GitHub\Matuna\Matuna\docs\Notes\ConvNet\Theory\CNN-notes.a
-ux) ) 
+(D:\Mikael\Documents\GitHub\Matuna\docs\Notes\ConvNet\Theory\CNN-notes.aux) ) 
 Here is how much of TeX's memory you used:
  4947 strings out of 429025
- 63218 string characters out of 3167800
+ 63190 string characters out of 3167800
  165406 words of memory out of 3000000
  8120 multiletter control sequences out of 15000+200000
  18501 words of font info for 72 fonts, out of 3000000 for 9000
