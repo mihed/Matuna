@@ -26,7 +26,101 @@ using namespace Matuna::Math;
 
 SCENARIO("Creating a ConvNet with a standard output layer. Image input")
 {
+	auto platformInfos = OCLHelper::GetPlatformInfos();
+	random_device device;
+	mt19937 mt(device());
+	uniform_int_distribution<int> dimensionGenerator(1, 100);
 
+	vector<vector<OCLDeviceInfo>> deviceInfos;
+	for (auto platformInfo : platformInfos)
+		deviceInfos.push_back(OCLHelper::GetDeviceInfos(platformInfo));
+
+	int iterations = 10;
+
+	WHEN("Calculating the CE error output using an image")
+	{
+		THEN("The CE error must be equal to the manually calculated CE error")
+		{
+			for (int dummy = 0; dummy < iterations; dummy++)
+			{
+				for (auto& deviceInfo : deviceInfos)
+				{
+					//TODO: Implement this
+				}
+			}
+		}
+	}
+
+	WHEN("Calculating the MSE error output using an image")
+	{
+		THEN("The MSE error must be equal to the manually calculated CE error")
+		{
+			for (int dummy = 0; dummy < iterations; dummy++)
+			{
+				for (auto& deviceInfo : deviceInfos)
+				{
+					//TODO: Implement this
+				}
+			}
+		}
+	}
+
+
+	WHEN("Creating a float ConvNet with CE and sigmoid activation with normal math using an image")
+	{
+		THEN("The back propagation must be equal to difference between target and input")
+		{
+			for (int dummy = 0; dummy < iterations; dummy++)
+			{
+				for (auto& deviceInfo : deviceInfos)
+				{
+					//TODO: Implement this
+				}
+			}
+		}
+	}
+
+	WHEN("Creating a float ConvNet with MSE and TanH activation with normal math using an image")
+	{
+		THEN("The back propagation must be equal to the manually calculated output")
+		{
+			for (int dummy = 0; dummy < iterations; dummy++)
+			{
+				for (auto& deviceInfo : deviceInfos)
+				{
+					//TODO: Implement this
+				}
+			}
+		}
+	}
+
+	WHEN("Creating a float ConvNet with MSE and sigmoid activation with normal math using an image")
+	{
+		THEN("The back propagation must be equal to the manually calculated output")
+		{
+			for (int dummy = 0; dummy < iterations; dummy++)
+			{
+				for (auto& deviceInfo : deviceInfos)
+				{
+					//TODO: Implement this
+				}
+			}
+		}
+	}
+
+	WHEN("Creating a float ConvNet with MSE and linear activation with normal math using an image")
+	{
+		THEN("The back propagation must be equal to difference between target and input")
+		{
+			for (int dummy = 0; dummy < iterations; dummy++)
+			{
+				for (auto& deviceInfo : deviceInfos)
+				{
+					//TODO: Implement this
+				}
+			}
+		}
+	}
 }
 
 SCENARIO("Creating a ConvNet with a standard output layer. No image inputs")
@@ -83,7 +177,7 @@ SCENARIO("Creating a ConvNet with a standard output layer. No image inputs")
 					else
 						manualResult = -( randomTargets.Data[0] == 0 ? 0 : (randomTargets.Data[0] * log(randomInputs.Data[0])) + 
 						randomTargets.Data[0] == 1 ? 0 : ((1 - randomTargets.Data[0]) * log(1 - randomInputs.Data[0])));
-					
+
 					if (manualResult == numeric_limits<float>::infinity())
 						manualResult = numeric_limits<float>::max();
 
@@ -92,6 +186,34 @@ SCENARIO("Creating a ConvNet with a standard output layer. No image inputs")
 						absDifference = absDifference / manualResult;
 					printf("Abs difference: %f \n", absDifference);
 					CHECK(absDifference < 1E-6f);
+				}
+			}
+		}
+	}
+
+	WHEN("Creating a float ConvNet with CE and sigmoid activation with normal math")
+	{
+		THEN("The back propagation must be equal to difference between target and input")
+		{
+			for (int dummy = 0; dummy < iterations; dummy++)
+			{
+				for (auto& deviceInfo : deviceInfos)
+				{
+					//TODO: Implement this
+				}
+			}
+		}
+	}
+
+	WHEN("Creating a float ConvNet with MSE and TanH activation with normal math")
+	{
+		THEN("The back propagation must be equal to the manually calculated output")
+		{
+			for (int dummy = 0; dummy < iterations; dummy++)
+			{
+				for (auto& deviceInfo : deviceInfos)
+				{
+					//TODO: Implement this
 				}
 			}
 		}
@@ -138,6 +260,8 @@ SCENARIO("Creating a ConvNet with a standard output layer. No image inputs")
 			}
 		}
 	}
+
+
 
 	WHEN("Creating a float ConvNet with MSE and Linear activation with normal math")
 	{
