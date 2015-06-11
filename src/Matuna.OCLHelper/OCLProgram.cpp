@@ -107,6 +107,27 @@ namespace Matuna {
 			return name;
 		}
 
+		void OCLProgram::AddDefine(string name)
+		{
+			if (defines.find(name) == defines.end())
+				defines.insert(name);
+		}
+
+		void OCLProgram::AddDefine(string name, string value)
+		{
+			if (definesWithValues.find(name) == definesWithValues.end())
+				definesWithValues.insert(make_pair(name, value));
+		}
+
+		void OCLProgram::RemoveDefine(string name)
+		{
+			if (defines.find(name) != defines.end())
+				defines.erase(name);
+
+			if (definesWithValues.find(name) != definesWithValues.end())
+				definesWithValues.erase(name);
+		}
+
 		void OCLProgram::AddIncludePath(string includePath)
 		{
 			if (includePaths.find(includePath) == includePaths.end())
@@ -186,6 +207,12 @@ namespace Matuna {
 				result << MADCompilerOption;
 			if(useRelaxedMath)
 				result << RelaxedMathCompilerOption;
+
+			for (auto& define : defines)
+				result << " -D" << define;
+
+			for (auto& defineWithValue : definesWithValues)
+				result << " -D" << defineWithValue.first << "=" << defineWithValue.second;
 
 			for(auto& includePath : includePaths)
 				result << " -I" << includePath;

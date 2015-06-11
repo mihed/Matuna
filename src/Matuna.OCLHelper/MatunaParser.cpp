@@ -86,12 +86,9 @@ namespace Matuna
 							if (defineVector[0].compare(defineTag) != 0)
 								"The file is invalid, check the define macros inside the matuna tags.";
 
-							//Check that the second word is given inside the defines
+							//Check whether the second word is given inside the defines
 							if (define.find(defineVector[1]) != define.end())
 								outStream << lineCopy << endl;
-							else
-								throw exception(
-								"The define could not be found in the parsable object");
 						}
 						else
 						{

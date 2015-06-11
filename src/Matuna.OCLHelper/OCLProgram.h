@@ -39,6 +39,9 @@ namespace Matuna {
 			bool enableMAD;
 			bool enableMatunaScript;
 
+			unordered_set<string> defines;
+			unordered_map<string, string> definesWithValues;
+
 			unordered_set<string> includePaths;
 			unordered_map<string, string> pathAndCodeFiles;
 
@@ -77,6 +80,11 @@ namespace Matuna {
 
 			void SetName(string name);
 			string GetName() const;
+
+			void AddDefine(string name);
+			void AddDefine(string name, string value);
+
+			void RemoveDefine(string name);
 
 			void AddIncludePath(string includePath);
 			bool IncludePathAdded(string includePath) const;
