@@ -288,7 +288,7 @@ namespace Matuna {
 		}
 
 		template<class T>
-		void StandardOutputLayer<T>::SetErrorFunctionDefine(LayerKernel<T>* kernel, string path,bool binary)
+		void StandardOutputLayer<T>::SetErrorFunctionDefine(LayerKernel<T>* kernel, string path, bool binary)
 		{
 			auto errorFunction = config.ErrorFunction();
 			auto activationFunction = this->BackPropActivationFunction();

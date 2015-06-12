@@ -35,6 +35,8 @@
 //#define MSE_ANY
 //#define CE_ANY
 //#define CE_BINARY_ANY
+//#define CONSTANT_INPUT
+//#define CONSTANT_TARGET
 //!@>
 
 #if defined(DIFFERENCE)
@@ -142,10 +144,10 @@ __kernel void BackPropagation(
 
 	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + INPUT_OFFSET_HEIGHT) * INPUT_STRIDE + xIndex + INPUT_OFFSET_WIDTH;
 	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + OUTPUT_OFFSET_HEIGHT) * OUTPUT_STRIDE + xIndex + OUTPUT_OFFSET_WIDTH;
-
+	
 #if defined(SIGMOID)
-	output[outputIndex] = -target[inputIndex] * (ONE - input[index]);
-#elif defined(TANH)
+	output[outputIndex] = -target[inputIndex] * (ONE - input[inputIndex]);
+#else
 	const real_t tempInput = input[inputIndex];
 	const real_t temp2 = -target[inputIndex] / tempInput;
 	output[outputIndex] = ACTIVATION_DERIVATIVE(temp2, tempInput);

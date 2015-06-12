@@ -25,6 +25,9 @@
 #define INPUT_STRIDE -1
 #define INPUT_UNIT_LIMIT -1
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
+//#define MSE
+//#define CE_BINARY
+//#define CE
 //#define CONSTANT_INPUT
 //#define CONSTANT_TARGET
 //!@>
