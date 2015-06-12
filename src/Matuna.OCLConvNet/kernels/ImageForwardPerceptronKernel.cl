@@ -23,45 +23,21 @@
 #include "RealType.h"
 #include "ActivationFunction.h"
 
-#ifndef INPUT_UNITS_LIMIT
+//<!@
 #define INPUT_UNITS_LIMIT -1
-#endif
-
-#ifndef INPUT_WIDTH_LIMIT
 #define INPUT_WIDTH_LIMIT -1
-#endif
-
-#ifndef INPUT_HEIGHT_LIMIT
 #define INPUT_HEIGHT_LIMIT -1
-#endif
-
-#ifndef INPUT_UNITS_OFFSET
 #define INPUT_UNITS_OFFSET -1
-#endif
-
-#ifndef INPUT_WIDTH_OFFSET
 #define INPUT_WIDTH_OFFSET -1
-#endif
-
-#ifndef INPUT_HEIGHT_OFFSET
 #define INPUT_HEIGHT_OFFSET -1
-#endif
-
-#ifndef COLUMN_COUNT
 #define COLUMN_COUNT -1
-#endif
-
-#ifndef OUTPUT_UNIT_OFFSET
 #define OUTPUT_UNIT_OFFSET -1
-#endif
-
-#ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef INPUT_MEMORY_WIDTH
 #define INPUT_MEMORY_WIDTH -1
-#endif
+//#define CONSTANT_INPUT
+//#define CONSTANT_WEIGHTS
+//#define CONSTANT_BIASES
+//!@>
 
 __kernel void ForwardPerceptronKernel(
 #ifdef CONSTANT_INPUT

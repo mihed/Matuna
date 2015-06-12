@@ -16,25 +16,16 @@
 #include "RealType.h"
 #include "ActivationFunction.h"
 
-#ifndef INPUT_OFFSET
+//<!@
 #define INPUT_OFFSET 0
-#endif
-
-#ifndef OUTPUT_DELTA_OFFSET
 #define OUTPUT_DELTA_OFFSET 0
-#endif
-
-#ifndef INPUT_DELTA_OFFSET
 #define INPUT_DELTA_OFFSET 0
-#endif
-
-#ifndef INPUT_DELTA_COUNT
 #define INPUT_DELTA_COUNT -1
-#endif
-
-#ifndef WEIGHT_COLUMN_COUNT
 #define WEIGHT_COLUMN_COUNT -1
-#endif
+//#define CONSTANT_INPUT
+//#define CONSTANT_INPUT_DELTA
+//#define CONSTANT_WEIGHTS
+//!@>
 
 __kernel void BackPerceptronKernel(
 #ifdef CONSTANT_INPUT

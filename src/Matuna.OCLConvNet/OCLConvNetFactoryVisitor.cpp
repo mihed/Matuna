@@ -6,7 +6,7 @@
 */
 
 #include "OCLConvNetFactoryVisitor.h"
-//#include "PerceptronLayer.h"
+#include "PerceptronLayer.h"
 //#include "ConvolutionLayer.h"
 #include "StandardOutputLayer.h"
 
@@ -41,17 +41,17 @@ namespace Matuna {
 		void OCLConvNetFactoryVisitor<T>::Visit(
 			const PerceptronLayerConfig* const perceptronConfig) {
 
-				//if (backPropActivation == MatunaSoftMaxActivation)
-				//	throw invalid_argument("The soft max is currently only supported on the outmost layer");
+				if (backPropActivation == MatunaSoftMaxActivation)
+					throw invalid_argument("The soft max is currently only supported on the outmost layer");
 
-				//if (perceptronConfig->ConnectionType() != MatunaFullConnection)
-				//	throw invalid_argument("We only support full connection on the perceptron layer at the moment");
+				if (perceptronConfig->ConnectionType() != MatunaFullConnection)
+					throw invalid_argument("We only support full connection on the perceptron layer at the moment");
 
-				//unique_ptr<ForwardBackPropLayer> layer(
-				//	new PerceptronLayer<T>(context, inputDataDescriptions,
-				//	backPropActivation, perceptronConfig));
+				unique_ptr<ForwardBackPropLayer> layer(
+					new PerceptronLayer<T>(context, inputDataDescriptions,
+					backPropActivation, perceptronConfig));
 
-				//this->InterlockAndAddLayer(perceptronConfig, move(layer));
+				this->InterlockAndAddLayer(perceptronConfig, move(layer));
 		}
 
 		template<class T>

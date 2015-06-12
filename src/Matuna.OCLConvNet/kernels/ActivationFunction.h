@@ -20,7 +20,7 @@
 #define TANH_INNER 0.6666666f
 #endif
 
-#if defined(SIGMOID)
+#if defined(MATUNA_ACTIVATION_SIGMOID)
 #ifndef DOUBLE_PRECISION
 #if defined(HALF_MATH)
 #define ACTIVATION(x)	(ONE / (ONE + half_exp(-(x))))
@@ -33,14 +33,9 @@
 #define ACTIVATION(x) 	(ONE / (ONE + exp(-(x))))
 #endif
 
-#define ACTIVATION_DERIVATIVE(x,y)	(x) * (y) * (ONE - (y))
-
-#elif defined(TANH)
+#elif defined(MATUNA_ACTIVATION_TANH)
 #define ACTIVATION(x)	(TANH_OUTER * tanh(TANH_INNER * (x)))
-
-#define ACTIVATION_DERIVATIVE(x,y)	(x) * TANH_INNER * (TANH_OUTER - ((y) * (y)) / TANH_OUTER)
-
-#elif defined(SOFTMAX)
+#elif defined(MATUNA_ACTIVATION_SOFTMAX)
 #ifndef DOUBLE_PRECISION
 #if defined(HALF_MATH)
 #define ACTIVATION(x)	(half_exp(x))
@@ -53,14 +48,17 @@
 #define ACTIVATION(x)	(exp(x))
 #endif
 
-//NO ACTIVATION DERIVATIVE FOR SOFTMAX AT THE MOMENT
-
 #else
 #define ACTIVATION(x)	(x)
-
-#define ACTIVATION_DERIVATIVE(x,y)	(x)
-
 #endif
 
+#if defined(MATUNA_ACTIVATION_DERIVATIVE_SIGMOID)
+#define ACTIVATION_DERIVATIVE(x,y)	(x) * (y) * (ONE - (y))
+#elif defined(MATUNA_ACTIVATION_DERIVATIVE_TANH)
+#define ACTIVATION_DERIVATIVE(x,y)	(x) * TANH_INNER * (TANH_OUTER - ((y) * (y)) / TANH_OUTER)
+#else
+//NO ACTIVATION DERIVATIVE FOR SOFTMAX AT THE MOMENT
+#define ACTIVATION_DERIVATIVE(x,y)	(x)
+#endif
 
 #endif /* MATUNA_OCLCONVNET_KERNELS_ACTIVATIONFUNCTION_H_ */

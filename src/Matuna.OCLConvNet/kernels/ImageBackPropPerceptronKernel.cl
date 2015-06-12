@@ -16,57 +16,24 @@
 #include "RealType.h"
 #include "ActivationFunction.h"
 
-#ifndef OUTPUT_WIDTH_OFFSET
+//<!@
 #define OUTPUT_WIDTH_OFFSET -1
-#endif
-
-#ifndef OUTPUT_HEIGHT_OFFSET
 #define OUTPUT_HEIGHT_OFFSET -1
-#endif
-
-#ifndef OUTPUT_UNIT_OFFSET
 #define OUTPUT_UNIT_OFFSET -1
-#endif
-
-#ifndef OUTPUT_STRIDE
 #define OUTPUT_STRIDE -1
-#endif
-
-#ifndef OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef INPUT_WIDTH_OFFSET
 #define INPUT_WIDTH_OFFSET -1
-#endif
-
-#ifndef INPUT_HEIGHT_OFFSET
 #define INPUT_HEIGHT_OFFSET -1
-#endif
-
-#ifndef INPUT_UNIT_OFFSET
 #define INPUT_UNIT_OFFSET -1
-#endif
-
-#ifndef INPUT_STRIDE
 #define INPUT_STRIDE -1
-#endif
-
-#ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef INPUT_DELTA_OFFSET
 #define INPUT_DELTA_OFFSET -1
-#endif
-
-#ifndef INPUT_DELTA_LIMIT
 #define INPUT_DELTA_LIMIT -1
-#endif
-
-#ifndef WEIGHT_COLUMN_COUNT
 #define WEIGHT_COLUMN_COUNT -1
-#endif
+//#define CONSTANT_INPUT
+//#define CONSTANT_INPUT_DELTA
+//#define CONSTANT_WEIGHTS
+//!@>
 
 __kernel void BackPerceptronKernel(
 #ifdef CONSTANT_INPUT

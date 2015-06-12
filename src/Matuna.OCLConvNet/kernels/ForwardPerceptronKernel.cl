@@ -15,9 +15,9 @@
 #include "RealType.h"
 #include "ActivationFunction.h"
 
-#ifndef INPUT_COUNT
+//<!@
 #define INPUT_COUNT -1
-#endif
+//!@>
 
 __kernel void ForwardPerceptronKernel(
 #ifdef CONSTANT_INPUT

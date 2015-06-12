@@ -91,9 +91,9 @@ __kernel void BackPropagation(
 	const int globalID = get_global_id(0);
 	const int inputIndex = globalID + INPUT_UNIT_OFFSET;
 	const int outputIndex = globalID + OUTPUT_UNIT_OFFSET;
-#if defined(SIGMOID)
+#if defined(MATUNA_ACTIVATION_DERIVATIVE_SIGMOID)
 	output[outputIndex] = inputs[inputIndex] - target[inputIndex];
-#elif defined(TANH)
+#else
 	const real_t input = inputs[inputIndex];
 	const real_t temp2 = (input - target[inputIndex]) / (input * (ONE - input));
 	output[outputIndex] = ACTIVATION_DERIVATIVE(temp2, input);
@@ -118,9 +118,9 @@ __kernel void BackPropagation(
 	const int globalID = get_global_id(0);
 	const int inputIndex = globalID + INPUT_UNIT_OFFSET;
 	const int outputIndex = globalID + OUTPUT_UNIT_OFFSET;
-#if defined(SIGMOID)
-	output[outputIndex] = -target[inputIndex] * (ONE - input[index]);
-#elif defined(TANH)
+#if defined(MATUNA_ACTIVATION_DERIVATIVE_SIGMOID)
+	output[outputIndex] = -target[inputIndex] * (ONE - input[inputIndex]);
+#else
 	const real_t tempInput = input[inputIndex];
 	const real_t temp2 = -target[inputIndex] / tempInput;
 	output[outputIndex] = ACTIVATION_DERIVATIVE(temp2, tempInput);

@@ -10,17 +10,13 @@
 
 #include "RealType.h"
 
-#ifndef INPUT_OFFSET
+//<!@
 #define INPUT_OFFSET 0
-#endif
-
-#ifndef INPUT_DELTA_OFFSET
 #define INPUT_DELTA_OFFSET 0
-#endif
-
-#ifndef WEIGHT_COLUMN_COUNT
 #define WEIGHT_COLUMN_COUNT -1
-#endif
+//#define CONSTANT_INPUT
+//#define CONSTANT_INPUT_DELTA
+//!@>
 
 __kernel void GradientPerceptronKernel(
 #ifdef CONSTANT_INPUT

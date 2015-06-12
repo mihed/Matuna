@@ -114,7 +114,7 @@ __kernel void BackPropagation(
 	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + INPUT_OFFSET_HEIGHT) * INPUT_STRIDE + xIndex + INPUT_OFFSET_WIDTH;
 	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + OUTPUT_OFFSET_HEIGHT) * OUTPUT_STRIDE + xIndex + OUTPUT_OFFSET_WIDTH;
 
-#if defined(SIGMOID)
+#if defined(MATUNA_ACTIVATION_DERIVATIVE_SIGMOID)
 	output[outputIndex] = inputs[inputIndex] - target[inputIndex];
 #else
 	const real_t input = inputs[inputIndex];
@@ -145,7 +145,7 @@ __kernel void BackPropagation(
 	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + INPUT_OFFSET_HEIGHT) * INPUT_STRIDE + xIndex + INPUT_OFFSET_WIDTH;
 	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + OUTPUT_OFFSET_HEIGHT) * OUTPUT_STRIDE + xIndex + OUTPUT_OFFSET_WIDTH;
 	
-#if defined(SIGMOID)
+#if defined(MATUNA_ACTIVATION_DERIVATIVE_SIGMOID)
 	output[outputIndex] = -target[inputIndex] * (ONE - input[inputIndex]);
 #else
 	const real_t tempInput = input[inputIndex];

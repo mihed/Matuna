@@ -5,21 +5,15 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_OCLConvNet_PERCEPTRONLAYER_H_
-#define MATUNA_OCLConvNet_PERCEPTRONLAYER_H_
+#ifndef MATUNA_OCLCONVNET_PERCEPTRONLAYER_H_
+#define MATUNA_OCLCONVNET_PERCEPTRONLAYER_H_
 
-#include "OCLForwardBackPropLayer.h"
-#include "BackPerceptronKernel.h"
-#include "ForwardPerceptronKernel.h"
-#include "GradientPerceptronKernel.h"
-#include "SimpleSumKernel.h"
-#include "ImageForwardPerceptronKernel.h"
-#include "ImageBackPerceptronKernel.h"
-#include "ImageGradientPerceptronKernel.h"
-#include "DivideByScalarKernel.h"
+#include "LayerKernel.h"
 #include "Matuna.ConvNet/PerceptronLayerConfig.h"
 #include "Matuna.Math/Matrix.h"
 #include "Matuna.OCLHelper/OCLContext.h"
+
+#include "OCLForwardBackPropLayer.h"
 
 #include <unordered_map>
 #include <vector>
@@ -39,16 +33,16 @@ namespace Matuna
 		{
 
 		private:
-			unordered_map<OCLDevice*, unique_ptr<ForwardPerceptronKernel<T>>> deviceAndForwardKernels;
-			unordered_map<OCLDevice*, unique_ptr<ImageForwardPerceptronKernel<T>>> deviceAndImageForwardKernels;
-			unordered_map<OCLDevice*, unique_ptr<BackPerceptronKernel<T>>> deviceAndBackKernels;
-			unordered_map<OCLDevice*, unique_ptr<ImageBackPerceptronKernel<T>>> deviceAndImageBackKernels;
-			unordered_map<OCLDevice*, unique_ptr<GradientPerceptronKernel<T>>> deviceAndGradientKernels;
-			unordered_map<OCLDevice*, unique_ptr<ImageGradientPerceptronKernel<T>>> deviceAndImageGradientKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndForwardKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndImageForwardKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndBackKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndImageBackKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndGradientKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndImageGradientKernels;
 
 			unique_ptr<OCLMemory> scalarCache;
-			unordered_map<OCLDevice*, unique_ptr<DivideByScalarKernel<T>>> deviceAndDivideByScalarKernels;
-			unordered_map<OCLDevice*, unique_ptr<SimpleSumKernel<T>>> deviceAndSimpleSumKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndDivideByScalarKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndSimpleSumKernels;
 
 			unique_ptr<OCLMemory> weights;
 			unique_ptr<OCLMemory> biases;
@@ -100,17 +94,13 @@ namespace Matuna
 			//TODO: Add some read / write parameters. Now it's all random
 
 		private:
-			void InitializeNormalForwardPerceptron();
-			void InitializeImageForwardPerceptron();
-			void InitializeNormalBackPerceptron();
-			void InitializeImageBackPerceptron();
-			void InitializeNormalGradientKernel();
-			void InitializeImageGradientKernel();
 			void InitializeParameters();
+			void InitializeImageProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
+			void InitializeProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
 		};
 
 	}
 	/* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLConvNet_PERCEPTRONLAYER_H_ */
+#endif /* MATUNA_OCLCONVNET_PERCEPTRONLAYER_H_ */

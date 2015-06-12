@@ -10,41 +10,19 @@
 
 #include "RealType.h"
 
-#ifndef INPUT_DATA_WIDTH
+//<!@
 #define INPUT_DATA_WIDTH -1
-#endif
-
-#ifndef INPUT_UNIT_ELEMENT_COUNT 
 #define INPUT_UNIT_ELEMENT_COUNT -1
-#endif
-
-#ifndef INPUT_WIDTH_OFFSET
 #define INPUT_WIDTH_OFFSET -1
-#endif
-
-#ifndef INPUT_HEIGHT_OFFSET
 #define INPUT_HEIGHT_OFFSET -1
-#endif
-
-#ifndef INPUT_UNIT_OFFSET
 #define INPUT_UNIT_OFFSET -1
-#endif
-
-#ifndef INPUT_STRIDE
 #define INPUT_STRIDE -1
-#endif
-
-#ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef INPUT_DELTA_OFFSET
 #define INPUT_DELTA_OFFSET 0
-#endif
-
-#ifndef WEIGHT_COLUMN_COUNT
 #define WEIGHT_COLUMN_COUNT -1
-#endif
+//#define CONSTANT_INPUT
+//#define CONSTANT_INPUT_DELTA
+//!@>
 
 __kernel void ImageGradientPerceptronKernel(
 #ifdef CONSTANT_INPUT

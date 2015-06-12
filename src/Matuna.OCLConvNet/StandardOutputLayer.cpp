@@ -121,9 +121,9 @@ namespace Matuna {
 					program->AddDefine("DOUBLE_PRECISION");
 
 				if (activationFunction == MatunaSigmoidActivation)
-					program->AddDefine("SIGMOID");
+					program->AddDefine("MATUNA_ACTIVATION_DERIVATIVE_SIGMOID");
 				else if (activationFunction == MatunaTanhActivation)
-					program->AddDefine("TANH");
+					program->AddDefine("MATUNA_ACTIVATION_DERIVATIVE_TANH");
 
 				programs.insert(make_pair(device, move(program)));
 			}
