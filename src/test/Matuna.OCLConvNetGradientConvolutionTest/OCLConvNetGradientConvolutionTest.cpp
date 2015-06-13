@@ -33,7 +33,7 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 	LayerDataDescription dataDescription;
 	dataDescription.Height = 65;//dimensionGenerator(mt);
 	dataDescription.Width = 61;//dimensionGenerator(mt);
-	dataDescription.Units = 2;//unitGenerator(mt);
+	dataDescription.Units = 1;//unitGenerator(mt);
 	dataDescriptions.push_back(dataDescription);
 
 	int layerCount = 1;//layerGenerator(mt);
@@ -71,9 +71,9 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 			break;
 		}
 
-		int filterCount = 6;//unitGenerator(mt);
-		int filterWidth = 8;//filterGenerator(mt);
-		int filterHeight = 10;//filterGenerator(mt);
+		int filterCount = 3;//unitGenerator(mt);
+		int filterWidth = 1;//filterGenerator(mt);
+		int filterHeight = 1;//filterGenerator(mt);
 
 		cout << "Filter count: " << filterCount << endl;
 		cout << "Filter width: " << filterWidth << endl;
