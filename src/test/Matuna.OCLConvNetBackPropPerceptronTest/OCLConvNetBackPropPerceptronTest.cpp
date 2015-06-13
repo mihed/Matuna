@@ -10,8 +10,8 @@
 #include "Matuna.OCLConvNet/OCLConvNet.h"
 #include "Matuna.OCLConvNet/PerceptronLayer.h"
 #include "Matuna.ConvNet/PerceptronLayerConfig.h"
-#include "Matuna.ConvNet/ConvolutionLayerConfig.h"
-#include "Matuna.OCLConvNet/ConvolutionLayer.h"
+//#include "Matuna.ConvNet/ConvolutionLayerConfig.h"
+//#include "Matuna.OCLConvNet/ConvolutionLayer.h"
 #include "Matuna.ConvNet/StandardOutputLayerConfig.h"
 #include "Matuna.Math/Matrix.h"
 #include <memory>
@@ -132,6 +132,7 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 	return move(config);
 }
 
+/*
 unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfigWithImage(mt19937& mt,
 															   uniform_int_distribution<int>& layerGenerator,
 															   uniform_int_distribution<int>& imageDimensionGenerator,
@@ -437,6 +438,7 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 		}
 	}
 }
+*/
 
 SCENARIO("Back propagating a perceptron using Softmax")
 {
