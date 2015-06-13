@@ -1,37 +1,16 @@
 #include "RealType.h"
 
-#ifndef INPUT_STRIDE
+//<!@
 #define INPUT_STRIDE -1
-#endif
-
-#ifndef INPUT_WIDTH_OFFSET
 #define INPUT_WIDTH_OFFSET -1
-#endif
-
-#ifndef WIDTH_LIMIT
 #define WIDTH_LIMIT -1
-#endif
-
-#ifndef HEIGHT_LIMIT
 #define HEIGHT_LIMIT -1
-#endif
-
-#ifndef INPUT_HEIGHT_OFFSET
 #define INPUT_HEIGHT_OFFSET -1
-#endif
-
-#ifndef INPUT_UNIT_OFFSET
 #define INPUT_UNIT_OFFSET -1
-#endif
-
-//Width * Height
-#ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef OUTPUT_OFFSET
 #define OUTPUT_OFFSET -1
-#endif
+//#define CONSTANT_INPUT
+//!@>
 
 __kernel void SumUnitKernel(
 #ifdef CONSTANT_INPUT

@@ -24,20 +24,27 @@ using namespace Matuna::Helper;
 
 
 unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
-													   uniform_int_distribution<int>& layerGenerator,
-													   uniform_int_distribution<int>& dimensionGenerator,
-													   uniform_int_distribution<int>& unitGenerator,
-													   uniform_int_distribution<int>& filterGenerator)
+															   uniform_int_distribution<int>& layerGenerator,
+															   uniform_int_distribution<int>& dimensionGenerator,
+															   uniform_int_distribution<int>& unitGenerator,
+															   uniform_int_distribution<int>& filterGenerator)
 {
 	vector<LayerDataDescription> dataDescriptions;
 	LayerDataDescription dataDescription;
-	dataDescription.Height = dimensionGenerator(mt);
-	dataDescription.Width = dimensionGenerator(mt);
-	dataDescription.Units = unitGenerator(mt);
+	dataDescription.Height = 65;//dimensionGenerator(mt);
+	dataDescription.Width = 61;//dimensionGenerator(mt);
+	dataDescription.Units = 2;//unitGenerator(mt);
 	dataDescriptions.push_back(dataDescription);
 
-	int layerCount = layerGenerator(mt);
+	int layerCount = 1;//layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
+
+	cout << "\n---------------------Network---------------------" << endl;
+
+	cout << "Input height: " << dataDescription.Height << endl;
+	cout << "Input width: " << dataDescription.Width << endl;
+	cout << "Input units: " << dataDescription.Units << endl;
+	cout << "Layers: " << layerCount << endl << endl;
 
 	INFO("Initializing the ConvNet config");
 	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
@@ -46,22 +53,34 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 	INFO("Creating the layers config");
 	for (int i = 0; i < layerCount; i++)
 	{
-		auto activation = activationGenerator(mt);
+		cout << "--------Layer: " << i << " --------" << endl;
+		auto activation = 2;//activationGenerator(mt);
 		switch (activation)
 		{
 		case 1:
 			activationFunction = MatunaSigmoidActivation;
+			cout << "Sigmoid activation" << endl;
 			break;
 		case 2:
 			activationFunction = MatunaLinearActivation;
+			cout << "Linear activation" << endl;
 			break;
 		case 3:
 			activationFunction = MatunaTanhActivation;
+			cout << "Tanh activation" << endl;
 			break;
 		}
+
+		int filterCount = 6;//unitGenerator(mt);
+		int filterWidth = 8;//filterGenerator(mt);
+		int filterHeight = 10;//filterGenerator(mt);
+
+		cout << "Filter count: " << filterCount << endl;
+		cout << "Filter width: " << filterWidth << endl;
+		cout << "Filter height: " << filterHeight << endl << endl << endl;
+
 		unique_ptr<ForwardBackPropLayerConfig> convConfig(new ConvolutionLayerConfig(
-			unitGenerator(mt), filterGenerator(mt), filterGenerator(mt),
-			activationFunction));
+			filterCount, filterWidth, filterHeight, activationFunction));
 		config->AddToBack(move(convConfig));
 	}
 
@@ -74,6 +93,7 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 SCENARIO("Calculating the gradient of a ConvNet using convolution layers")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
+	platformInfos.erase(platformInfos.begin());
 	random_device device;
 	mt19937 mt(device());
 	uniform_int_distribution<int> dimensionGenerator(60, 100);
@@ -162,16 +182,16 @@ SCENARIO("Calculating the gradient of a ConvNet using convolution layers")
 
 			auto difference = (gradientMatrix - finiteDifferenceGradient).Norm2Square() / parameterCount;
 			cout << "Difference: " << difference << endl;
-			if (difference > 1E-9)
-			{
-				cout << "Check this one manually:" << endl;
-				for (int i = 0; i < parameterCount; i++)
-				{
-					cout << "Calculus gradient: " << gradientMatrix.At(i, 0) << endl;
-					cout << "Finite difference: " << finiteDifferenceGradient.At(i, 0) << endl;
-				}
+			//if (difference > 1E-8)
+			//{
+			//	cout << "Check this one manually:" << endl;
+			//	for (int i = 0; i < parameterCount; i++)
+			//	{
+			//		cout << "Calculus gradient: " << gradientMatrix.At(i, 0) << endl;
+			//		cout << "Finite difference: " << finiteDifferenceGradient.At(i, 0) << endl;
+			//	}
 
-			}
+			//}
 			CHECK(difference < 1E-7);
 		}
 	}

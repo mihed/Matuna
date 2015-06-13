@@ -35,51 +35,23 @@
 //#pragma OPENCL EXTENSION cl_intel_printf : enable
 //END TEST-----------------
 
-#ifndef FILTER_WIDTH
+//<!@
 #define FILTER_WIDTH -1
-#endif
-
-#ifndef FILTER_HEIGHT
 #define FILTER_HEIGHT -1
-#endif
-
-#ifndef INPUT_OFFSET_WIDTH
 #define INPUT_OFFSET_WIDTH -1
-#endif
-
-#ifndef INPUT_OFFSET_HEIGHT
 #define INPUT_OFFSET_HEIGHT -1
-#endif
-
-#ifndef OUTPUT_OFFSET_WIDTH
 #define OUTPUT_OFFSET_WIDTH -1
-#endif
-
-#ifndef OUTPUT_OFFSET_HEIGHT
 #define OUTPUT_OFFSET_HEIGHT -1
-#endif
-
-#ifndef OUTPUT_OFFSET_UNIT
 #define OUTPUT_OFFSET_UNIT -1
-#endif
-
-#ifndef OUTPUT_WIDTH
 #define OUTPUT_WIDTH -1
-#endif
-
-#ifndef INPUT_WIDTH
 #define INPUT_WIDTH -1
-#endif
-
-//Width * Height
-#ifndef OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-//Width * Height
-#ifndef FILTER_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define FILTER_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
+//#define CONSTANT_INPUT
+//#define CONSTANT_FILTERS
+//#define USE_LOCAL_MEMORY
+//#define CONSTANT_BIAS
+//!@>
 
 __kernel void ConvolutionKernel(
 #ifdef CONSTANT_INPUT

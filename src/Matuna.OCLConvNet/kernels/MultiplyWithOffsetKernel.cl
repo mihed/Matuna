@@ -1,66 +1,24 @@
 #include "RealType.h"
 
-#ifndef INPUT_DELTA_STRIDE
+//<!@
 #define INPUT_DELTA_STRIDE -1
-#endif
-
-#ifndef OUTPUT_STRIDE
 #define OUTPUT_STRIDE -1
-#endif
-
-#ifndef INPUT_STRIDE
 #define INPUT_STRIDE -1
-#endif
-
-#ifndef INPUT_WIDTH_OFFSET
 #define INPUT_WIDTH_OFFSET -1
-#endif
-
-#ifndef INPUT_HEIGHT_OFFSET
 #define INPUT_HEIGHT_OFFSET -1
-#endif
-
-#ifndef INPUT_DELTA_WIDTH_OFFSET
 #define INPUT_DELTA_WIDTH_OFFSET -1
-#endif
-
-#ifndef INPUT_DELTA_HEIGHT_OFFSET
 #define INPUT_DELTA_HEIGHT_OFFSET -1
-#endif
-
-#ifndef INPUT_DELTA_UNIT_OFFSET
 #define INPUT_DELTA_UNIT_OFFSET -1
-#endif
-
-#ifndef WIDTH_LIMIT
 #define WIDTH_LIMIT -1
-#endif
-
-#ifndef HEIGHT_LIMIT
 #define HEIGHT_LIMIT -1
-#endif
-
-//Width * Height
-#ifndef OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-//Width * Height
-#ifndef INPUT_DELTA_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define INPUT_DELTA_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef OUTPUT_WIDTH_OFFSET
 #define OUTPUT_WIDTH_OFFSET -1
-#endif
-
-#ifndef OUTPUT_HEIGHT_OFFSET
 #define OUTPUT_HEIGHT_OFFSET -1
-#endif
-
-#ifndef OUTPUT_UNIT_OFFSET
 #define OUTPUT_UNIT_OFFSET -1
-#endif
+//#define CONSTANT_INPUT
+//#define CONSTANT_INPUT_DELTA
+//!@>
 
 __kernel void MultiplyWithOffsetKernel(
 #ifdef CONSTANT_INPUT

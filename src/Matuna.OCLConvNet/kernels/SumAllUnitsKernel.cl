@@ -18,43 +18,20 @@
 //TEST---------------------
 //#pragma OPENCL EXTENSION cl_intel_printf : enable
 //END TEST-----------------
-//Offset + the data unit count.
-#ifndef UNIT_COUNT_INC_PADDING
+
+
+//<!@
 #define UNIT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef UNIT_INPUT_OFFSET
 #define UNIT_INPUT_OFFSET -1
-#endif
-
-#ifndef WIDTH_INPUT_OFFSET
 #define WIDTH_INPUT_OFFSET -1
-#endif
-
-#ifndef HEIGHT_INPUT_OFFSET
 #define HEIGHT_INPUT_OFFSET -1
-#endif
-
-#ifndef WIDTH_OUTPUT_OFFSET
 #define WIDTH_OUTPUT_OFFSET -1
-#endif
-
-#ifndef HEIGHT_OUTPUT_OFFSET
 #define HEIGHT_OUTPUT_OFFSET -1
-#endif
-
-#ifndef WIDTH_INPUT
 #define WIDTH_INPUT -1
-#endif
-
-//Width * Height
-#ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef WIDTH_OUTPUT
 #define WIDTH_OUTPUT -1
-#endif
+//#define CONSTANT_INPUT
+//!@>
 
 __kernel void SumAllUnitsKernel(
 #ifdef CONSTANT_INPUT

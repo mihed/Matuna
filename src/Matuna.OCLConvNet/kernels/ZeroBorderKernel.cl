@@ -1,72 +1,22 @@
 #include "RealType.h"
 
-// Inclusive
-#ifndef BORDER_START_LEFT 
+//<!@
 #define BORDER_START_LEFT -1
-#endif
-
-// Inclusive
-#ifndef BORDER_START_RIGHT 
 #define BORDER_START_RIGHT -1
-#endif
-
-// Inclusive
-#ifndef BORDER_START_UP 
 #define BORDER_START_UP -1
-#endif
-
-// Inclusive
-#ifndef BORDER_START_DOWN 
 #define BORDER_START_DOWN -1
-#endif
-
-// BORDER_START_LEFT + BORDER_SIZE - 1. Inclusive
-#ifndef BORDER_LIMIT_LEFT
 #define BORDER_LIMIT_LEFT -1
-#endif
-
-// BORDER_START_RIGHT + BORDER_SIZE - 1. Inclusive
-#ifndef BORDER_LIMIT_RIGHT
 #define BORDER_LIMIT_RIGHT -1
-#endif
-
-// BORDER_START_UP + BORDER_SIZE - 1. Inclusive
-#ifndef BORDER_LIMIT_UP
 #define BORDER_LIMIT_UP -1
-#endif
-
-// BORDER_START_DOWN + BORDER_SIZE - 1. Inclusive
-#ifndef BORDER_LIMIT_DOWN
 #define BORDER_LIMIT_DOWN -1
-#endif
-
-#ifndef BORDER_SIZE_HORIZONTAL
 #define BORDER_SIZE_HORIZONTAL -1
-#endif
-
-#ifndef BORDER_SIZE_VERTICAL
 #define BORDER_SIZE_VERTICAL -1
-#endif
-
-#ifndef INPUT_UNIT_ELEMENT_COUNT_INC_PADDING 
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#endif
-
-#ifndef INPUT_UNIT_OFFSET
 #define INPUT_UNIT_OFFSET -1
-#endif
-
-#ifndef INPUT_DATA_WIDTH
 #define INPUT_DATA_WIDTH -1
-#endif
-
-#ifndef INPUT_DATA_HEIGHT
 #define INPUT_DATA_HEIGHT -1
-#endif
-
-#ifndef INPUT_STRIDE
 #define INPUT_STRIDE -1
-#endif
+//!@>
 
 __kernel void ZeroBorderKernel(__global real_t* input)
 {
