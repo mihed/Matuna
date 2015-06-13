@@ -177,6 +177,7 @@ namespace Matuna
 				else if (activationFunction == MatunaSoftMaxActivation)
 					program->AddDefine("MATUNA_ACTIVATION_SOFTMAX");
 
+				program->SetName("PerceptronLayerProgram" + to_string(program->InstanceCount()));
 				programs.insert(make_pair(device, move(program)));
 			}
 
@@ -215,6 +216,8 @@ namespace Matuna
 					vector<OCLDevice*> oneDeviceVector;
 					oneDeviceVector.push_back(device);
 					context->AttachProgram(move(programs[device]), oneDeviceVector);
+
+					LayerKernel<T>* test = deviceAndImageForwardKernels[device];
 
 					deviceAndImageForwardKernels[device]->SetMemoryArg(weights.get(), 2);
 					deviceAndImageForwardKernels[device]->SetMemoryArg(biases.get(), 3);
@@ -295,6 +298,7 @@ namespace Matuna
 				kernel->AddDefineSubsitute(gradientPath, "INPUT_DELTA_OFFSET", to_string(0));
 				kernel->AddDefineSubsitute(gradientPath, "WEIGHT_COLUMN_COUNT", to_string(inputDescription.TotalUnits()));
 
+				deviceAndImageGradientKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
 			}
 
@@ -335,20 +339,21 @@ namespace Matuna
 				kernel->AddGlobalSize(inForwardDataDesc.Height);
 				kernel->AddGlobalSize(inForwardDataDesc.Units);
 
-				kernel->AddDefineSubsitute(gradientPath, "OUTPUT_WIDTH_OFFSET", to_string(outBackMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(gradientPath, "OUTPUT_HEIGHT_OFFSET", to_string(outBackMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(gradientPath, "OUTPUT_UNIT_OFFSET", to_string(outBackMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(gradientPath, "OUTPUT_STRIDE", to_string(outBackMemDesc.Width));
-				kernel->AddDefineSubsitute(gradientPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(outBackMemDesc.Width * outBackMemDesc.Height));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_WIDTH_OFFSET", to_string(inForwardMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_HEIGHT_OFFSET", to_string(inForwardMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_OFFSET", to_string(inForwardMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_STRIDE", to_string(inForwardMemDesc.Width));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(inForwardMemDesc.Width * inForwardMemDesc.Height));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_DELTA_OFFSET", to_string(inBackMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_DELTA_LIMIT", to_string(inBackMemDesc.UnitOffset + outForwardDataDesc.Units));
-				kernel->AddDefineSubsitute(gradientPath, "WEIGHT_COLUMN_COUNT", to_string(inForwardDataDesc.TotalUnits()));
+				kernel->AddDefineSubsitute(backPropPath, "OUTPUT_WIDTH_OFFSET", to_string(outBackMemDesc.WidthOffset));
+				kernel->AddDefineSubsitute(backPropPath, "OUTPUT_HEIGHT_OFFSET", to_string(outBackMemDesc.HeightOffset));
+				kernel->AddDefineSubsitute(backPropPath, "OUTPUT_UNIT_OFFSET", to_string(outBackMemDesc.UnitOffset));
+				kernel->AddDefineSubsitute(backPropPath, "OUTPUT_STRIDE", to_string(outBackMemDesc.Width));
+				kernel->AddDefineSubsitute(backPropPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(outBackMemDesc.Width * outBackMemDesc.Height));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_WIDTH_OFFSET", to_string(inForwardMemDesc.WidthOffset));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_HEIGHT_OFFSET", to_string(inForwardMemDesc.HeightOffset));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_UNIT_OFFSET", to_string(inForwardMemDesc.UnitOffset));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_STRIDE", to_string(inForwardMemDesc.Width));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(inForwardMemDesc.Width * inForwardMemDesc.Height));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_DELTA_OFFSET", to_string(inBackMemDesc.UnitOffset));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_DELTA_LIMIT", to_string(inBackMemDesc.UnitOffset + outForwardDataDesc.Units));
+				kernel->AddDefineSubsitute(backPropPath, "WEIGHT_COLUMN_COUNT", to_string(inForwardDataDesc.TotalUnits()));
 
+				deviceAndImageBackKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
 			}
 
@@ -375,6 +380,8 @@ namespace Matuna
 					simpleSumKernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
 					simpleSumKernel->SetKernelName("SimpleSumKernel");
 					simpleSumKernel->AddDefineSubsitute(simpleSumPath, "INPUT_COUNT", to_string(firstOutputData.TotalUnits()));
+
+					deviceAndSimpleSumKernels.insert(make_pair(device, simpleSumKernel.get()));
 					programs[device]->AttachKernel(move(simpleSumKernel));
 
 					unique_ptr<LayerKernel<T>> divideByScalarKernel(new LayerKernel<T>());
@@ -382,6 +389,8 @@ namespace Matuna
 					divideByScalarKernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
 					divideByScalarKernel->SetKernelName("DivideByScalarKernel");
 					divideByScalarKernel->AddGlobalSize(firstOutputData.TotalUnits());
+
+					deviceAndDivideByScalarKernels.insert(make_pair(device, divideByScalarKernel.get()));
 					programs[device]->AttachKernel(move(divideByScalarKernel));
 				}
 
@@ -407,17 +416,19 @@ namespace Matuna
 
 				kernel->AddGlobalSize(outForwardDataDesc.TotalUnits());
 
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_UNITS_LIMIT", to_string(inForwardDataDesc.Units + inForwardMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_WIDTH_LIMIT", to_string(inForwardDataDesc.Width + inForwardMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_HEIGHT_LIMIT", to_string(inForwardDataDesc.Height +inForwardMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_UNITS_OFFSET", to_string(inForwardMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_WIDTH_OFFSET", to_string(inForwardMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_HEIGHT_OFFSET", to_string(inForwardMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(gradientPath, "COLUMN_COUNT", to_string(inForwardDataDesc.TotalUnits()));
-				kernel->AddDefineSubsitute(gradientPath, "OUTPUT_UNIT_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(inForwardMemDesc.Width * inForwardMemDesc.Height));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_MEMORY_WIDTH", to_string(inForwardMemDesc.Width));
+				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNITS_LIMIT", to_string(inForwardDataDesc.Units + inForwardMemDesc.UnitOffset));
+				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_WIDTH_LIMIT", to_string(inForwardDataDesc.Width + inForwardMemDesc.WidthOffset));
+				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_HEIGHT_LIMIT", to_string(inForwardDataDesc.Height +inForwardMemDesc.HeightOffset));
+				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNITS_OFFSET", to_string(inForwardMemDesc.UnitOffset));
+				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_WIDTH_OFFSET", to_string(inForwardMemDesc.WidthOffset));
+				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_HEIGHT_OFFSET", to_string(inForwardMemDesc.HeightOffset));
+				kernel->AddDefineSubsitute(forwardPropPath, "COLUMN_COUNT", to_string(inForwardDataDesc.TotalUnits()));
+				kernel->AddDefineSubsitute(forwardPropPath, "OUTPUT_UNIT_OFFSET", to_string(0));
+				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(inForwardMemDesc.Width * inForwardMemDesc.Height));
+				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_MEMORY_WIDTH", to_string(inForwardMemDesc.Width));
 
+
+				deviceAndImageForwardKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
 			}
 		}
@@ -467,6 +478,7 @@ namespace Matuna
 				kernel->AddDefineSubsitute(gradientPath, "INPUT_DELTA_OFFSET", to_string(0));
 				kernel->AddDefineSubsitute(gradientPath, "INPUT_OFFSET", to_string(0)); //We are not using these at the moment!
 
+				deviceAndGradientKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
 			}
 
@@ -504,12 +516,13 @@ namespace Matuna
 
 				kernel->AddGlobalSize(inputDescription.TotalUnits());
 
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_DELTA_COUNT", to_string(firstOutputData.TotalUnits()));
-				kernel->AddDefineSubsitute(gradientPath, "WEIGHT_COLUMN_COUNT", to_string(inputDescription.TotalUnits()));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_DELTA_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(gradientPath, "OUTPUT_DELTA_OFFSET", to_string(0));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_DELTA_COUNT", to_string(firstOutputData.TotalUnits()));
+				kernel->AddDefineSubsitute(backPropPath, "WEIGHT_COLUMN_COUNT", to_string(inputDescription.TotalUnits()));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_OFFSET", to_string(0));
+				kernel->AddDefineSubsitute(backPropPath, "INPUT_DELTA_OFFSET", to_string(0));
+				kernel->AddDefineSubsitute(backPropPath, "OUTPUT_DELTA_OFFSET", to_string(0));
 
+				deviceAndBackKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
 			}
 
@@ -530,6 +543,8 @@ namespace Matuna
 					simpleSumKernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
 					simpleSumKernel->SetKernelName("SimpleSumKernel");
 					simpleSumKernel->AddDefineSubsitute(simpleSumPath, "INPUT_COUNT", to_string(firstOutputData.TotalUnits()));
+
+					deviceAndSimpleSumKernels.insert(make_pair(device, simpleSumKernel.get()));
 					programs[device]->AttachKernel(move(simpleSumKernel));
 
 					unique_ptr<LayerKernel<T>> divideByScalarKernel(new LayerKernel<T>());
@@ -537,6 +552,8 @@ namespace Matuna
 					divideByScalarKernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
 					divideByScalarKernel->SetKernelName("DivideByScalarKernel");
 					divideByScalarKernel->AddGlobalSize(firstOutputData.TotalUnits());
+
+					deviceAndDivideByScalarKernels.insert(make_pair(device, divideByScalarKernel.get()));
 					programs[device]->AttachKernel(move(divideByScalarKernel));
 				}
 
@@ -565,7 +582,10 @@ namespace Matuna
 					maximumConstantBufferSize -= biases->ByteSize();
 				}
 
-				kernel->AddDefineSubsitute(simpleSumPath, "INPUT_COUNT", to_string(inputDescription.TotalUnits()));
+				kernel->AddGlobalSize(firstOutputData.TotalUnits());
+				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_COUNT", to_string(inputDescription.TotalUnits()));
+
+				deviceAndForwardKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
 			}
 		}

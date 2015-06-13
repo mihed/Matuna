@@ -235,9 +235,9 @@ double TanhActivationDouble(double x)
 
 
 unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
-													  uniform_int_distribution<int>& layerGenerator,
-													  uniform_int_distribution<int>& dimensionGenerator,
-													  bool useSoftMax, bool useImageInput = false)
+															  uniform_int_distribution<int>& layerGenerator,
+															  uniform_int_distribution<int>& dimensionGenerator,
+															  bool useSoftMax, bool useImageInput = false)
 {
 	vector<LayerDataDescription> dataDescriptions;
 	LayerDataDescription dataDescription;
@@ -406,7 +406,6 @@ SCENARIO("Forward propagating a ConvNet network using image inputs for a percept
 			}
 		}
 	}
-
 }
 
 SCENARIO("Forward propagating an OR ConvNet network")

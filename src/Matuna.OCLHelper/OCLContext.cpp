@@ -122,14 +122,7 @@ namespace Matuna
 		void OCLContext::AttachProgram(unique_ptr<OCLProgram> program, const vector<OCLDevice*>& affectedDevices)
 		{
 			if (programs.find(program->GetName()) != programs.end())
-			{
-				auto& pointerAndSet = programs[program->GetName()];
-				auto& map = get<1>(pointerAndSet);
-				//See whether or not the devices are distinct
-				for (auto device : affectedDevices)
-					if (map.find(device) != map.end())
-						throw invalid_argument("The program has already been added to at least on of the devices. Make sure they are distinct!");
-			}
+				throw invalid_argument("The program has already been added!");
 
 			auto programCodeFiles = program->GetProgramCodeFiles();
 			if (programCodeFiles.size() == 0)
@@ -206,6 +199,8 @@ namespace Matuna
 			program->SetContext(this);
 			program->SetProgram(clProgram);
 
+
+			//TODO: This hash is completely wrong and needs fixing!
 			unordered_set<OCLDevice*> deviceMap;
 			for (auto device : affectedDevices)
 			{

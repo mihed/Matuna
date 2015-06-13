@@ -10,7 +10,7 @@
 
 //<!@
 #define INPUT_COUNT -1
-//@>
+//!@>
 
 __kernel void SimpleSumKernel(__global real_t* input, __global real_t* result) //We don't even bother to use constant here since there's nothing to cache
 {

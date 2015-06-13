@@ -125,6 +125,8 @@ namespace Matuna {
 				else if (activationFunction == MatunaTanhActivation)
 					program->AddDefine("MATUNA_ACTIVATION_DERIVATIVE_TANH");
 
+				program->SetName("OutputLayerProgram" + to_string(program->InstanceCount()));
+
 				programs.insert(make_pair(device, move(program)));
 			}
 
