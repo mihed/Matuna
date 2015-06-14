@@ -49,6 +49,7 @@ namespace Matuna {
 			static string DefaultSourceLocation;
 			static const string MADCompilerOption;
 			static const string RelaxedMathCompilerOption;
+			static const string WarningToErrorOption;
 
 		private:
 			//This function is called by the OCLContext when attached and compiled by the context

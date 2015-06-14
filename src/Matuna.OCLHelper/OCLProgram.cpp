@@ -21,6 +21,7 @@ namespace Matuna {
 		int OCLProgram::instanceCounter = 0;
 		const string OCLProgram::MADCompilerOption = " -cl-mad-enable ";
 		const string OCLProgram::RelaxedMathCompilerOption = " -cl-fast-relaxed-math ";
+		const string OCLProgram::WarningToErrorOption = "-Werror";
 
 		OCLProgram::OCLProgram() 
 		{
@@ -202,6 +203,8 @@ namespace Matuna {
 		string OCLProgram::GetCompilerOptions() const
 		{
 			stringstream result;
+
+			result << WarningToErrorOption << " ";
 
 			if (enableMAD)
 				result << MADCompilerOption;
