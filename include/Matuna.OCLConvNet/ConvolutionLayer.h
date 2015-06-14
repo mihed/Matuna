@@ -5,21 +5,14 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_OCLConvNet_CONVOLUTIONLAYER_H_
-#define MATUNA_OCLConvNet_CONVOLUTIONLAYER_H_
+#ifndef MATUNA_OCLCONVNET_CONVOLUTIONLAYER_H_
+#define MATUNA_OCLCONVNET_CONVOLUTIONLAYER_H_
 
 #include "OCLForwardBackPropLayer.h"
 #include "Matuna.ConvNet/ConvolutionLayerConfig.h"
 #include "Matuna.Math/Matrix.h"
 #include "Matuna.OCLHelper/OCLContext.h"
-
-#include "ConvolutionKernel.h"
-#include "BackConvolutionKernel.h"
-#include "MultiplyAllUnitsKernel.h"
-#include "ZeroBorderKenel.h"
-#include "SumAllUnitsKernel.h"
-#include "SumUnitKernel.h"
-#include "MultiplyWithOffsetKernel.h"
+#include "LayerKernel.h"
 
 #include <unordered_map>
 #include <vector>
@@ -39,16 +32,16 @@ namespace Matuna
 		{
 		private:
 
-			unordered_map<OCLDevice*, unique_ptr<ConvolutionKernel<T>>> deviceAndConvolutionKernels;
-			unordered_map<OCLDevice*, unique_ptr<SumAllUnitsKernel<T>>> deviceAndSumKernels;
-			unordered_map<OCLDevice*, unique_ptr<BackConvolutionKernel<T>>> deviceAndBackConvolutionKernels;
-			unordered_map<OCLDevice*, unique_ptr<MultiplyAllUnitsKernel<T>>> deviceAndMultiplyKernels;
-			unordered_map<OCLDevice*, unique_ptr<ZeroBorderKenel<T>>> deviceAndZeroKernels;
-			unordered_map<OCLDevice*, unique_ptr<SumUnitKernel<T>>> deviceAndSumUnitKernels;
-			unordered_map<OCLDevice*, unique_ptr<MultiplyWithOffsetKernel<T>>> deviceAndMultiplyWithOffsetKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndConvolutionKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndSumKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndBackConvolutionKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndMultiplyKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndZeroKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndSumUnitKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndMultiplyWithOffsetKernels;
 
 			//HACK: this must be changed when removed the deprecated functions 
-			unordered_map<OCLDevice*, unique_ptr<SumUnitKernel<T>>> deviceAndSumUnitKernels2;
+			unordered_map<OCLDevice*,  LayerKernel<T>*> deviceAndSumUnitKernels2;
 
 			ConvolutionLayerConfig convolutionConfig;
 			unique_ptr<OCLMemory> filters;
@@ -96,16 +89,10 @@ namespace Matuna
 
 		private:
 			void InitializeParameters();
-			void InitializeConvolutionKernel();
-			void InitializeSumAllKernel();
-			void InitializeBackConvolutionKernel();
-			void InitializeMultiplyKernel();
-			void InitializeZeroKernel();
-			void InitializeSumUnitKernel();
-			void InitializeMultiplyWithOffsetKernel();
+			void InitializeProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
 		};
 
 	} /* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLConvNet_CONVOLUTIONLAYER_H_ */
+#endif /* MATUNA_OCLCONVNET_CONVOLUTIONLAYER_H_ */

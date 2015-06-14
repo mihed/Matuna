@@ -27,6 +27,9 @@ private:
 	static const string endTag;
 	static const string commentTag;
 	static const string defineTag;
+	static const string undefTag;
+	static const string ifdefTag;
+	static const string endifTag;
 public:
 	MatunaParser();
 	~MatunaParser();

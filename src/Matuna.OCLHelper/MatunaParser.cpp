@@ -78,7 +78,7 @@ namespace Matuna
 								throw runtime_error(
 								"The file is invalid, check the define macros inside the matuna tags.");
 							if (defineVector[0].compare(defineTag) != 0)
-								"The file is invalid, check the define macros inside the matuna tags.";
+								throw runtime_error("The file is invalid, check the define macros inside the matuna tags.");
 
 							definesInsideTag.push_back(defineVector[1]);
 						}
@@ -94,7 +94,7 @@ namespace Matuna
 								throw runtime_error(
 								"The file is invalid, check the define macros inside the matuna tags.");
 							if (defineVector[0].compare(defineTag) != 0)
-								"The file is invalid, check the define macros inside the matuna tags.";
+								throw runtime_error("The file is invalid, check the define macros inside the matuna tags.");
 
 							definesInsideTag.push_back(defineVector[1]);
 						}
@@ -161,7 +161,7 @@ namespace Matuna
 								throw runtime_error(
 								"The file is invalid, check the define macros inside the matuna tags.");
 							if (defineVector[0].compare(defineTag) != 0)
-								"The file is invalid, check the define macros inside the matuna tags.";
+								throw runtime_error("The file is invalid, check the define macros inside the matuna tags.");
 
 							//Check whether the second word is given inside the defines
 							if (define.find(defineVector[1]) != define.end())
@@ -182,7 +182,7 @@ namespace Matuna
 							defineVector.pop_back();
 
 							if (defineVector[0].compare(defineTag) != 0)
-								"The file is invalid, check the define macros inside the matuna tags.";
+								throw runtime_error("The file is invalid, check the define macros inside the matuna tags.");
 
 							auto substituteValue = substitute.find(defineVector[1]);
 							if (substituteValue != substitute.end())
@@ -192,7 +192,7 @@ namespace Matuna
 									<< keyPair.second << endl;
 							}
 							else
-								throw exception(
+								throw runtime_error(
 								"The define could not be found in the parsable object");
 
 						}

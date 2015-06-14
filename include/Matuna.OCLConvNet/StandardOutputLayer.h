@@ -59,7 +59,7 @@ namespace Matuna
 		private:
 			void InitializeImageProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
 			void InitializeProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
-			void SetErrorFunctionDefine(LayerKernel<T>* kernel, bool binary);
+			void SetErrorFunctionDefine(LayerKernel<T>* kernel, string path, bool binary);
 		};
 
 	}

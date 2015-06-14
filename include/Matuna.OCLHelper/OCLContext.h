@@ -38,7 +38,7 @@ namespace Matuna
 		private:
 			cl_context context;
 			vector<unique_ptr<OCLDevice>> devices;
-			unordered_map<string, unique_ptr<OCLProgram>> programs;
+			unordered_map<string, tuple<unique_ptr<OCLProgram>, unordered_set<OCLDevice*>>> programs;
 			OCLPlatformInfo platformInfo;
 
 		public:

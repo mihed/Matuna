@@ -23,6 +23,9 @@ using namespace std;
 
 namespace Matuna {
 	namespace Helper {
+
+		class OCLContext;
+
 		class OCLProgram {
 
 			friend class OCLContext;
@@ -49,12 +52,12 @@ namespace Matuna {
 			static string DefaultSourceLocation;
 			static const string MADCompilerOption;
 			static const string RelaxedMathCompilerOption;
+			static const string WarningToErrorOption;
 
 		private:
 			//This function is called by the OCLContext when attached and compiled by the context
 			void SetContext(const OCLContext* const context);
 			void SetProgram(cl_program program);
-			void ContextDetach();
 			void SetKernels();
 
 		public:
@@ -101,12 +104,6 @@ namespace Matuna {
 
 			string GetCompilerOptions() const;
 			vector<string> GetProgramCodeFiles() const;
-
-			template <class T>
-			T* GetKernel(string name) const
-			{
-				return dynamic_cast<T*>(kernels[name].get());
-			}
 		};
 
 	} /* namespace Helper */
