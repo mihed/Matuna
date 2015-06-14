@@ -21,6 +21,9 @@ namespace Matuna
 		const string MatunaParser::endTag = "//!@>";
 		const string MatunaParser::commentTag = "//";
 		const string MatunaParser::defineTag = "#define";
+		const string MatunaParser::undefTag = "#undef";
+		const string MatunaParser::ifdefTag = "#ifdef";
+		const string MatunaParser::endifTag = "#endif";
 
 		MatunaParser::MatunaParser()
 		{
@@ -39,12 +42,86 @@ namespace Matuna
 			unordered_map<string, string> result;
 			for (auto& sourcePath : sourcePaths)
 			{
+
+				string line;
 				auto sourceCode = FileHelper::GetTextFromPath(sourcePath);
+				string sourceCodeCopy = sourceCode;
+				size_t startPosition = 0;
+				while((startPosition = sourceCodeCopy.find(beginTag, startPosition)) != string::npos)
+				{
+					vector<string> definesInsideTag;
+					stringstream tagStream(sourceCodeCopy.substr(startPosition));
+					getline(tagStream, line);
+					bool foundEndTag = false;
+					while(getline(tagStream, line))
+					{
+						if (line.find(endTag) != string::npos)
+						{
+							foundEndTag = true;
+							break;
+						}
+
+						auto commentTagPosition = line.find(commentTag);
+						if (commentTagPosition != string::npos)
+						{
+							string lineCopy = line;
+							lineCopy.replace(commentTagPosition,
+								commentTagPosition + commentTag.size(), "");
+
+							vector<string> defineVector;
+							istringstream iss(lineCopy);
+							copy(istream_iterator<string>(iss),
+								istream_iterator<string>(),
+								back_inserter(defineVector));
+
+							if (defineVector.size() != 2)
+								throw runtime_error(
+								"The file is invalid, check the define macros inside the matuna tags.");
+							if (defineVector[0].compare(defineTag) != 0)
+								"The file is invalid, check the define macros inside the matuna tags.";
+
+							definesInsideTag.push_back(defineVector[1]);
+						}
+						else
+						{
+							vector<string> defineVector;
+							istringstream iss(line);
+							copy(istream_iterator<string>(iss),
+								istream_iterator<string>(),
+								back_inserter(defineVector));
+
+							if (defineVector.size() != 2 && defineVector.size() != 3)
+								throw runtime_error(
+								"The file is invalid, check the define macros inside the matuna tags.");
+							if (defineVector[0].compare(defineTag) != 0)
+								"The file is invalid, check the define macros inside the matuna tags.";
+
+							definesInsideTag.push_back(defineVector[1]);
+						}
+					}
+
+					if (!foundEndTag)
+						throw invalid_argument("The file does not contain valid begin / end tags");
+
+					//Let us now add the undefs to the beginning of the matuna tag
+					stringstream undefStream;
+					for (auto undefDefine : definesInsideTag)
+					{
+						undefStream << endl << ifdefTag << " " << undefDefine << endl;
+						undefStream << undefTag << " " << undefDefine << endl;
+						undefStream << endifTag << endl;
+					}
+
+
+					undefStream << endl;
+					sourceCode.insert(startPosition, undefStream.str());
+					startPosition += beginTag.size();
+				}
+
 				stringstream inStream(sourceCode);
 				stringstream outStream;
 				auto substitute = defineSubstitutes[sourcePath];
 				auto define = defines[sourcePath];
-				string line;
 				int counter = 0;
 				while (getline(inStream, line))
 				{

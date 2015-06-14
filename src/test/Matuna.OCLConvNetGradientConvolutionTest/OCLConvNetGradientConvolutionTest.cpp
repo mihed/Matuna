@@ -31,12 +31,12 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 {
 	vector<LayerDataDescription> dataDescriptions;
 	LayerDataDescription dataDescription;
-	dataDescription.Height = 65;//dimensionGenerator(mt);
-	dataDescription.Width = 61;//dimensionGenerator(mt);
-	dataDescription.Units = 1;//unitGenerator(mt);
+	dataDescription.Height = dimensionGenerator(mt);
+	dataDescription.Width = dimensionGenerator(mt);
+	dataDescription.Units = unitGenerator(mt);
 	dataDescriptions.push_back(dataDescription);
 
-	int layerCount = 1;//layerGenerator(mt);
+	int layerCount = layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
 
 	cout << "\n---------------------Network---------------------" << endl;
@@ -54,7 +54,7 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 	for (int i = 0; i < layerCount; i++)
 	{
 		cout << "--------Layer: " << i << " --------" << endl;
-		auto activation = 2;//activationGenerator(mt);
+		auto activation = activationGenerator(mt);
 		switch (activation)
 		{
 		case 1:
@@ -71,9 +71,9 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 			break;
 		}
 
-		int filterCount = 3;//unitGenerator(mt);
-		int filterWidth = 1;//filterGenerator(mt);
-		int filterHeight = 1;//filterGenerator(mt);
+		int filterCount = unitGenerator(mt);
+		int filterWidth = filterGenerator(mt);
+		int filterHeight = filterGenerator(mt);
 
 		cout << "Filter count: " << filterCount << endl;
 		cout << "Filter width: " << filterWidth << endl;

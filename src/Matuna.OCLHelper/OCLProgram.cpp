@@ -204,7 +204,7 @@ namespace Matuna {
 		{
 			stringstream result;
 
-			result << WarningToErrorOption << " ";
+			//result << WarningToErrorOption << " ";
 
 			if (enableMAD)
 				result << MADCompilerOption;
