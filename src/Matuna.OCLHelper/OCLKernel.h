@@ -36,7 +36,6 @@ namespace Matuna
 			//This function is called by the OCL program when attached to it.
 			void SetKernel(cl_kernel kernel);
 			void SetProgram(const OCLProgram* const program);
-			void ProgramDetach();
 
 		public:
 			OCLKernel();

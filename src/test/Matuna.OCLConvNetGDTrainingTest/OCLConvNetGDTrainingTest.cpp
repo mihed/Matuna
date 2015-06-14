@@ -218,11 +218,14 @@ SCENARIO("Testing the gradient descent training algorithm")
 			memcpy(rawTarget, tempTarget.Data, sizeof(double) * outputDataDesc.Units);
 			unique_ptr<double[]> target(rawTarget);
 
+			cout << "Calulating error before: " << endl;
 			double errorBefore = network.CalculateErrorUnaligned(inputs.get(), 0, target.get());
 			cout << "Error before iteration: " << errorBefore << endl;
 			trainer->SetInput(inputs.get());
 			trainer->SetTarget(target.get());
+			cout << "Training: " << endl;
 			network.TrainNetwork(unique_ptr<TestConvNetTrainer<double>>(trainer), unique_ptr<GradientDescentConfig<double>>(algorithmConfig));
+			cout << "Calculating error after: " << endl;
 			double errorAfter = network.CalculateErrorUnaligned(inputs.get(), 0, target.get());
 			cout << "Error after iteration: " << errorAfter << endl;
 

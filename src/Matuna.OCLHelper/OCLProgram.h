@@ -55,7 +55,6 @@ namespace Matuna {
 			//This function is called by the OCLContext when attached and compiled by the context
 			void SetContext(const OCLContext* const context);
 			void SetProgram(cl_program program);
-			void ContextDetach();
 			void SetKernels();
 
 		public:

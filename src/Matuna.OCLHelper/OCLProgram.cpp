@@ -196,8 +196,11 @@ namespace Matuna {
 
 		void OCLProgram::DetachKernel(OCLKernel* kernel)
 		{
-			kernel->ProgramDetach();
-			kernels.erase(kernel->Name());
+			string kernelName = kernel->Name();
+			if (kernels.find(kernelName) == kernels.end())
+				throw invalid_argument("Cannot detach a kernel that has not been attached");
+
+			kernels.erase(kernelName);
 		}
 
 		string OCLProgram::GetCompilerOptions() const
@@ -247,23 +250,6 @@ namespace Matuna {
 				CheckOCLError(clReleaseProgram(program), "Could not release the program");
 				program = nullptr;
 			}
-		}
-
-		void OCLProgram::ContextDetach()
-		{
-
-			//TODO: Observe that if we added source kernels, their files are still around!
-			if (!ProgramSet())
-				throw runtime_error("The context cannot detach itself if it has not been attached");
-
-			for(auto& kernelPair : kernels)
-				kernelPair.second->ProgramDetach();
-
-			kernels.clear();
-
-			CheckOCLError(clReleaseProgram(program), "Could not release the program");
-			program = nullptr;
-			context = nullptr;
 		}
 
 		void OCLProgram::SetContext(const OCLContext* const context)

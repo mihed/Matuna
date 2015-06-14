@@ -215,7 +215,11 @@ namespace Matuna
 
 		void OCLContext::DetachProgram(OCLProgram* program)
 		{
-			program->ContextDetach();
+			string programName = program->GetName();
+			if (programs.find(programName) == programs.end())
+				throw invalid_argument("We detach a program that has not been attached");
+
+			programs.erase(programName);
 		}
 
 		//void OCLContext::AddProgramFromBinary(const string& programName,

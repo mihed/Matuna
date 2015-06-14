@@ -29,18 +29,6 @@ namespace Matuna
 				CheckOCLError(clReleaseKernel(kernel), "The kernel could not be released");
 		}
 
-		void OCLKernel::ProgramDetach()
-		{
-			if (!ProgramSet())
-				throw runtime_error("The program cannot detach itself if it has not been attached");
-
-			if (KernelSet())
-				CheckOCLError(clReleaseKernel(kernel), "The kernel could not be released");
-
-			kernel = nullptr;
-			owningProgram = nullptr;
-		}
-
 		bool OCLKernel::KernelSet() const
 		{
 			return kernel == nullptr ? false : true;

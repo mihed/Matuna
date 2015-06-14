@@ -271,14 +271,14 @@ namespace Matuna
 
 				//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
 				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-				auto byteSize = firstOutputData.TotalUnits() * sizeof(T);
+				auto byteSize = firstInputMemDesc.TotalMemory() * sizeof(T);
 				if (maximumConstantBufferSize > byteSize)
 				{
 					kernel->AddDefine(gradientPath, "CONSTANT_INPUT");
 					maximumConstantBufferSize -= byteSize;
 				}
 
-				byteSize = firstInputMemDesc.TotalMemory() * sizeof(T);
+				byteSize = inBackMemDesc.TotalMemory() * sizeof(T);
 				if (maximumConstantBufferSize > byteSize)
 				{
 					kernel->AddDefine(gradientPath, "CONSTANT_INPUT_DELTA");
