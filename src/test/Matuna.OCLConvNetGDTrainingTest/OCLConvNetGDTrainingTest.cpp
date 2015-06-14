@@ -27,22 +27,37 @@ using namespace Matuna::Math;
 using namespace Matuna::Helper;
 
 unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
-											uniform_int_distribution<int>& perceptronLayerGenerator,
-											uniform_int_distribution<int>& convolutionLayerGenerator,
-											uniform_int_distribution<int>& imageDimensionGenerator,
-											uniform_int_distribution<int>& filterDimensionGenerator,
-											uniform_int_distribution<int>& dimensionGenerator, bool useSoftMax)
+													uniform_int_distribution<int>& perceptronLayerGenerator,
+													uniform_int_distribution<int>& convolutionLayerGenerator,
+													uniform_int_distribution<int>& imageDimensionGenerator,
+													uniform_int_distribution<int>& filterDimensionGenerator,
+													uniform_int_distribution<int>& dimensionGenerator, bool useSoftMax)
 {
 	vector<LayerDataDescription> dataDescriptions;
 	LayerDataDescription dataDescription;
-	dataDescription.Height = imageDimensionGenerator(mt);
-	dataDescription.Width = imageDimensionGenerator(mt);
-	dataDescription.Units = dimensionGenerator(mt);
+
+	cout << "\n\n--------------Network-----------------------\n" << endl;
+
+	int inputHeight = imageDimensionGenerator(mt);
+	int inputWidth = imageDimensionGenerator(mt);
+	int inputUnits = imageDimensionGenerator(mt);
+
+	cout << "Input height: " << inputHeight << endl;
+	cout << "Input width: " << inputWidth << endl;
+	cout << "Input units: " << inputUnits << endl;
+
+	dataDescription.Height = inputHeight;
+	dataDescription.Width = inputWidth;
+	dataDescription.Units = inputUnits;
 	dataDescriptions.push_back(dataDescription);
 
 	int perceptronLayerCount = perceptronLayerGenerator(mt);
 	int convolutionLayerCount = convolutionLayerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
+
+
+	cout << "Perceptron layers: " << perceptronLayerCount << endl;
+	cout << "Convolution layers: " << convolutionLayerCount << endl;
 
 	INFO("Initializing the ConvNet config");
 	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
@@ -51,24 +66,37 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 
 	for (int i = 0; i < convolutionLayerCount; i++)
 	{
+		cout << "-----Convolution " << i << "------------" << endl;
+
 		auto activation = activationGenerator(mt);
 		switch (activation)
 		{
 		case 1:
 			activationFunction = MatunaSigmoidActivation;
+			cout << " Sigmoid" << endl;
 			break;
 		case 2:
 			activationFunction = MatunaLinearActivation;
+			cout << "Linear" << endl;
 			break;
 		case 3:
 			activationFunction = MatunaTanhActivation;
+			cout << "Tanh " << endl;
 			break;
 		}
 
+		int filterCount = dimensionGenerator(mt);
+		int filterWidth = filterDimensionGenerator(mt);
+		int filterHeight = filterDimensionGenerator(mt);
+
+		cout << "Filters: " << filterCount << endl;
+		cout << "Filter width " << filterWidth << endl;
+		cout << "Filter height: " << filterHeight << endl;
+
 		unique_ptr<ConvolutionLayerConfig> convConfig(
-			new ConvolutionLayerConfig(dimensionGenerator(mt),
-			filterDimensionGenerator(mt),
-			filterDimensionGenerator(mt), activationFunction));
+			new ConvolutionLayerConfig(filterCount,
+			filterWidth,
+			filterHeight, activationFunction));
 
 		config->AddToBack(move(convConfig));
 	}
@@ -76,17 +104,22 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 	INFO("Creating the layers config");
 	for (int i = 0; i < perceptronLayerCount; i++)
 	{
+		cout << "-----Perceptron " << i << "------------" << endl;
+
 		auto activation = activationGenerator(mt);
 		switch (activation)
 		{
 		case 1:
 			activationFunction = MatunaSigmoidActivation;
+			cout << " Sigmoid" << endl;
 			break;
 		case 2:
 			activationFunction = MatunaLinearActivation;
+			cout << "Linear" << endl;
 			break;
 		case 3:
 			activationFunction = MatunaTanhActivation;
+			cout << "Tanh " << endl;
 			break;
 		}
 
@@ -105,6 +138,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 				temp = temp > 1 ? temp : 2;
 			}
 		}
+
+		cout << "Units: " << temp << endl<< endl<< endl;
 
 		unique_ptr<PerceptronLayerConfig> perceptronConfig(
 			new PerceptronLayerConfig(temp, activationFunction));
@@ -218,14 +253,11 @@ SCENARIO("Testing the gradient descent training algorithm")
 			memcpy(rawTarget, tempTarget.Data, sizeof(double) * outputDataDesc.Units);
 			unique_ptr<double[]> target(rawTarget);
 
-			cout << "Calulating error before: " << endl;
 			double errorBefore = network.CalculateErrorUnaligned(inputs.get(), 0, target.get());
 			cout << "Error before iteration: " << errorBefore << endl;
 			trainer->SetInput(inputs.get());
 			trainer->SetTarget(target.get());
-			cout << "Training: " << endl;
 			network.TrainNetwork(unique_ptr<TestConvNetTrainer<double>>(trainer), unique_ptr<GradientDescentConfig<double>>(algorithmConfig));
-			cout << "Calculating error after: " << endl;
 			double errorAfter = network.CalculateErrorUnaligned(inputs.get(), 0, target.get());
 			cout << "Error after iteration: " << errorAfter << endl;
 

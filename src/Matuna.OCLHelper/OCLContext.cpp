@@ -29,7 +29,6 @@ namespace Matuna
 				deviceIDs.push_back(get<1>(configAndInfo).DeviceID());
 
 			cl_int error;
-			context = nullptr;
 			context = clCreateContext(0, deviceIDs.size(), deviceIDs.data(), nullptr,
 				nullptr, &error);
 			CheckOCLError(error, "Could not create the native OCL context");
@@ -96,8 +95,8 @@ namespace Matuna
 			cl_int error;
 			cl_mem memory = clCreateBuffer(context, flags, bytes, nullptr, &error);
 			CheckOCLError(error, "Could not create the OCL memory");
-			return unique_ptr<OCLMemory>(
-				new OCLMemory(memory, this, flags, bytes));
+			unique_ptr<OCLMemory> result(new OCLMemory(memory, this, flags, bytes));
+			return move(result);
 		}
 
 		unique_ptr<OCLMemory> OCLContext::CreateMemory(cl_mem_flags flags,
@@ -106,8 +105,8 @@ namespace Matuna
 			cl_int error;
 			cl_mem memory = clCreateBuffer(context, flags, bytes, buffer, &error);
 			CheckOCLError(error, "Could not create the OCL memory");
-			return unique_ptr<OCLMemory>(
-				new OCLMemory(memory, this, flags, bytes));
+			unique_ptr<OCLMemory> result(new OCLMemory(memory, this, flags, bytes));
+			return move(result);
 		}
 
 		vector<OCLDevice*> OCLContext::GetDevices() const

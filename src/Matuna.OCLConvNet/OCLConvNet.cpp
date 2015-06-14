@@ -533,16 +533,13 @@ namespace Matuna {
 				LayerMemoryDescription outBackPropMemoryDescription =
 					outputLayer->OutBackPropMemoryDescriptions()[0];
 
-				printf("Creating input memory \n");
 				unique_ptr<OCLMemory> inputMemory = contexts[0]->CreateMemory(
 					CL_MEM_READ_ONLY, sizeof(T) * inputMemoryDescription.TotalMemory());
 
-				printf("Creating target memory \n");
 				unique_ptr<OCLMemory> targetMemory = contexts[0]->CreateMemory(
 					CL_MEM_READ_ONLY,
 					sizeof(T) * inBackPropMemoryDescription.TotalMemory());
 
-				printf("Creating the intermediate memories for input \n");
 				inputMemories.push_back(move(inputMemory));
 				for (auto& layer : layers) {
 					inputMemoryDescription = layer->OutForwardPropMemoryDescriptions()[0];
@@ -566,7 +563,6 @@ namespace Matuna {
 					accumulatedGradientsPointers.push_back(vector<OCLMemory*>());
 
 					vector<size_t> parameterCount = layers[i]->GetMultipleParameterCount();
-					printf("Creating the temporary gradient memory \n");
 					for (int k = 0; k < parameterCount.size(); k++) {
 						unique_ptr<OCLMemory> tempGradientMemory1 =
 							contexts[0]->CreateMemory(CL_MEM_READ_WRITE,
@@ -624,11 +620,8 @@ namespace Matuna {
 
 							device->WaitForDeviceQueue(0);
 
-							printf("Creating the output back prop memory \n");
 							unique_ptr<OCLMemory> backPropOutputMemory =
-								contexts[0]->CreateMemory(CL_MEM_READ_WRITE,
-								sizeof(T)
-								* outBackPropMemoryDescription.TotalMemory());
+								contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * outBackPropMemoryDescription.TotalMemory());
 
 							outputLayer->EnqueueBackPropagation(device, 0,
 								inputMemories[inputMemories.size() - 1].get(),
@@ -645,7 +638,6 @@ namespace Matuna {
 								inBackPropMemoryDescription =
 									layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
 
-								printf("Creating the output back prop memory inside loop\n");
 								unique_ptr<OCLMemory> outputMemory =
 									contexts[0]->CreateMemory(CL_MEM_READ_WRITE,
 									sizeof(T)
@@ -729,7 +721,6 @@ namespace Matuna {
 
 						for (int i = 0; i < layerCount; i++) 
 						{
-							printf("Getting the gradient parameters to update \n");
 							vector<OCLMemory*> parametersToUpdate =
 								layers[i]->GetParameters();
 							vector<size_t> parameterCount =
@@ -770,10 +761,7 @@ namespace Matuna {
 
 					trainer->EpochFinished();
 				}
-
-				printf("Before detach\n");
 				contexts[0]->DetachProgram(programPointer);
-				printf("End of training\n");
 		}
 
 		template<class T>

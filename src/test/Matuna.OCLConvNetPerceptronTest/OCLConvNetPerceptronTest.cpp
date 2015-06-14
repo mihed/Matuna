@@ -253,8 +253,16 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 	dataDescription.Units = dimensionGenerator(mt);
 	dataDescriptions.push_back(dataDescription);
 
+	cout << "\n\n-------------------Network--------------------" << endl;
+
+	cout << "Input width: " << dataDescription.Width << endl;
+	cout << "Input height: " << dataDescription.Height << endl;
+	cout << "Input units: " << dataDescription.Units << endl;
+
 	int layerCount = layerGenerator(mt);
 	uniform_int_distribution<int> activationGenerator(1, 3);
+
+	cout << "Layers: " << layerCount << endl;
 
 	INFO("Initializing the ConvNet config");
 	unique_ptr<ConvNetConfig> config(new ConvNetConfig(dataDescriptions));
@@ -263,17 +271,21 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 	INFO("Creating the layers config");
 	for (int i = 0; i < layerCount; i++)
 	{
+		cout << "--------Layer " << i << "-----------" << endl;
 		auto activation = activationGenerator(mt);
 		switch (activation)
 		{
 		case 1:
 			activationFunction = MatunaSigmoidActivation;
+			cout << "Sigmoid" << endl;
 			break;
 		case 2:
 			activationFunction = MatunaLinearActivation;
+			cout << "Linear" << endl;
 			break;
 		case 3:
 			activationFunction = MatunaTanhActivation;
+			cout << "Tanh" << endl;
 			break;
 		}
 
@@ -291,6 +303,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 				temp = temp > 1 ? temp : 2;
 			}
 		}
+
+		cout << "Units: " << temp << endl << endl;
 
 		unique_ptr<PerceptronLayerConfig> perceptronConfig(new PerceptronLayerConfig(temp, activationFunction));
 		config->AddToBack(move(perceptronConfig));
@@ -926,6 +940,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 							absDifference = abs((outputPointer[i] - result.At(i, 0)) / result.At(i, 0));
 						else
 							absDifference = abs(outputPointer[i] - result.At(i, 0));
+
 						CHECK(absDifference < 1E-3);
 					}
 				}

@@ -319,7 +319,7 @@ namespace Matuna
 				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_HEIGHT_OFFSET", to_string(firstInBackMemDesc.HeightOffset));
 				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_OFFSET", to_string(firstInBackMemDesc.UnitOffset));
 				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstInBackMemDesc.Width * firstInBackMemDesc.Height));
-				kernel2->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", to_string(convolutionConfig.FilterHeight() * convolutionConfig.FilterWidth() * convolutionConfig.FilterCount()));
+				kernel2->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", to_string(0)); //Since we are splitting the gradient for this kernel
 
 				deviceAndSumUnitKernels2.insert(make_pair(device, kernel2.get()));
 				fixThisPrograms[device]->AttachKernel(move(kernel2));
