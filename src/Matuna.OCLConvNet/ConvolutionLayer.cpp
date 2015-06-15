@@ -9,6 +9,7 @@
 #include "Matuna.OCLHelper/OCLProgram.h"
 #include "Matuna.Helper/Path.h"
 #include "Matuna.Helper/FileHelper.h"
+#include "Matuna.Helper/Converter.h"
 #include <stdexcept>
 #include <type_traits>
 #include <random>
@@ -241,7 +242,7 @@ namespace Matuna
 				else if (activationFunction == MatunaSoftMaxActivation)
 					program->AddDefine("MATUNA_ACTIVATION_SOFTMAX");
 
-				program->SetName("ConvolutionLayerProgram" + to_string(program->InstanceCount()));
+				program->SetName("ConvolutionLayerProgram" + Converter::ConvertToString(program->InstanceCount()));
 				programs.insert(make_pair(device, move(program)));
 
 				//HACK---------------------
@@ -273,7 +274,7 @@ namespace Matuna
 				else if (activationFunction == MatunaSoftMaxActivation)
 					fixThisProgram->AddDefine("MATUNA_ACTIVATION_SOFTMAX");
 
-				fixThisProgram->SetName("fixThisProgram" + to_string(program->InstanceCount()));
+				fixThisProgram->SetName("fixThisProgram" + Converter::ConvertToString(program->InstanceCount()));
 				fixThisPrograms.insert(make_pair(device, move(fixThisProgram)));
 
 				//END HACK-----------------
@@ -312,14 +313,14 @@ namespace Matuna
 
 				kernel2->AddGlobalSize(convolutionConfig.FilterCount());
 
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_STRIDE", to_string(firstInBackMemDesc.Width));
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_WIDTH_OFFSET", to_string(firstInBackMemDesc.WidthOffset));
-				kernel2->AddDefineSubsitute(sumUnitPath, "WIDTH_LIMIT", to_string(firstInBackMemDesc.WidthOffset +firstOutputData.Width));
-				kernel2->AddDefineSubsitute(sumUnitPath, "HEIGHT_LIMIT", to_string(firstInBackMemDesc.HeightOffset + firstOutputData.Height));
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_HEIGHT_OFFSET", to_string(firstInBackMemDesc.HeightOffset));
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_OFFSET", to_string(firstInBackMemDesc.UnitOffset));
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstInBackMemDesc.Width * firstInBackMemDesc.Height));
-				kernel2->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", to_string(0)); //Since we are splitting the gradient for this kernel
+				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_STRIDE", firstInBackMemDesc.Width);
+				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_WIDTH_OFFSET", firstInBackMemDesc.WidthOffset);
+				kernel2->AddDefineSubsitute(sumUnitPath, "WIDTH_LIMIT", firstInBackMemDesc.WidthOffset +firstOutputData.Width);
+				kernel2->AddDefineSubsitute(sumUnitPath, "HEIGHT_LIMIT", firstInBackMemDesc.HeightOffset + firstOutputData.Height);
+				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_HEIGHT_OFFSET", firstInBackMemDesc.HeightOffset);
+				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
+				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Width * firstInBackMemDesc.Height);
+				kernel2->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", 0); //Since we are splitting the gradient for this kernel
 
 				deviceAndSumUnitKernels2.insert(make_pair(device, kernel2.get()));
 				fixThisPrograms[device]->AttachKernel(move(kernel2));
@@ -403,17 +404,17 @@ namespace Matuna
 				kernel->AddGlobalSize(firstOutputData.Height);
 				kernel->AddGlobalSize(firstOutputData.Units);
 
-				kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_WIDTH", to_string(convolutionConfig.FilterWidth()));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_HEIGHT", to_string(convolutionConfig.FilterHeight()));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_OFFSET_WIDTH", to_string(0));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_OFFSET_HEIGHT", to_string(0));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_WIDTH", to_string(firstOutputMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_HEIGHT", to_string(firstOutputMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_UNIT", to_string(firstOutputMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_WIDTH", to_string(firstOutputMemDesc.Width));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_WIDTH", to_string(firstInputData.Width));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstOutputMemDesc.Width * firstOutputMemDesc.Height));
-				kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight()));
+				kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_WIDTH", convolutionConfig.FilterWidth());
+				kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_HEIGHT", convolutionConfig.FilterHeight());
+				kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_OFFSET_WIDTH", 0);
+				kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_OFFSET_HEIGHT", 0);
+				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_WIDTH", firstOutputMemDesc.WidthOffset);
+				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_HEIGHT", firstOutputMemDesc.HeightOffset);
+				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_UNIT", firstOutputMemDesc.UnitOffset);
+				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_WIDTH", firstOutputMemDesc.Width);
+				kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_WIDTH", firstInputData.Width);
+				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstOutputMemDesc.Width * firstOutputMemDesc.Height);
+				kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING", convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight());
 
 				deviceAndConvolutionKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
@@ -441,15 +442,15 @@ namespace Matuna
 				kernel->AddGlobalSize(firstInputData.Width);
 				kernel->AddGlobalSize(firstInputData.Height);
 
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "UNIT_COUNT_INC_PADDING", to_string(firstInputData.Units + firstInputMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "UNIT_INPUT_OFFSET", to_string(firstInputMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_INPUT_OFFSET", to_string(firstInputMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "HEIGHT_INPUT_OFFSET", to_string(firstInputMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_OUTPUT_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "HEIGHT_OUTPUT_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_INPUT", to_string(firstInputMemDesc.Width));
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_OUTPUT", to_string(firstInputData.Width));
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstInputMemDesc.Width * firstInputMemDesc.Height));
+				kernel->AddDefineSubsitute(sumAllUnitsPath, "UNIT_COUNT_INC_PADDING", firstInputData.Units + firstInputMemDesc.UnitOffset);
+				kernel->AddDefineSubsitute(sumAllUnitsPath, "UNIT_INPUT_OFFSET", firstInputMemDesc.UnitOffset);
+				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_INPUT_OFFSET", firstInputMemDesc.WidthOffset);
+				kernel->AddDefineSubsitute(sumAllUnitsPath, "HEIGHT_INPUT_OFFSET", firstInputMemDesc.HeightOffset);
+				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_OUTPUT_OFFSET", 0);
+				kernel->AddDefineSubsitute(sumAllUnitsPath, "HEIGHT_OUTPUT_OFFSET", 0);
+				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_INPUT", firstInputMemDesc.Width);
+				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_OUTPUT", firstInputData.Width);
+				kernel->AddDefineSubsitute(sumAllUnitsPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInputMemDesc.Width * firstInputMemDesc.Height);
 
 				deviceAndSumKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
@@ -481,19 +482,19 @@ namespace Matuna
 				kernel->AddGlobalSize(firstInputData.Width);
 				kernel->AddGlobalSize(firstInputData.Height);
 
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_COUNT", to_string(firstOutputData.Units));
-				kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_WIDTH", to_string(convolutionConfig.FilterWidth()));
-				kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_HEIGHT", to_string(convolutionConfig.FilterHeight()));
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_OFFSET", to_string(firstInMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_LIMIT", to_string(firstInMemDesc.UnitOffset + firstOutputData.Units));
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_STRIDE", to_string(firstInMemDesc.Width));
-				kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_STRIDE", to_string(firstInputData.Width));
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_WIDTH_OFFSET", to_string(firstInMemDesc.WidthOffset - convolutionConfig.FilterWidth() + 1));
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_HEIGHT_OFFSET", to_string(firstInMemDesc.HeightOffset - convolutionConfig.FilterHeight() + 1));
-				kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_WIDTH_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_HEIGHT_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstInMemDesc.Width * firstInMemDesc.Height));
-				kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight()));
+				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_COUNT", firstOutputData.Units);
+				kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_WIDTH", convolutionConfig.FilterWidth());
+				kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_HEIGHT", convolutionConfig.FilterHeight());
+				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_OFFSET", firstInMemDesc.UnitOffset);
+				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_LIMIT", firstInMemDesc.UnitOffset + firstOutputData.Units);
+				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_STRIDE", firstInMemDesc.Width);
+				kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_STRIDE", firstInputData.Width);
+				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_WIDTH_OFFSET", firstInMemDesc.WidthOffset - convolutionConfig.FilterWidth() + 1);
+				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_HEIGHT_OFFSET", firstInMemDesc.HeightOffset - convolutionConfig.FilterHeight() + 1);
+				kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_WIDTH_OFFSET", 0);
+				kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_HEIGHT_OFFSET", 0);
+				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInMemDesc.Width * firstInMemDesc.Height);
+				kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING", convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight());
 
 				deviceAndBackConvolutionKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
@@ -527,21 +528,21 @@ namespace Matuna
 
 				kernel->AddGlobalSize(firstOutputData.Units);
 
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstInBackMemDesc.Width * firstInBackMemDesc.Height));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_LEFT", to_string(borderStartLeft));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_RIGHT", to_string(borderStartRight));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_UP", to_string(borderStartUp));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_DOWN", to_string(borderStartDown));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_LEFT", to_string(borderStartLeft + borderHorizontalSize - 1));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_RIGHT", to_string(borderStartRight + borderHorizontalSize - 1));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_UP", to_string(borderStartUp + borderVerticalSize - 1));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_DOWN", to_string(borderStartDown + borderVerticalSize - 1));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_SIZE_HORIZONTAL", to_string(borderHorizontalSize));
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_SIZE_VERTICAL", to_string(borderVerticalSize));
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_UNIT_OFFSET", to_string(firstInBackMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_DATA_WIDTH", to_string(firstOutputData.Width));
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_DATA_HEIGHT", to_string(firstOutputData.Height));
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_STRIDE", to_string(firstInBackMemDesc.Width));
+				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Width * firstInBackMemDesc.Height);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_LEFT", borderStartLeft);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_RIGHT", borderStartRight);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_UP", borderStartUp);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_DOWN", borderStartDown);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_LEFT", borderStartLeft + borderHorizontalSize - 1);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_RIGHT", borderStartRight + borderHorizontalSize - 1);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_UP", borderStartUp + borderVerticalSize - 1);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_DOWN", borderStartDown + borderVerticalSize - 1);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_SIZE_HORIZONTAL", borderHorizontalSize);
+				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_SIZE_VERTICAL", borderVerticalSize);
+				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
+				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_DATA_WIDTH", firstOutputData.Width);
+				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_DATA_HEIGHT", firstOutputData.Height);
+				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_STRIDE", firstInBackMemDesc.Width);
 
 				deviceAndZeroKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
@@ -576,19 +577,19 @@ namespace Matuna
 				kernel->AddGlobalSize(firstInputData.Height);
 				kernel->AddGlobalSize(firstInputData.Units);
 
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstInForwardMemDesc.Width * firstInForwardMemDesc.Height));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstOutputBackMemDesc.Width * firstOutputBackMemDesc.Height));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_STRIDE", to_string(firstInputData.Width));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_STRIDE", to_string(firstOutputBackMemDesc.Width));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_STRIDE", to_string(firstInForwardMemDesc.Width));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_WIDTH_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_HEIGHT_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_WIDTH_OFFSET", to_string(firstOutputBackMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_HEIGHT_OFFSET", to_string(firstOutputBackMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_UNIT_OFFSET", to_string(firstOutputBackMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_WIDTH_OFFSET", to_string(firstInForwardMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_HEIGHT_OFFSET", to_string(firstInForwardMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_UNIT_OFFSET", to_string(firstInForwardMemDesc.UnitOffset));
+				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInForwardMemDesc.Width * firstInForwardMemDesc.Height);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstOutputBackMemDesc.Width * firstOutputBackMemDesc.Height);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_STRIDE", firstInputData.Width);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_STRIDE", firstOutputBackMemDesc.Width);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_STRIDE", firstInForwardMemDesc.Width);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_WIDTH_OFFSET", 0);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_HEIGHT_OFFSET", 0);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_WIDTH_OFFSET", firstOutputBackMemDesc.WidthOffset);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_HEIGHT_OFFSET", firstOutputBackMemDesc.HeightOffset);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_UNIT_OFFSET", firstOutputBackMemDesc.UnitOffset);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_WIDTH_OFFSET", firstInForwardMemDesc.WidthOffset);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_HEIGHT_OFFSET", firstInForwardMemDesc.HeightOffset);
+				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_UNIT_OFFSET", firstInForwardMemDesc.UnitOffset);
 
 				deviceAndMultiplyKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
@@ -614,14 +615,14 @@ namespace Matuna
 
 				kernel->AddGlobalSize(convolutionConfig.FilterCount());
 
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_STRIDE", to_string(firstInBackMemDesc.Width));
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_WIDTH_OFFSET", to_string(firstInBackMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(sumUnitPath, "WIDTH_LIMIT", to_string(firstInBackMemDesc.WidthOffset +firstOutputData.Width));
-				kernel->AddDefineSubsitute(sumUnitPath, "HEIGHT_LIMIT", to_string(firstInBackMemDesc.HeightOffset + firstOutputData.Height));
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_HEIGHT_OFFSET", to_string(firstInBackMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_OFFSET", to_string(firstInBackMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstInBackMemDesc.Width * firstInBackMemDesc.Height));
-				kernel->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", to_string(convolutionConfig.FilterHeight() * convolutionConfig.FilterWidth() * convolutionConfig.FilterCount()));
+				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_STRIDE", firstInBackMemDesc.Width);
+				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_WIDTH_OFFSET", firstInBackMemDesc.WidthOffset);
+				kernel->AddDefineSubsitute(sumUnitPath, "WIDTH_LIMIT", firstInBackMemDesc.WidthOffset +firstOutputData.Width);
+				kernel->AddDefineSubsitute(sumUnitPath, "HEIGHT_LIMIT", firstInBackMemDesc.HeightOffset + firstOutputData.Height);
+				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_HEIGHT_OFFSET", firstInBackMemDesc.HeightOffset);
+				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
+				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Width * firstInBackMemDesc.Height);
+				kernel->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", convolutionConfig.FilterHeight() * convolutionConfig.FilterWidth() * convolutionConfig.FilterCount());
 
 				deviceAndSumUnitKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
@@ -656,21 +657,21 @@ namespace Matuna
 				kernel->AddGlobalSize(convolutionConfig.FilterHeight());
 				kernel->AddGlobalSize(convolutionConfig.FilterCount());
 
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_STRIDE", to_string(firstInBackMemDesc.Width));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_STRIDE", to_string(convolutionConfig.FilterWidth()));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_STRIDE", to_string(firstInputData.Width));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_WIDTH_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_HEIGHT_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_WIDTH_OFFSET", to_string(firstInBackMemDesc.WidthOffset));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_HEIGHT_OFFSET", to_string(firstInBackMemDesc.HeightOffset));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_UNIT_OFFSET", to_string(firstInBackMemDesc.UnitOffset));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "WIDTH_LIMIT", to_string(firstOutputData.Width));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "HEIGHT_LIMIT", to_string(firstOutputData.Height));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight()));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_UNIT_ELEMENT_COUNT_INC_PADDING", to_string(firstInBackMemDesc.Height * firstInBackMemDesc.Width));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_WIDTH_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_HEIGHT_OFFSET", to_string(0));
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_UNIT_OFFSET", to_string(0));
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_STRIDE", firstInBackMemDesc.Width);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_STRIDE", convolutionConfig.FilterWidth());
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_STRIDE", firstInputData.Width);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_WIDTH_OFFSET", 0);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_HEIGHT_OFFSET", 0);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_WIDTH_OFFSET", firstInBackMemDesc.WidthOffset);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_HEIGHT_OFFSET", firstInBackMemDesc.HeightOffset);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "WIDTH_LIMIT", firstOutputData.Width);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "HEIGHT_LIMIT", firstOutputData.Height);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight());
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Height * firstInBackMemDesc.Width);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_WIDTH_OFFSET", 0);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_HEIGHT_OFFSET", 0);
+				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_UNIT_OFFSET", 0);
 
 				deviceAndMultiplyWithOffsetKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));

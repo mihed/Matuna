@@ -11,6 +11,7 @@
 #include "Matuna.ConvNet/GradientDescentConfig.h"
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Path.h"
+#include "Matuna.Helper/Converter.h"
 
 #include "LayerKernel.h"
 
@@ -486,7 +487,7 @@ namespace Matuna {
 				unique_ptr<OCLProgram> gradientProgram(new OCLProgram());
 				gradientProgram->AddIncludePath(OCLProgram::DefaultSourceLocation);
 				gradientProgram->AddProgramPath(Path::Combine(OCLProgram::DefaultSourceLocation, "AccumulateVectorKernel.cl"));
-				gradientProgram->SetName("GradientProgram" + to_string(gradientProgram->InstanceCount()));
+				gradientProgram->SetName("GradientProgram" + Converter::ConvertToString(gradientProgram->InstanceCount()));
 				auto programPointer = gradientProgram.get();
 				unique_ptr<LayerKernel<T>> vectorKernelHolder(new LayerKernel<T>());
 				auto vectorKernel = vectorKernelHolder.get();

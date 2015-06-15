@@ -29,7 +29,7 @@ SCENARIO("Testing and executing a layer kernel")
 		kernel->AddSourcePath(path);
 		kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
 		kernel->AddGlobalSize(memoryCount);
-		kernel->AddDefineSubsitute(path, "OFFSET_SCALAR", to_string(10)); 
+		kernel->AddDefineSubsitute(path, "OFFSET_SCALAR", 10);
 
 		program->AttachKernel(unique_ptr<OCLKernel>(kernel));
 		context->AttachProgram(unique_ptr<OCLProgram>(program), context->GetDevices());
@@ -47,7 +47,7 @@ SCENARIO("Testing and executing a layer kernel")
 		kernel2->AddSourcePath(path);
 		kernel2->AddIncludePath(OCLProgram::DefaultSourceLocation);
 		kernel2->AddGlobalSize(memoryCount);
-		kernel2->AddDefineSubsitute(path, "OFFSET_SCALAR", to_string(10));
+		kernel2->AddDefineSubsitute(path, "OFFSET_SCALAR", 10);
 		kernel2->AddDefine(path, "USE_OFFSET");
 
 		program2->AttachKernel(unique_ptr<OCLKernel>(kernel2));

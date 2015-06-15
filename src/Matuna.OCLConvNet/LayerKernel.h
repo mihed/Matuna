@@ -37,7 +37,10 @@ namespace Matuna
 			~LayerKernel();
 
 			void SetKernelName(string name);
-			void AddDefineSubsitute(string path, string defineName, string defineValue);
+			void AddDefineSubsitute(string path, string defineName, int defineValue);
+			void AddDefineSubsitute(string path, string defineName, float defineValue);
+			void AddDefineSubsitute(string path, string defineName, double defineValue);
+			void AddDefineSubsitute(string path, string defineName, long defineValue);
 			void AddDefine(string path, string defineName);
 
 			void SetMemoryArg(OCLMemory* memory, int index);
@@ -60,6 +63,9 @@ namespace Matuna
 			virtual vector<string> GetSourcePaths() const override;
 			virtual unordered_map<string,unordered_map<string, string>> GetDefineSubstitutes() const override;
 			virtual unordered_map<string, unordered_set<string>> GetDefines() const override;
+
+		private:
+			void InsertDefineSubstitute(string path, string defineName, string value);
 		};
 
 	} /* namespace MachineLearning */
