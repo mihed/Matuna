@@ -22,7 +22,6 @@
 #include "OCLDeviceInfo.h"
 #include "OCLDevice.h"
 #include "OCLKernel.h"
-#include "OCLKernelProgram.h"
 #include "OCLMemory.h"
 
 using namespace std;
