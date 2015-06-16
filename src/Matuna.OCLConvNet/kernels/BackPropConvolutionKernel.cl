@@ -14,14 +14,14 @@
 #define INPUT_UNIT_OFFSET -1
 #define INPUT_UNIT_LIMIT -1
 #define INPUT_UNIT_COUNT -1
-#define INPUT_STRIDE -1
-#define OUTPUT_STRIDE -1
-#define INPUT_WIDTH_OFFSET -1
-#define INPUT_HEIGHT_OFFSET -1
-#define OUTPUT_WIDTH_OFFSET -1
-#define OUTPUT_HEIGHT_OFFSET -1
-#define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#define FILTER_UNIT_ELEMENT_COUNT_INC_PADDING -1
+#define INPUT_UNIT_MEMORY_WIDTH -1
+#define OUTPUT_UNIT_MEMORY_WIDTH -1
+#define INPUT_UNIT_MEMORY_WIDTH_OFFSET -1
+#define INPUT_UNIT_MEMORY_HEIGHT_OFFSET -1
+#define OUTPUT_UNIT_MEMORY_WIDTH_OFFSET -1
+#define OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET -1
+#define INPUT_UNIT_MEMORY_ELEMENTS -1
+#define FILTER_UNIT_ELEMENTS -1
 //#define CONSTANT_INPUT
 //#define USE_LOCAL_MEMORY
 //#define CONSTANT_FILTERS
@@ -55,7 +55,7 @@ __kernel void BackPropConvolutionKernel(
 	const int xIndex = get_global_id(0);
 	const int yIndex = get_global_id(1);
 
-	const int tempYIndex = (yIndex + INPUT_HEIGHT_OFFSET) * INPUT_STRIDE + xIndex + INPUT_WIDTH_OFFSET;
+	const int tempYIndex = (yIndex + INPUT_UNIT_MEMORY_HEIGHT_OFFSET) * INPUT_UNIT_MEMORY_WIDTH + xIndex + INPUT_UNIT_MEMORY_WIDTH_OFFSET;
 	const int maxFilterHeightIndex = FILTER_HEIGHT - 1;
 	const int maxFilterWidthIndex = FILTER_WIDTH - 1;
 
@@ -85,7 +85,7 @@ __kernel void BackPropConvolutionKernel(
 	int localIndexCounter = 0;
 	for (int i = INPUT_UNIT_OFFSET; i < INPUT_UNIT_LIMIT; i++)
 	{
-		globalTemp1 = INPUT_UNIT_ELEMENT_COUNT_INC_PADDING * i + tempYIndex;
+		globalTemp1 = INPUT_UNIT_MEMORY_ELEMENTS * i + tempYIndex;
 		localTemp1 = localElementCount * localIndexCounter + localIndex;
 		localIndexCounter++;
 		if (xIndexLocal == xMaxIndexLocal && yIndexLocal == yMaxIndexLocal)
@@ -93,7 +93,7 @@ __kernel void BackPropConvolutionKernel(
 			for (int u = 0; u < FILTER_HEIGHT; u++)
 			{
 				localTemp2 = localTemp1 + u * localCacheWidth;
-				globalTemp2 = globalTemp1 + u * INPUT_STRIDE;
+				globalTemp2 = globalTemp1 + u * INPUT_UNIT_MEMORY_WIDTH;
 				for (int v = 0; v < FILTER_WIDTH; v++)
 				{
 					cache[localTemp2 + v] = inputDelta[globalTemp2 + v];
@@ -117,7 +117,7 @@ __kernel void BackPropConvolutionKernel(
 		{
 			for (int u = 0; u < FILTER_HEIGHT; u++)
 			{
-				cache[localTemp1 + u * localCacheWidth] = inputDelta[globalTemp1 + u * INPUT_STRIDE];
+				cache[localTemp1 + u * localCacheWidth] = inputDelta[globalTemp1 + u * INPUT_UNIT_MEMORY_WIDTH];
 				//TEST------------
 				//printf("Cache height loop: %f \n", cache[localTemp1 + u * localCacheWidth]);
 				//TEST------------
@@ -146,7 +146,7 @@ __kernel void BackPropConvolutionKernel(
 	for (int i = 0; i < INPUT_UNIT_COUNT; i++)
 	{
 		tempIndex = localElementCount * i + localIndex;
-		tempIndex4 = FILTER_UNIT_ELEMENT_COUNT_INC_PADDING * i;
+		tempIndex4 = FILTER_UNIT_ELEMENTS * i;
 		for (int u = 0; u < FILTER_HEIGHT; u++)
 		{
 			tempIndex2 = tempIndex + localCacheWidth * u;
@@ -164,12 +164,12 @@ __kernel void BackPropConvolutionKernel(
 	int filterCounter = 0;
 	for (int i = INPUT_UNIT_OFFSET; i < INPUT_UNIT_LIMIT; i++)
 	{
-		tempIndex = INPUT_UNIT_ELEMENT_COUNT_INC_PADDING * i + tempYIndex;
-		tempIndex4 = FILTER_UNIT_ELEMENT_COUNT_INC_PADDING * filterCounter;
+		tempIndex = INPUT_UNIT_MEMORY_ELEMENTS * i + tempYIndex;
+		tempIndex4 = FILTER_UNIT_ELEMENTS * filterCounter;
 		filterCounter++;
 		for (int u = 0; u < FILTER_HEIGHT; u++)
 		{
-			tempIndex2 = tempIndex + INPUT_STRIDE * u;
+			tempIndex2 = tempIndex + INPUT_UNIT_MEMORY_WIDTH * u;
 			tempIndex3 = FILTER_WIDTH * (maxFilterHeightIndex - u) + tempIndex4;
 			for (int v = 0; v < FILTER_WIDTH; v++)
 			{
@@ -179,5 +179,5 @@ __kernel void BackPropConvolutionKernel(
 	}
 #endif
 
-	output[xIndex + OUTPUT_WIDTH_OFFSET + OUTPUT_STRIDE * (yIndex + OUTPUT_HEIGHT_OFFSET)] = sum;
+	output[xIndex + OUTPUT_UNIT_MEMORY_WIDTH_OFFSET + OUTPUT_UNIT_MEMORY_WIDTH * (yIndex + OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET)] = sum;
 }

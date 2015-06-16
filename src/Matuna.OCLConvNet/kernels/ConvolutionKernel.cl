@@ -13,15 +13,15 @@
  * - LOCAL_CACHE_WIDTH: The stride of the local cache when USE_LOCAL_MEMORY is used
  * - FILTER_WIDTH: The stride of the filter buffer. We assume that there's no padding in the filters.
  * - FILTER_HEIGHT: The height of a filter.
- * - INPUT_OFFSET_WIDTH: The width offset of the input buffer
- * - INPUT_OFFSET_HEIGHT: The height offset of the input buffer
- * - OUTPUT_OFFSET_WIDTH: The width offset of the output buffer
- * - OUTPUT_OFFSET_HEIGHT: The height offset of the output buffer
- * - OUTPUT_OFFSET_UNIT: The unit offset of the output buffer
- * - OUTPUT_WIDTH: The stride of the output buffer
- * - INPUT_WIDTH: The stride of the input buffer (Observe that there's no unit offset for this buffer, since we only support a single image for input)
- * - OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING: Stride * Height of the buffer
- * - FILTER_UNIT_ELEMENT_COUNT_INC_PADDING: Stride * Height of the buffer. Observe that there's no actual padding atm for the filters.
+ * - INPUT_UNIT_MEMORY_WIDTH_OFFSET: The width offset of the input buffer
+ * - INPUT_UNIT_MEMORY_HEIGHT_OFFSET: The height offset of the input buffer
+ * - OUTPUT_UNIT_MEMORY_WIDTH_OFFSET: The width offset of the output buffer
+ * - OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET: The height offset of the output buffer
+ * - OUTPUT_UNIT_OFFSET: The unit offset of the output buffer
+ * - OUTPUT_UNIT_MEMORY_WIDTH: The stride of the output buffer
+ * - INPUT_UNIT_MEMORY_WIDTH: The stride of the input buffer (Observe that there's no unit offset for this buffer, since we only support a single image for input)
+ * - OUTPUT_UNIT_MEMORY_ELEMENTS: Stride * Height of the buffer
+ * - FILTER_UNIT_ELEMENTS: Stride * Height of the buffer. Observe that there's no actual padding atm for the filters.
  * - SIGMOID: If we are using sigmoid activation
  * - TANH: If we are using tanh activation
  * - HALF_MATH: If we use half precision math
@@ -38,15 +38,15 @@
 //<!@
 #define FILTER_WIDTH -1
 #define FILTER_HEIGHT -1
-#define INPUT_OFFSET_WIDTH -1
-#define INPUT_OFFSET_HEIGHT -1
-#define OUTPUT_OFFSET_WIDTH -1
-#define OUTPUT_OFFSET_HEIGHT -1
-#define OUTPUT_OFFSET_UNIT -1
-#define OUTPUT_WIDTH -1
-#define INPUT_WIDTH -1
-#define OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#define FILTER_UNIT_ELEMENT_COUNT_INC_PADDING -1
+#define INPUT_UNIT_MEMORY_WIDTH_OFFSET -1
+#define INPUT_UNIT_MEMORY_HEIGHT_OFFSET -1
+#define OUTPUT_UNIT_MEMORY_WIDTH_OFFSET -1
+#define OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET -1
+#define OUTPUT_UNIT_OFFSET -1
+#define OUTPUT_UNIT_MEMORY_WIDTH -1
+#define INPUT_UNIT_MEMORY_WIDTH -1
+#define OUTPUT_UNIT_MEMORY_ELEMENTS -1
+#define FILTER_UNIT_ELEMENTS -1
 //#define CONSTANT_INPUT
 //#define CONSTANT_FILTERS
 //#define USE_LOCAL_MEMORY
@@ -87,52 +87,7 @@ __kernel void ConvolutionKernel(
 	const int yIndex = get_global_id(1);
 	const int zIndex = get_global_id(2);
 
-	//TEST------------------------------------------------
-	/*
-	 if (get_global_id(0) == 0 && get_global_id(1) == 0 && get_global_id(2) == 0)
-	 {
-	 printf("FILTER_WIDTH: %i \n", FILTER_WIDTH);
-	 printf("FILTER_HEIGHT: %i \n", FILTER_HEIGHT);
-	 printf("INPUT_OFFSET_WIDTH: %i \n", INPUT_OFFSET_WIDTH);
-	 printf("INPUT_OFFSET_HEIGHT: %i \n", INPUT_OFFSET_HEIGHT);
-	 printf("OUTPUT_OFFSET_WIDTH: %i \n", OUTPUT_OFFSET_WIDTH);
-	 printf("OUTPUT_OFFSET_HEIGHT: %i \n", OUTPUT_OFFSET_HEIGHT);
-	 printf("OUTPUT_OFFSET_UNIT: %i \n", OUTPUT_OFFSET_UNIT);
-	 printf("OUTPUT_WIDTH: %i \n", OUTPUT_WIDTH);
-	 printf("INPUT_WIDTH: %i \n", INPUT_WIDTH);
-	 printf("OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING : %i \n", OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING );
-	 printf("FILTER_UNIT_ELEMENT_COUNT_INC_PADDING : %i \n", FILTER_UNIT_ELEMENT_COUNT_INC_PADDING );
-	 #if defined(SIGMOID)
-	 printf("Using sigmoid \n");
-	 #elif defined(TANH)
-	 printf("Using tanh \n");
-	 #else
-	 printf("Using linear \n");
-	 #endif
-	 #if defined(HALF_MATH)
-	 printf("Using half math \n");
-	 #elif defined(NATIVE_MATH)
-	 printf("Using native math \n");
-	 #else
-	 printf("Using normal math \n");
-	 #endif
-
-	 #ifdef CONSTANT_INPUT
-	 printf("Constant input \n");
-	 #endif
-	 #ifdef CONSTANT_BIAS
-	 printf("Constant bias \n");
-	 #endif
-	 #ifdef CONSTANT_FILTERS
-	 printf("Constant filters \n");
-	 #endif
-	 #ifdef USE_LOCAL_MEMORY
-	 printf("Using local memory \n");
-	 #endif
-	 }
-	 */
-	//END TEST------------------------------------------------
-	const int globalInputIndex = xIndex + INPUT_OFFSET_WIDTH + INPUT_WIDTH * (yIndex + INPUT_OFFSET_HEIGHT);
+	const int globalInputIndex = xIndex + INPUT_UNIT_MEMORY_WIDTH_OFFSET + INPUT_UNIT_MEMORY_WIDTH * (yIndex + INPUT_UNIT_MEMORY_HEIGHT_OFFSET);
 
 #ifdef USE_LOCAL_MEMORY
 	const int xIndexLocal = get_local_id(0);
@@ -153,7 +108,7 @@ __kernel void ConvolutionKernel(
 		for (int i = 0; i < FILTER_HEIGHT; i++)
 		{
 			localTemp1 = localIndex + i * localCacheWidth;
-			globalTemp1 = globalInputIndex + i * INPUT_WIDTH;
+			globalTemp1 = globalInputIndex + i * INPUT_UNIT_MEMORY_WIDTH;
 			for (int j = 0; j < FILTER_WIDTH; j++)
 			{
 				cache[localTemp1 + j] = input[globalTemp1 + j];
@@ -171,7 +126,7 @@ __kernel void ConvolutionKernel(
 	{
 		for (int i = 0; i < FILTER_HEIGHT; i++)
 		{
-			cache[localIndex + i * localCacheWidth] = input[globalInputIndex + i * INPUT_WIDTH];
+			cache[localIndex + i * localCacheWidth] = input[globalInputIndex + i * INPUT_UNIT_MEMORY_WIDTH];
 		}
 	}
 	else
@@ -186,7 +141,7 @@ __kernel void ConvolutionKernel(
 	//TEST------------------------------------------------
 	//printf("Input: %f \n", input[globalInputIndex]);
 	//END TEST------------------------------------------------
-	const int filterZCache = FILTER_UNIT_ELEMENT_COUNT_INC_PADDING * zIndex;
+	const int filterZCache = FILTER_UNIT_ELEMENTS * zIndex;
 
 	real_t sum = 0;
 
@@ -208,7 +163,7 @@ __kernel void ConvolutionKernel(
 	for(int i = 0; i < FILTER_HEIGHT; i++)
 	{
 		filterTemp = filterZCache + FILTER_WIDTH * i;
-		inputTemp = globalInputIndex + INPUT_WIDTH * i;
+		inputTemp = globalInputIndex + INPUT_UNIT_MEMORY_WIDTH * i;
 		for (int j = 0; j < FILTER_WIDTH; j++)
 		{
 			sum += input[inputTemp + j] * filters[filterTemp + j];
@@ -219,7 +174,7 @@ __kernel void ConvolutionKernel(
 	}
 #endif
 
-	const int outputIndex = xIndex + OUTPUT_OFFSET_WIDTH + OUTPUT_WIDTH * (OUTPUT_OFFSET_HEIGHT + yIndex) + OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING * (zIndex + OUTPUT_OFFSET_UNIT);
+	const int outputIndex = xIndex + OUTPUT_UNIT_MEMORY_WIDTH_OFFSET + OUTPUT_UNIT_MEMORY_WIDTH * (OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET + yIndex) + OUTPUT_UNIT_MEMORY_ELEMENTS * (zIndex + OUTPUT_UNIT_OFFSET);
 	//TEST------------------------------------------------
 	//printf("Bias: %f \n", biases[zIndex]);
 	//END TEST------------------------------------------------
