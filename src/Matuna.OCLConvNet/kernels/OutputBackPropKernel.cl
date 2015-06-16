@@ -4,10 +4,10 @@
 
 /**
  * Macros to define:
- * - DIFFERENCE:         The back prop will use a simple difference between the target and the input
- * - MSE_ANY:            The back prop will use the MSE together with any back-prop activation function.
- * - CE_ANY:             The back prop will use the CE together with any back-prop activation function.
- * - CE_BINARY_ANY:      The back prop will use the CE binary together with any back-prop activation function.
+ * - MATUNA_DIFFERENCE:         The back prop will use a simple difference between the target and the input
+ * - MATUNA_MSE_ANY:            The back prop will use the MATUNA_MSE together with any back-prop activation function.
+ * - MATUNA_CE_ANY:             The back prop will use the MATUNA_CE together with any back-prop activation function.
+ * - MATUNA_CE_BINARY_ANY:      The back prop will use the MATUNA_CE binary together with any back-prop activation function.
  * - DOUBLE_PRECISION:   If the kernel is to be executed with double precision.
  * - CONSTANT_INPUT:     If we may put the inputs into the constant memory space.
  * - CONSTANT_TARGET:    If we may put the targets into the constant memory space.
@@ -31,15 +31,15 @@
 #define OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
 #define OUTPUT_UNIT_OFFSET -1
-//#define DIFFERENCE
-//#define MSE_ANY
-//#define CE_ANY
-//#define CE_BINARY_ANY
+//#define MATUNA_DIFFERENCE
+//#define MATUNA_MSE_ANY
+//#define MATUNA_CE_ANY
+//#define MATUNA_CE_BINARY_ANY
 //#define CONSTANT_INPUT
 //#define CONSTANT_TARGET
 //!@>
 
-#if defined(DIFFERENCE)
+#if defined(MATUNA_DIFFERENCE)
 
 __kernel void BackPropagation(
 #ifdef CONSTANT_INPUT
@@ -64,7 +64,7 @@ __kernel void BackPropagation(
 	output[outputIndex] = input[inputIndex] - target[inputIndex];
 }
 
-#elif defined(MSE_ANY)
+#elif defined(MATUNA_MSE_ANY)
 
 __kernel void BackPropagation(
 #ifdef CONSTANT_INPUT
@@ -92,7 +92,7 @@ __kernel void BackPropagation(
 
 }
 
-#elif defined(CE_BINARY_ANY)
+#elif defined(MATUNA_CE_BINARY_ANY)
 
 __kernel void BackPropagation(
 #ifdef CONSTANT_INPUT
@@ -123,7 +123,7 @@ __kernel void BackPropagation(
 #endif
 }
 
-#elif defined(CE_ANY)
+#elif defined(MATUNA_CE_ANY)
 
 __kernel void BackPropagation(
 #ifdef CONSTANT_INPUT

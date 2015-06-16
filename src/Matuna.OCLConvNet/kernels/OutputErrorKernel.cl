@@ -2,9 +2,9 @@
 
 /**
  * Macros to define:
- * - MSE:                 Mean Squared Error function
- * - CE:                  Cross Entropy error function
- * - CE_BINARY:           Cross Entropy Binary function
+ * - MATUNA_MSE:                 Mean Squared Error function
+ * - MATUNA_CE:                  Cross Entropy error function
+ * - MATUNA_CE_BINARY:           Cross Entropy Binary function
  * - CONSTANT_INPUT:      If we may put the inputs into the constant memory space.
  * - CONSTANT_TARGET:     If we may put the targets into the constant memory space.
  * - INPUT_UNIT_OFFSET:   The offset of the input / target memory .
@@ -25,9 +25,9 @@
 #define INPUT_STRIDE -1
 #define INPUT_UNIT_LIMIT -1
 #define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-//#define MSE
-//#define CE_BINARY
-//#define CE
+//#define MATUNA_MSE
+//#define MATUNA_CE_BINARY
+//#define MATUNA_CE
 //#define CONSTANT_INPUT
 //#define CONSTANT_TARGET
 //!@>
@@ -40,7 +40,7 @@
 #define HALF 0.5f
 #endif
 
-#if defined(CE_BINARY)
+#if defined(MATUNA_CE_BINARY)
 
 __kernel void Error(
 #ifdef CONSTANT_INPUT
@@ -73,7 +73,7 @@ __kernel void Error(
 #endif
 }
 
-#elif defined(CE)
+#elif defined(MATUNA_CE)
 
 __kernel void Error(
 #ifdef CONSTANT_INPUT
@@ -120,7 +120,7 @@ __kernel void Error(
 	*error = -sum;
 }
 
-#elif defined(MSE)
+#elif defined(MATUNA_MSE)
 
 __kernel void Error(
 #ifdef CONSTANT_INPUT

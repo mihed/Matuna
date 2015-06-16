@@ -207,14 +207,14 @@ namespace Matuna
 			//Refer to the notes for this
 			if (errorFunction == MatunaMeanSquareError)
 			{
-				imageErrorKernel->AddDefine(errorSourcePath, "MSE");
+				imageErrorKernel->AddDefine(errorSourcePath, "MATUNA_MSE");
 			}
 			else if (errorFunction == MatunaCrossEntropy)
 			{
 				if (dataUnits == 1 && dataWidth == 1 && dataHeight == 1)
-					imageErrorKernel->AddDefine(errorSourcePath, "CE_BINARY");
+					imageErrorKernel->AddDefine(errorSourcePath, "MATUNA_CE_BINARY");
 				else
-					imageErrorKernel->AddDefine(errorSourcePath, "CE");
+					imageErrorKernel->AddDefine(errorSourcePath, "MATUNA_CE");
 			}
 			else
 				throw invalid_argument(
@@ -337,25 +337,25 @@ namespace Matuna
 			if (errorFunction == MatunaMeanSquareError)
 			{
 				if (activationFunction == MatunaLinearActivation)
-					imageOutputKernel->AddDefine(outputSourcePath, "DIFFERENCE");
+					imageOutputKernel->AddDefine(outputSourcePath, "MATUNA_DIFFERENCE");
 				else
-					imageOutputKernel->AddDefine(outputSourcePath, "MSE_ANY");
+					imageOutputKernel->AddDefine(outputSourcePath, "MATUNA_MSE_ANY");
 			}
 			else if (errorFunction == MatunaCrossEntropy)
 			{
 				if (useBinary)
 				{
 					if (activationFunction == MatunaSigmoidActivation)
-						imageOutputKernel->AddDefine(outputSourcePath, "DIFFERENCE");
+						imageOutputKernel->AddDefine(outputSourcePath, "MATUNA_DIFFERENCE");
 					else
-						imageOutputKernel->AddDefine(outputSourcePath, "CE_BINARY_ANY");
+						imageOutputKernel->AddDefine(outputSourcePath, "MATUNA_CE_BINARY_ANY");
 				}
 				else
 				{
 					if (activationFunction == MatunaSoftMaxActivation)
-						imageOutputKernel->AddDefine(outputSourcePath, "DIFFERENCE");
+						imageOutputKernel->AddDefine(outputSourcePath, "MATUNA_DIFFERENCE");
 					else
-						imageOutputKernel->AddDefine(outputSourcePath, "CE_ANY");
+						imageOutputKernel->AddDefine(outputSourcePath, "MATUNA_CE_ANY");
 				}
 			}
 			else
