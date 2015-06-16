@@ -202,7 +202,7 @@ SCENARIO("Testing the gradient descent training algorithm")
 			algorithmConfig->SetBatchSize(5);
 			algorithmConfig->SetEpochs(100);
 			algorithmConfig->SetSamplesPerEpoch(5);
-			algorithmConfig->SetStepSizeCallback([] (int x){ return -0.00001;});
+			algorithmConfig->SetStepSizeCallback([] (int x){ return 0.00001;});
 
 			for (int i = 0; i < network.OutputForwardMemoryDescriptions().size(); i++)
 			{

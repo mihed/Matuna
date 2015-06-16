@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
 	trainingConfig->SetEpochs(10);
 	auto callBack = [] (int x) 
 	{ 
-		return -0.001;
+		return 0.001;
 	};
 
 	trainingConfig->SetStepSizeCallback(callBack);

@@ -33,11 +33,8 @@ namespace Matuna
 		{
 
 		private:
-			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndForwardKernels;
 			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndImageForwardKernels;
-			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndBackKernels;
 			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndImageBackKernels;
-			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndGradientKernels;
 			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndImageGradientKernels;
 
 			unique_ptr<OCLMemory> scalarCache;
@@ -48,8 +45,6 @@ namespace Matuna
 			unique_ptr<OCLMemory> biases;
 			PerceptronLayerConfig config;
 			LayerDataDescription inputDescription;
-
-			bool useImage;
 
 		public:
 			PerceptronLayer(shared_ptr<OCLContext> context,

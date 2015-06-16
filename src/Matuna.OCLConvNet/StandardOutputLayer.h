@@ -30,12 +30,8 @@ namespace Matuna
 		{
 		private:
 			shared_ptr<OCLContext> context;
-			unordered_map<OCLDevice*, LayerKernel<T>*> outputKernels;
 			unordered_map<OCLDevice*, LayerKernel<T>*> imageOutputKernels;
-			unordered_map<OCLDevice*, LayerKernel<T>*> errorKernels;
 			unordered_map<OCLDevice*, LayerKernel<T>*> imageErrorKernels;
-
-			bool useImage;
 
 			StandardOutputLayerConfig config;
 			LayerDataDescription inputDescription;
@@ -58,7 +54,6 @@ namespace Matuna
 
 		private:
 			void InitializeImageProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
-			void InitializeProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
 			void SetErrorFunctionDefine(LayerKernel<T>* kernel, string path, bool binary);
 		};
 

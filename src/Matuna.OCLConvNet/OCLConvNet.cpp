@@ -513,7 +513,7 @@ namespace Matuna {
 					throw runtime_error(
 					"The template argument does not match the supported arguments");
 
-				T currentStepSize = stepSizeCallback(0);
+				T currentStepSize = -stepSizeCallback(0);
 
 				gradientProgram->AttachKernel(move(vectorKernelHolder));
 				gradientProgram->AttachKernel(move(scalarKernelHolder));
@@ -586,7 +586,7 @@ namespace Matuna {
 
 				for (int epoch = 0; epoch < epochs; epoch++) {
 					trainer->EpochStarted();
-					T stepSize = stepSizeCallback(0);
+					T stepSize = -stepSizeCallback(0);
 					for (int batch = 0; batch < batchIterations; batch++) {
 						trainer->BatchStarted();
 						for (int sample = 0; sample < batchSize; sample++) {
@@ -690,25 +690,6 @@ namespace Matuna {
 
 								device->WaitForDeviceQueue(0);
 							}
-
-							//TEST----------------
-							//auto testedGradient = CalculateGradientAligned(input, 0, target);
-							//auto accumulatedLength = 0;
-							//for (int tempIt = gradientsPointers.size() - 1; tempIt >= 0; tempIt--)
-							//{
-							//	for (auto pointer : gradientsPointers[tempIt])
-							//	{
-							//		auto tempLength = pointer->ByteSize() / sizeof(T);
-							//		unique_ptr<T[]> tempBuffer(new T[tempLength]);
-							//		device->ReadMemory(pointer, pointer->ByteSize(), tempBuffer.get());
-							//		for (int ost = 0; ost < tempLength; ost++)
-							//			if (abs(tempBuffer[ost] - testedGradient[ost + accumulatedLength]) > 1E-8)
-							//				throw runtime_error("The new gradient implementation is wrong");
-							//		accumulatedLength += tempLength;
-							//	}
-							//}
-							//trainer->UnmapInputAndTarget(input, target, formatIndex);
-							//END TEST------------
 						}
 
 						if (stopped)

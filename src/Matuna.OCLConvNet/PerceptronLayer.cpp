@@ -85,7 +85,6 @@ namespace Matuna
 			inputDescription = inputDataDescriptions[0];
 
 			scalarCache = nullptr;
-			useImage = false;
 		}
 
 		template<class T>
@@ -183,51 +182,22 @@ namespace Matuna
 				programs.insert(make_pair(device, move(program)));
 			}
 
-			//FIXME: A normal perceptron can handle offset in the unit direction, we don't need to fall back onto the image perceptron.
-			if (firstMemory.HeightOffset == 0 && firstMemory.UnitOffset == 0
-				&& firstMemory.WidthOffset == 0 && firstMemory.Width == 1
-				&& firstMemory.Height == 1
-				&& firstMemory.Units == inputDescription.Units)
+
+			InitializeImageProgram(programs);
+
+
+			//Attaching and compiling all the programs 
+			for (auto device : devices)
 			{
-				InitializeProgram(programs);
+				vector<OCLDevice*> oneDeviceVector;
+				oneDeviceVector.push_back(device);
+				this->context->AttachProgram(move(programs[device]), oneDeviceVector);
 
+				LayerKernel<T>* test = deviceAndImageForwardKernels[device];
 
-				//Attaching and compiling all the programs 
-				for (auto device : devices)
-				{
-					vector<OCLDevice*> oneDeviceVector;
-					oneDeviceVector.push_back(device);
-					this->context->AttachProgram(move(programs[device]), oneDeviceVector);
-
-					deviceAndForwardKernels[device]->SetMemoryArg(weights.get(), 2);
-					deviceAndForwardKernels[device]->SetMemoryArg(biases.get(), 3);
-
-					deviceAndBackKernels[device]->SetMemoryArg(weights.get(), 3);
-				}
-
-				useImage = false;
-			}
-			else
-			{
-				InitializeImageProgram(programs);
-
-
-				//Attaching and compiling all the programs 
-				for (auto device : devices)
-				{
-					vector<OCLDevice*> oneDeviceVector;
-					oneDeviceVector.push_back(device);
-					this->context->AttachProgram(move(programs[device]), oneDeviceVector);
-
-					LayerKernel<T>* test = deviceAndImageForwardKernels[device];
-
-					deviceAndImageForwardKernels[device]->SetMemoryArg(weights.get(), 2);
-					deviceAndImageForwardKernels[device]->SetMemoryArg(biases.get(), 3);
-
-					deviceAndImageBackKernels[device]->SetMemoryArg(weights.get(), 3);
-				}
-
-				useImage = true;
+				deviceAndImageForwardKernels[device]->SetMemoryArg(weights.get(), 2);
+				deviceAndImageForwardKernels[device]->SetMemoryArg(biases.get(), 3);
+				deviceAndImageBackKernels[device]->SetMemoryArg(weights.get(), 3);
 			}
 
 		}
@@ -436,164 +406,6 @@ namespace Matuna
 		}
 
 		template<class T>
-		void PerceptronLayer<T>::InitializeProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs)
-		{
-			auto& firstOutputData = this->outForwardPropDataDescriptions[0];
-			vector<OCLDevice*> devices = this->context->GetDevices();
-
-			string gradientPath = Path::Combine(OCLProgram::DefaultSourceLocation, "GradientPerceptronKernel.cl");
-			string backPropPath = Path::Combine(OCLProgram::DefaultSourceLocation, "BackPropPerceptronKernel.cl");
-			string forwardPropPath = Path::Combine(OCLProgram::DefaultSourceLocation, "ForwardPerceptronKernel.cl");
-			string simpleSumPath = Path::Combine(OCLProgram::DefaultSourceLocation, "SimpleSumKernel.cl");
-			string divideByScalarPath = Path::Combine(OCLProgram::DefaultSourceLocation, "DivideByScalarKernel.cl");
-
-			//Starting with the gradient kernel
-			for (auto device : devices)
-			{
-				auto deviceInfo = device->DeviceInfo();
-
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->AddSourcePath(gradientPath);
-				kernel->SetKernelName("GradientPerceptronKernel");
-
-				//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-				auto byteSize = firstOutputData.TotalUnits() * sizeof(T);
-				if (maximumConstantBufferSize > byteSize)
-				{
-					kernel->AddDefine(gradientPath, "CONSTANT_INPUT_DELTA");
-					maximumConstantBufferSize -= byteSize;
-				}
-
-				byteSize = inputDescription.TotalUnits() * sizeof(T);
-				if (maximumConstantBufferSize > byteSize)
-				{
-					kernel->AddDefine(gradientPath, "CONSTANT_INPUT");
-					maximumConstantBufferSize -= byteSize;
-				}
-
-				kernel->AddGlobalSize(inputDescription.TotalUnits());
-				kernel->AddGlobalSize(firstOutputData.TotalUnits());
-				kernel->AddDefineSubsitute(gradientPath, "WEIGHT_COLUMN_COUNT", inputDescription.TotalUnits());
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_DELTA_OFFSET", 0);
-				kernel->AddDefineSubsitute(gradientPath, "INPUT_OFFSET", 0); //We are not using these at the moment!
-
-				deviceAndGradientKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
-			}
-
-			//Next back prop kernel
-			for (auto device : devices)
-			{
-				auto deviceInfo = device->DeviceInfo();
-
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->AddSourcePath(backPropPath);
-				kernel->SetKernelName("BackPerceptronKernel");
-
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-				if (maximumConstantBufferSize > weights->ByteSize())
-				{
-					kernel->AddDefine(backPropPath, "CONSTANT_WEIGHTS");
-					maximumConstantBufferSize -= weights->ByteSize();
-				}
-
-				auto byteSize = firstOutputData.TotalUnits() * sizeof(T);
-				if (maximumConstantBufferSize > byteSize)
-				{
-					kernel->AddDefine(backPropPath, "CONSTANT_INPUT_DELTA");
-					maximumConstantBufferSize -= byteSize;
-				}
-
-				byteSize = inputDescription.TotalUnits() * sizeof(T);
-				if (maximumConstantBufferSize > byteSize)
-				{
-					kernel->AddDefine(backPropPath, "CONSTANT_INPUT");
-					maximumConstantBufferSize -= byteSize;
-				}
-
-				kernel->AddGlobalSize(inputDescription.TotalUnits());
-
-				kernel->AddDefineSubsitute(backPropPath, "INPUT_DELTA_COUNT", firstOutputData.TotalUnits());
-				kernel->AddDefineSubsitute(backPropPath, "WEIGHT_COLUMN_COUNT", inputDescription.TotalUnits());
-				kernel->AddDefineSubsitute(backPropPath, "INPUT_OFFSET", 0);
-				kernel->AddDefineSubsitute(backPropPath, "INPUT_DELTA_OFFSET", 0);
-				kernel->AddDefineSubsitute(backPropPath, "OUTPUT_DELTA_OFFSET", 0);
-
-				deviceAndBackKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
-			}
-
-			//Finally, forward prop
-			for (auto device : devices)
-			{
-				auto deviceInfo = device->DeviceInfo();
-
-				//In this case, we need to two additional kernels
-				if (config.ActivationFunction() == MatunaSoftMaxActivation)
-				{
-
-					scalarCache = move(
-						this->context->CreateMemory(CL_MEM_READ_WRITE, sizeof(T)));
-
-					unique_ptr<LayerKernel<T>> simpleSumKernel(new LayerKernel<T>());
-					simpleSumKernel->AddSourcePath(simpleSumPath);
-					simpleSumKernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-					simpleSumKernel->SetKernelName("SimpleSumKernel");
-					simpleSumKernel->AddDefineSubsitute(simpleSumPath, "INPUT_COUNT", firstOutputData.TotalUnits());
-
-					deviceAndSimpleSumKernels.insert(make_pair(device, simpleSumKernel.get()));
-					programs[device]->AttachKernel(move(simpleSumKernel));
-
-					unique_ptr<LayerKernel<T>> divideByScalarKernel(new LayerKernel<T>());
-					divideByScalarKernel->AddSourcePath(divideByScalarPath);
-					divideByScalarKernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-					divideByScalarKernel->SetKernelName("DivideByScalarKernel");
-					divideByScalarKernel->AddGlobalSize(firstOutputData.TotalUnits());
-
-					deviceAndDivideByScalarKernels.insert(make_pair(device, divideByScalarKernel.get()));
-					programs[device]->AttachKernel(move(divideByScalarKernel));
-				}
-
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-
-				kernel->AddSourcePath(forwardPropPath);
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->SetKernelName("ForwardPerceptronKernel");
-
-				//Now, let us query the device if we have enough memory to use constant weights / inputs / biases etc...
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-				auto inputBytes = sizeof(T) * inputDescription.TotalUnits();
-				if (maximumConstantBufferSize > weights->ByteSize())
-				{
-					kernel->AddDefine(forwardPropPath, "CONSTANT_WEIGHTS");
-					maximumConstantBufferSize -= weights->ByteSize();
-				}
-				if (maximumConstantBufferSize > inputBytes)
-				{
-					kernel->AddDefine(forwardPropPath, "CONSTANT_INPUT");
-					maximumConstantBufferSize -= inputBytes;
-				}
-				if (maximumConstantBufferSize > biases->ByteSize())
-				{
-					kernel->AddDefine(forwardPropPath, "CONSTANT_BIASES");
-					maximumConstantBufferSize -= biases->ByteSize();
-				}
-
-				kernel->AddGlobalSize(firstOutputData.TotalUnits());
-				kernel->AddDefineSubsitute(forwardPropPath, "INPUT_COUNT", inputDescription.TotalUnits());
-
-				deviceAndForwardKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
-			}
-		}
-
-	
-		template<class T>
 		void PerceptronLayer<T>::InitializeParameters()
 		{
 			auto outputDataDescriptions = this->outForwardPropDataDescriptions;
@@ -643,46 +455,23 @@ namespace Matuna
 			int queueIndex, OCLMemory* previousInput, OCLMemory* output,
 			bool blocking)
 		{
-			if (useImage)
+			auto& kernel = deviceAndImageForwardKernels[device];
+			kernel->SetMemoryArg(previousInput, 0);
+			kernel->SetMemoryArg(output, 1);
+			if (config.ActivationFunction() == MatunaSoftMaxActivation)
 			{
-				auto& kernel = deviceAndImageForwardKernels[device];
-				kernel->SetMemoryArg(previousInput, 0);
-				kernel->SetMemoryArg(output, 1);
-				if (config.ActivationFunction() == MatunaSoftMaxActivation)
-				{
-					device->ExecuteKernel(kernel, queueIndex, false);
-					auto& sumKernel = deviceAndSimpleSumKernels[device];
-					auto& scalarKernel = deviceAndDivideByScalarKernels[device];
-					sumKernel->SetMemoryArg(output, 0);
-					sumKernel->SetMemoryArg(scalarCache.get(), 1);
-					device->ExecuteTask(sumKernel, queueIndex, false);
-					scalarKernel->SetMemoryArg(output, 0);
-					scalarKernel->SetMemoryArg(scalarCache.get(), 1);
-					device->ExecuteKernel(scalarKernel, queueIndex, blocking);
-				}
-				else
-					device->ExecuteKernel(kernel, queueIndex, blocking);
+				device->ExecuteKernel(kernel, queueIndex, false);
+				auto& sumKernel = deviceAndSimpleSumKernels[device];
+				auto& scalarKernel = deviceAndDivideByScalarKernels[device];
+				sumKernel->SetMemoryArg(output, 0);
+				sumKernel->SetMemoryArg(scalarCache.get(), 1);
+				device->ExecuteTask(sumKernel, queueIndex, false);
+				scalarKernel->SetMemoryArg(output, 0);
+				scalarKernel->SetMemoryArg(scalarCache.get(), 1);
+				device->ExecuteKernel(scalarKernel, queueIndex, blocking);
 			}
 			else
-			{
-				auto& kernel = deviceAndForwardKernels[device];
-				kernel->SetMemoryArg(previousInput, 0);
-				kernel->SetMemoryArg(output, 1);
-				if (config.ActivationFunction() == MatunaSoftMaxActivation)
-				{
-					device->ExecuteKernel(kernel, queueIndex, false);
-					auto& sumKernel = deviceAndSimpleSumKernels[device];
-					auto& scalarKernel = deviceAndDivideByScalarKernels[device];
-					sumKernel->SetMemoryArg(output, 0);
-					sumKernel->SetMemoryArg(scalarCache.get(), 1);
-					device->ExecuteTask(sumKernel, queueIndex, false);
-					scalarKernel->SetMemoryArg(output, 0);
-					scalarKernel->SetMemoryArg(scalarCache.get(), 1);
-					device->ExecuteKernel(scalarKernel, queueIndex, blocking);
-				}
-				else
-					device->ExecuteKernel(kernel, queueIndex, blocking);
-			}
+				device->ExecuteKernel(kernel, queueIndex, blocking);
 		}
 
 		template<class T>
@@ -690,22 +479,12 @@ namespace Matuna
 			int queueIndex, OCLMemory* previousInput, OCLMemory* delta,
 			OCLMemory* deltaOutput, bool blocking)
 		{
-			if (useImage)
-			{
-				auto& kernel = deviceAndImageBackKernels[device];
-				kernel->SetMemoryArg(previousInput, 0);
-				kernel->SetMemoryArg(delta, 1);
-				kernel->SetMemoryArg(deltaOutput, 2);
-				device->ExecuteKernel(kernel, queueIndex, blocking);
-			}
-			else
-			{
-				auto& kernel = deviceAndBackKernels[device];
-				kernel->SetMemoryArg(previousInput, 0);
-				kernel->SetMemoryArg(delta, 1);
-				kernel->SetMemoryArg(deltaOutput, 2);
-				device->ExecuteKernel(kernel, queueIndex, blocking);
-			}
+
+			auto& kernel = deviceAndImageBackKernels[device];
+			kernel->SetMemoryArg(previousInput, 0);
+			kernel->SetMemoryArg(delta, 1);
+			kernel->SetMemoryArg(deltaOutput, 2);
+			device->ExecuteKernel(kernel, queueIndex, blocking);
 		}
 
 		template<class T>
@@ -713,22 +492,12 @@ namespace Matuna
 			int queueIndex, OCLMemory* previousInput, OCLMemory* delta,
 			OCLMemory* gradient, bool blocking)
 		{
-			if (useImage)
-			{
-				auto& kernel = deviceAndImageGradientKernels[device];
-				kernel->SetMemoryArg(previousInput, 0);
-				kernel->SetMemoryArg(delta, 1);
-				kernel->SetMemoryArg(gradient, 2);
-				device->ExecuteKernel(kernel, queueIndex, blocking);
-			}
-			else
-			{
-				auto& kernel = deviceAndGradientKernels[device];
-				kernel->SetMemoryArg(previousInput, 0);
-				kernel->SetMemoryArg(delta, 1);
-				kernel->SetMemoryArg(gradient, 2);
-				device->ExecuteKernel(kernel, queueIndex, blocking);
-			}
+
+			auto& kernel = deviceAndImageGradientKernels[device];
+			kernel->SetMemoryArg(previousInput, 0);
+			kernel->SetMemoryArg(delta, 1);
+			kernel->SetMemoryArg(gradient, 2);
+			device->ExecuteKernel(kernel, queueIndex, blocking);
 
 			//Since we don't need to calculate anything for the bias gradient, we simply use copy buffer.
 			device->CopyCLMemory(delta, gradient, 0,
@@ -750,22 +519,11 @@ namespace Matuna
 			if (gradient[1]->ByteSize() / sizeof(T) != (config.Units()))
 				throw invalid_argument("The second gradient does not contain the correct amount of memory");
 
-			if (useImage)
-			{
-				auto& kernel = deviceAndImageGradientKernels[device];
-				kernel->SetMemoryArg(previousInput, 0);
-				kernel->SetMemoryArg(delta, 1);
-				kernel->SetMemoryArg(gradient[0], 2);
-				device->ExecuteKernel(kernel, queueIndex, blocking);
-			}
-			else
-			{
-				auto& kernel = deviceAndGradientKernels[device];
-				kernel->SetMemoryArg(previousInput, 0);
-				kernel->SetMemoryArg(delta, 1);
-				kernel->SetMemoryArg(gradient[0], 2);
-				device->ExecuteKernel(kernel, queueIndex, blocking);
-			}
+			auto& kernel = deviceAndImageGradientKernels[device];
+			kernel->SetMemoryArg(previousInput, 0);
+			kernel->SetMemoryArg(delta, 1);
+			kernel->SetMemoryArg(gradient[0], 2);
+			device->ExecuteKernel(kernel, queueIndex, blocking);
 
 			//Since we don't need to calculate anything for the bias gradient, we simply use copy buffer.
 			device->CopyCLMemory(delta, gradient[1], 0, 0,
