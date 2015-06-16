@@ -369,25 +369,39 @@ namespace Matuna {
 				targetMemory.reset();
 
 				int gradientMemoryPosition = 0;
-				if (layers.size() != 0) {
+				if (layers.size() != 0) 
+				{
 					//Allocate memory for the gradient
-					int parameterCount = layers[count - 1]->GetParameterCount();
-					unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(
-						CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+					auto parametersCount = layers[count - 1]->GetMultipleParameterCount();
+
+					vector<unique_ptr<OCLMemory>> gradientMemories;
+					vector<OCLMemory*> gradientsPointers;
+					for (auto parameterCount : parametersCount)
+					{
+						unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(
+							CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+						gradientsPointers.push_back(gradientMemory.get());
+						gradientMemories.push_back(move(gradientMemory));
+					}
+
 					layers[count - 1]->EnqueueCalculateGradient(device, 0,
 						inputMemories[inputMemories.size() - 2].get(),
-						backPropOutputMemory.get(), gradientMemory.get(), true);
+						backPropOutputMemory.get(), gradientsPointers, true);
 
 					//Write gradient memory to the host buffer
 					auto rawGradient = gradient.get();
 					rawGradient += gradientMemoryPosition;
-					device->ReadMemory(gradientMemory.get(), gradientMemory->ByteSize(),
-						rawGradient, 0, true);
-					gradientMemoryPosition += parameterCount;
-					gradientMemory.reset();
+					for (int k = 0; k < parametersCount.size(); k++)
+					{
+						device->ReadMemory(gradientsPointers[k], gradientsPointers[k]->ByteSize(),
+							rawGradient, 0, true);
+						gradientMemoryPosition += parametersCount[k];
+						rawGradient = gradient.get() + gradientMemoryPosition;
+					}
 				}
 
-				for (int i = count - 1; i >= 1; i--) {
+				for (int i = count - 1; i >= 1; i--) 
+				{
 					inBackPropMemoryDescription =
 						layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
 
@@ -400,20 +414,31 @@ namespace Matuna {
 					backPropOutputMemory = move(outputMemory);
 
 					//Allocate memory for the gradient
-					int parameterCount = layers[i - 1]->GetParameterCount();
-					unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(
-						CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+					auto parametersCount = layers[i- 1]->GetMultipleParameterCount();
+					vector<unique_ptr<OCLMemory>> gradientMemories;
+					vector<OCLMemory*> gradientsPointers;
+					for (auto parameterCount : parametersCount)
+					{
+						unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(
+							CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+						gradientsPointers.push_back(gradientMemory.get());
+						gradientMemories.push_back(move(gradientMemory));
+					}
+
 					layers[i - 1]->EnqueueCalculateGradient(device, 0,
 						inputMemories[i - 1].get(), backPropOutputMemory.get(),
-						gradientMemory.get(), true);
+						gradientsPointers, true);
 
 					//Write gradient memory to the host buffer
 					auto rawGradient = gradient.get();
 					rawGradient += gradientMemoryPosition;
-					device->ReadMemory(gradientMemory.get(), gradientMemory->ByteSize(),
-						rawGradient, 0, true);
-					gradientMemoryPosition += parameterCount;
-					gradientMemory.reset();
+					for (int k = 0; k < parametersCount.size(); k++)
+					{
+						device->ReadMemory(gradientsPointers[k], gradientsPointers[k]->ByteSize(),
+							rawGradient, 0, true);
+						gradientMemoryPosition += parametersCount[k];
+						rawGradient = gradient.get() + gradientMemoryPosition;
+					}
 				}
 
 				device->WaitForDeviceQueue(0);

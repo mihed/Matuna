@@ -44,10 +44,6 @@ namespace Matuna
 				OCLMemory* previousInput, OCLMemory* delta,
 				OCLMemory* deltaOutput, bool blocking = true) = 0;
 
-			//Deprecated!
-			virtual void EnqueueCalculateGradient(OCLDevice* device, int queueIndex,
-				OCLMemory* previousInput, OCLMemory* delta, OCLMemory* gradient, bool blocking = true) = 0;
-
 			virtual void EnqueueCalculateGradient(OCLDevice* device, int queueIndex,
 				OCLMemory* previousInput, OCLMemory* delta, vector<OCLMemory*> gradient, bool blocking = true) = 0;
 

@@ -63,9 +63,6 @@ namespace Matuna
 				OCLMemory* previousInput, OCLMemory* delta,
 				OCLMemory* deltaOutput, bool blocking = true) override;
 
-			virtual void EnqueueCalculateGradient(OCLDevice* device, int queueIndex,
-				OCLMemory* previousInput, OCLMemory* delta, OCLMemory* gradient, bool blocking = true) override;
-
 			virtual vector<OCLMemory*> GetParameters() override;
 
 			virtual void SetParameters(T* parameters, OCLDevice* device,

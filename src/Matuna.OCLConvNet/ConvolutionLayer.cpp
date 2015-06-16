@@ -713,27 +713,6 @@ namespace Matuna
 		}
 
 		template<class T>
-		void ConvolutionLayer<T>::EnqueueCalculateGradient(OCLDevice* device,
-			int queueIndex, OCLMemory* previousInput, OCLMemory* delta,
-			OCLMemory* gradient, bool blocking)
-		{
-			auto sumAllUnitsKernel = deviceAndSumKernels[device];
-			sumAllUnitsKernel->SetMemoryArg(previousInput, 0);
-			sumAllUnitsKernel->SetMemoryArg(summaryCache.get(), 1);
-			auto multiplyWithOffsetKernel = deviceAndMultiplyWithOffsetKernels[device];
-			multiplyWithOffsetKernel->SetMemoryArg(summaryCache.get(), 0);
-			multiplyWithOffsetKernel->SetMemoryArg(delta, 1);
-			multiplyWithOffsetKernel->SetMemoryArg(gradient, 2);
-			auto sumUnitKernel = deviceAndSumUnitKernels[device];
-			sumUnitKernel->SetMemoryArg(delta, 0);
-			sumUnitKernel->SetMemoryArg(gradient, 1);
-
-			device->ExecuteKernel(sumAllUnitsKernel, queueIndex, false);
-			device->ExecuteKernel(multiplyWithOffsetKernel, queueIndex, false);
-			device->ExecuteKernel(sumUnitKernel, queueIndex, blocking);
-		}
-
-		template<class T>
 		void ConvolutionLayer<T>::EnqueueCalculateGradient(OCLDevice* device, int queueIndex,
 			OCLMemory* previousInput, OCLMemory* delta, vector<OCLMemory*> gradient, bool blocking)
 		{

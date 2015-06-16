@@ -488,24 +488,6 @@ namespace Matuna
 		}
 
 		template<class T>
-		void PerceptronLayer<T>::EnqueueCalculateGradient(OCLDevice* device,
-			int queueIndex, OCLMemory* previousInput, OCLMemory* delta,
-			OCLMemory* gradient, bool blocking)
-		{
-
-			auto& kernel = deviceAndImageGradientKernels[device];
-			kernel->SetMemoryArg(previousInput, 0);
-			kernel->SetMemoryArg(delta, 1);
-			kernel->SetMemoryArg(gradient, 2);
-			device->ExecuteKernel(kernel, queueIndex, blocking);
-
-			//Since we don't need to calculate anything for the bias gradient, we simply use copy buffer.
-			device->CopyCLMemory(delta, gradient, 0,
-				config.Units() * inputDescription.TotalUnits() * sizeof(T),
-				config.Units() * sizeof(T), queueIndex, blocking);
-		}
-
-		template<class T>
 		void PerceptronLayer<T>::EnqueueCalculateGradient(OCLDevice* device, int queueIndex,
 			OCLMemory* previousInput, OCLMemory* delta, vector<OCLMemory*> gradient, bool blocking)
 		{
