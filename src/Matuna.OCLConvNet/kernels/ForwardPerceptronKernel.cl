@@ -1,14 +1,16 @@
+
+
 /**
  *Macros to define:
- * - INPUT_UNITS_LIMIT: The limit in the input units
+ * - INPUT_UNIT_LIMIT: The limit in the input units
  * - INPUT_WIDTH: The input width
  * - INPUT_HEIGHT: The input height
- * - INPUT_UNITS_OFFSET: The offset in the units direction
- * - INPUT_WIDTH_OFFSET: The offset in the width direction
- * - INPUT_HEIGHT_OFFSET: The offset in the height direction
- * - COLUMN_COUNT: The amount of columns in the weight matrix
- * - INPUT_UNIT_ELEMENT_COUNT_INC_PADDING: The amount of elements inside one unit with padding
- * - INPUT_MEMORY_WIDTH: The width of the memory
+ * - INPUT_UNIT_OFFSET: The offset in the units direction
+ * - INPUT_UNIT_MEMORY_WIDTH_OFFSET: The offset in the width direction
+ * - INPUT_UNIT_MEMORY_HEIGHT_OFFSET: The offset in the height direction
+ * - WEIGHT_COLUMN_COUNT: The amount of columns in the weight matrix
+ * - INPUT_UNIT_MEMORY_ELEMENTS: The amount of elements inside one unit with padding
+ * - INPUT_UNIT_MEMORY_WIDTH: The width of the memory
  * - DOUBLE_PRECISION: If the kernel is to be executed with double precision
  * - CONSTANT_INPUT: If we may put the inputs into the constant memory space
  * - CONSTANT_WEIGHTS: If we may put the weights into the constant memory space
@@ -24,16 +26,16 @@
 #include "ActivationFunction.h"
 
 //<!@
-#define INPUT_UNITS_LIMIT -1
+#define INPUT_UNIT_LIMIT -1
 #define INPUT_WIDTH_LIMIT -1
 #define INPUT_HEIGHT_LIMIT -1
-#define INPUT_UNITS_OFFSET -1
-#define INPUT_WIDTH_OFFSET -1
-#define INPUT_HEIGHT_OFFSET -1
-#define COLUMN_COUNT -1
+#define INPUT_UNIT_OFFSET -1
+#define INPUT_UNIT_MEMORY_WIDTH_OFFSET -1
+#define INPUT_UNIT_MEMORY_HEIGHT_OFFSET -1
+#define WEIGHT_COLUMN_COUNT -1
 #define OUTPUT_UNIT_OFFSET -1
-#define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#define INPUT_MEMORY_WIDTH -1
+#define INPUT_UNIT_MEMORY_ELEMENTS -1
+#define INPUT_UNIT_MEMORY_WIDTH -1
 //#define CONSTANT_INPUT
 //#define CONSTANT_WEIGHTS
 //#define CONSTANT_BIASES
@@ -62,19 +64,19 @@ __kernel void ForwardPerceptronKernel(
 )
 {
 	const int outputIndex = get_global_id(0);
-	const int rowIndex = COLUMN_COUNT * outputIndex;
+	const int rowIndex = WEIGHT_COLUMN_COUNT * outputIndex;
 
 	real_t sum = 0;
 	int columnIndex = 0;
 	int tempZIndex = 0;
 	int tempYIndex = 0;
-	for (int unit = INPUT_UNITS_OFFSET; unit < INPUT_UNITS_LIMIT; unit++)
+	for (int unit = INPUT_UNIT_OFFSET; unit < INPUT_UNIT_LIMIT; unit++)
 	{
-		tempZIndex = unit * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING;
-		for (int row = INPUT_HEIGHT_OFFSET; row < INPUT_HEIGHT_LIMIT; row++)
+		tempZIndex = unit * INPUT_UNIT_MEMORY_ELEMENTS;
+		for (int row = INPUT_UNIT_MEMORY_HEIGHT_OFFSET; row < INPUT_HEIGHT_LIMIT; row++)
 		{
-			tempYIndex = row * INPUT_MEMORY_WIDTH + tempZIndex;
-			for(int column = INPUT_WIDTH_OFFSET; column < INPUT_WIDTH_LIMIT; column++)
+			tempYIndex = row * INPUT_UNIT_MEMORY_WIDTH + tempZIndex;
+			for(int column = INPUT_UNIT_MEMORY_WIDTH_OFFSET; column < INPUT_WIDTH_LIMIT; column++)
 			{
 				sum += input[tempYIndex + column] * weights[rowIndex + columnIndex];
 				columnIndex++;

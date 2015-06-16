@@ -247,14 +247,14 @@ namespace Matuna
 			kernel->AddGlobalSize(inputDescription.TotalUnits());
 			kernel->AddGlobalSize(firstOutputData.TotalUnits());
 
-			kernel->AddDefineSubsitute(gradientPath, "INPUT_DATA_WIDTH", inputDescription.Width);
-			kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_ELEMENT_COUNT", inputDescription.Height * inputDescription.Width);
-			kernel->AddDefineSubsitute(gradientPath, "INPUT_WIDTH_OFFSET", firstInputMemDesc.WidthOffset);
-			kernel->AddDefineSubsitute(gradientPath, "INPUT_HEIGHT_OFFSET", firstInputMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_WIDTH", inputDescription.Width);
+			kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_ELEMENTS", inputDescription.Height * inputDescription.Width);
+			kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_MEMORY_WIDTH_OFFSET", firstInputMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_MEMORY_HEIGHT_OFFSET", firstInputMemDesc.HeightOffset);
 			kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_OFFSET", firstInputMemDesc.UnitOffset);
-			kernel->AddDefineSubsitute(gradientPath, "INPUT_STRIDE", firstInputMemDesc.Width);
-			kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInputMemDesc.Width * firstInputMemDesc.Height);
-			kernel->AddDefineSubsitute(gradientPath, "INPUT_DELTA_OFFSET", 0);
+			kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_MEMORY_WIDTH", firstInputMemDesc.Width);
+			kernel->AddDefineSubsitute(gradientPath, "INPUT_UNIT_MEMORY_ELEMENTS", firstInputMemDesc.Width * firstInputMemDesc.Height);
+			kernel->AddDefineSubsitute(gradientPath, "INPUT_DELTA_UNIT_OFFSET", 0);
 			kernel->AddDefineSubsitute(gradientPath, "WEIGHT_COLUMN_COUNT", inputDescription.TotalUnits());
 
 			deviceAndImageGradientKernels.insert(make_pair(device, kernel.get()));
@@ -311,17 +311,17 @@ namespace Matuna
 			kernel->AddGlobalSize(inForwardDataDesc.Height);
 			kernel->AddGlobalSize(inForwardDataDesc.Units);
 
-			kernel->AddDefineSubsitute(backPropPath, "OUTPUT_WIDTH_OFFSET", outBackMemDesc.WidthOffset);
-			kernel->AddDefineSubsitute(backPropPath, "OUTPUT_HEIGHT_OFFSET", outBackMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(backPropPath, "OUTPUT_UNIT_MEMORY_WIDTH_OFFSET", outBackMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(backPropPath, "OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET", outBackMemDesc.HeightOffset);
 			kernel->AddDefineSubsitute(backPropPath, "OUTPUT_UNIT_OFFSET", outBackMemDesc.UnitOffset);
-			kernel->AddDefineSubsitute(backPropPath, "OUTPUT_STRIDE", outBackMemDesc.Width);
-			kernel->AddDefineSubsitute(backPropPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", outBackMemDesc.Width * outBackMemDesc.Height);
-			kernel->AddDefineSubsitute(backPropPath, "INPUT_WIDTH_OFFSET", inForwardMemDesc.WidthOffset);
-			kernel->AddDefineSubsitute(backPropPath, "INPUT_HEIGHT_OFFSET", inForwardMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(backPropPath, "OUTPUT_UNIT_MEMORY_WIDTH", outBackMemDesc.Width);
+			kernel->AddDefineSubsitute(backPropPath, "OUTPUT_UNIT_MEMORY_ELEMENTS", outBackMemDesc.Width * outBackMemDesc.Height);
+			kernel->AddDefineSubsitute(backPropPath, "INPUT_UNIT_MEMORY_WIDTH_OFFSET", inForwardMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(backPropPath, "INPUT_UNIT_MEMORY_HEIGHT_OFFSET", inForwardMemDesc.HeightOffset);
 			kernel->AddDefineSubsitute(backPropPath, "INPUT_UNIT_OFFSET", inForwardMemDesc.UnitOffset);
-			kernel->AddDefineSubsitute(backPropPath, "INPUT_STRIDE", inForwardMemDesc.Width);
-			kernel->AddDefineSubsitute(backPropPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", inForwardMemDesc.Width * inForwardMemDesc.Height);
-			kernel->AddDefineSubsitute(backPropPath, "INPUT_DELTA_OFFSET", inBackMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(backPropPath, "INPUT_UNIT_MEMORY_WIDTH", inForwardMemDesc.Width);
+			kernel->AddDefineSubsitute(backPropPath, "INPUT_UNIT_MEMORY_ELEMENTS", inForwardMemDesc.Width * inForwardMemDesc.Height);
+			kernel->AddDefineSubsitute(backPropPath, "INPUT_DELTA_UNIT_OFFSET", inBackMemDesc.UnitOffset);
 			kernel->AddDefineSubsitute(backPropPath, "INPUT_DELTA_LIMIT", inBackMemDesc.UnitOffset + outForwardDataDesc.Units);
 			kernel->AddDefineSubsitute(backPropPath, "WEIGHT_COLUMN_COUNT", inForwardDataDesc.TotalUnits());
 
@@ -398,16 +398,16 @@ namespace Matuna
 
 			kernel->AddGlobalSize(outForwardDataDesc.TotalUnits());
 
-			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNITS_LIMIT", inForwardDataDesc.Units + inForwardMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNIT_LIMIT", inForwardDataDesc.Units + inForwardMemDesc.UnitOffset);
 			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_WIDTH_LIMIT", inForwardDataDesc.Width + inForwardMemDesc.WidthOffset);
 			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_HEIGHT_LIMIT", inForwardDataDesc.Height +inForwardMemDesc.HeightOffset);
-			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNITS_OFFSET", inForwardMemDesc.UnitOffset);
-			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_WIDTH_OFFSET", inForwardMemDesc.WidthOffset);
-			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_HEIGHT_OFFSET", inForwardMemDesc.HeightOffset);
-			kernel->AddDefineSubsitute(forwardPropPath, "COLUMN_COUNT", inForwardDataDesc.TotalUnits());
+			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNIT_OFFSET", inForwardMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNIT_MEMORY_WIDTH_OFFSET", inForwardMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNIT_MEMORY_HEIGHT_OFFSET", inForwardMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(forwardPropPath, "WEIGHT_COLUMN_COUNT", inForwardDataDesc.TotalUnits());
 			kernel->AddDefineSubsitute(forwardPropPath, "OUTPUT_UNIT_OFFSET", 0);
-			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", inForwardMemDesc.Width * inForwardMemDesc.Height);
-			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_MEMORY_WIDTH", inForwardMemDesc.Width);
+			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNIT_MEMORY_ELEMENTS", inForwardMemDesc.Width * inForwardMemDesc.Height);
+			kernel->AddDefineSubsitute(forwardPropPath, "INPUT_UNIT_MEMORY_WIDTH", inForwardMemDesc.Width);
 
 
 			deviceAndImageForwardKernels.insert(make_pair(device, kernel.get()));
