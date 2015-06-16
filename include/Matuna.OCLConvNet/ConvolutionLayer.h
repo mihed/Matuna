@@ -82,8 +82,18 @@ namespace Matuna
 			virtual size_t GetParameterCount() override;
 
 		private:
+			void InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const ConvolutionLayerConfig* config);
 			void InitializeParameters();
-			void InitializeProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
+			void InitializePrograms();
+
+			void InitializeConvolutionKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeSumAllUnitsKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeBackPropConvolutionKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeZeroBorderKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeMultiplyAllUnitsKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeSumUnitKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeMultiplyWithOffsetKernel(OCLDevice* device, OCLProgram* program);
+
 		};
 
 	} /* namespace MachineLearning */

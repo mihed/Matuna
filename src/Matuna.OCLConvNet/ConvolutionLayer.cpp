@@ -40,6 +40,36 @@ namespace Matuna
 			if (config->ConnectionType() != MatunaFullConnection)
 				throw runtime_error("Not implemented exception");
 
+			//Make sure the type we want to execute is supported on the device.
+			vector<OCLDevice*> devices = context->GetDevices();
+			for (auto device : devices) {
+				auto deviceInfo = device->DeviceInfo();
+				if (is_same<cl_double, T>::value) {
+					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				} else if (is_same<cl_float, T>::value) {
+					if (deviceInfo.PreferredFloatVectorWidth() == 0)
+						throw invalid_argument(
+						"The template argument is not supported on the chosen devices");
+				} else
+					throw runtime_error(
+					"The template argument does not match the supported arguments");
+			}
+
+			InitializeMemoryDescriptions(inputLayerDescriptions, config);
+		}
+
+		template<class T>
+		ConvolutionLayer<T>::~ConvolutionLayer()
+		{
+
+		}
+
+
+		template<class T>
+		void ConvolutionLayer<T>::InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const ConvolutionLayerConfig* config)
+		{
 			//FIXME: Since we are not using any optimization at the moment, such as local memory.
 			//We will not require any padding on the input and output proposals
 			for (auto& layerDescription : inputLayerDescriptions)
@@ -90,13 +120,6 @@ namespace Matuna
 			}
 
 			this->inBackPropDataDescriptions = this->outForwardPropDataDescriptions;
-
-		}
-
-		template<class T>
-		ConvolutionLayer<T>::~ConvolutionLayer()
-		{
-
 		}
 
 		template<class T>
@@ -163,17 +186,17 @@ namespace Matuna
 			mt19937 mt(tempDevice());
 
 			//TODO: The initial weight values could be something to tweak
-			uniform_real_distribution<T> uniformDistribution(-0.1, 0.1);
+			uniform_real_distribution<double> uniformDistribution(-0.1, 0.1);
 
 			vector<T> initialWeightValues;
 			initialWeightValues.resize(filterElementCount);
 			for (int i = 0; i < filterElementCount; i++)
-				initialWeightValues[i] = uniformDistribution(mt);
+				initialWeightValues[i] = static_cast<T>(uniformDistribution(mt));
 
 			vector<T> initialBiasValues;
 			initialBiasValues.resize(biasElementCount);
 			for (int i = 0; i < biasElementCount; i++)
-				initialBiasValues[i] = uniformDistribution(mt);
+				initialBiasValues[i] = static_cast<T>(uniformDistribution(mt));
 
 			//Since this is initialization, we don't really care about which device and device queue we are using
 			OCLDevice* device = this->context->GetDevices()[0];
@@ -187,29 +210,24 @@ namespace Matuna
 		template<class T>
 		void ConvolutionLayer<T>::InterlockFinalized()
 		{
-
-			//Make sure the type we want to execute is supported on the device.
-			vector<OCLDevice*> devices = this->context->GetDevices();
-			for (auto device : devices) {
-				auto deviceInfo = device->DeviceInfo();
-				if (is_same<cl_double, T>::value) {
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else if (is_same<cl_float, T>::value) {
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
-			}
-
 			InitializeParameters();
+			InitializePrograms();
+		}
 
-			unordered_map<OCLDevice*, unique_ptr<OCLProgram>> programs;
+		template<class T>
+		void ConvolutionLayer<T>::InitializePrograms()
+		{
+			vector<OCLDevice*> devices = this->context->GetDevices();
 			auto backActivationFunction = this->BackPropActivationFunction();
 			auto activationFunction = convolutionConfig.ActivationFunction();
+
+			LayerDataDescription firstInputData =
+				this->InForwardPropDataDescriptions()[0];
+
+			//An intermediate cache where we store summed images
+			summaryCache = this->context->CreateMemory(CL_MEM_READ_WRITE,
+				sizeof(T) * firstInputData.Width * firstInputData.Height);
+
 			for (auto device : devices)
 			{
 				unique_ptr<OCLProgram> program(new OCLProgram());
@@ -240,19 +258,21 @@ namespace Matuna
 					program->AddDefine("MATUNA_ACTIVATION_SOFTMAX");
 
 				program->SetName("ConvolutionLayerProgram" + Converter::ConvertToString(program->InstanceCount()));
-				programs.insert(make_pair(device, move(program)));
-			}
 
-			InitializeProgram(programs);
 
-			//Attaching and compiling all the programs 
-			for (auto device : devices)
-			{
+				//Creates the kernels and attaches them to the program
+				InitializeConvolutionKernel(device, program.get());
+				InitializeSumAllUnitsKernel(device, program.get());
+				InitializeBackPropConvolutionKernel(device, program.get());
+				InitializeZeroBorderKernel(device, program.get());
+				InitializeMultiplyAllUnitsKernel(device, program.get());
+				InitializeSumUnitKernel(device, program.get());
+				InitializeMultiplyWithOffsetKernel(device, program.get());
 
+				//When the kernels are attached to the program, we may then attach the program to the context
 				vector<OCLDevice*> oneDeviceVector;
 				oneDeviceVector.push_back(device);
-
-				this->context->AttachProgram(move(programs[device]), oneDeviceVector);
+				this->context->AttachProgram(move(program), oneDeviceVector);
 
 				//Set all the filters and biases
 				deviceAndConvolutionKernels[device]->SetMemoryArg(filters.get(), 2);
@@ -263,343 +283,388 @@ namespace Matuna
 		}
 
 		template<class T>
-		void ConvolutionLayer<T>::InitializeProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs)
+		void ConvolutionLayer<T>::InitializeConvolutionKernel(OCLDevice* device, OCLProgram* program)
 		{
+
+			string convolutionKernelPath = Path::Combine(OCLProgram::DefaultSourceLocation, "ConvolutionKernel.cl");
+
+			LayerDataDescription firstInputData =
+				this->InForwardPropDataDescriptions()[0];
+			LayerMemoryDescription firstOutputMemDesc =
+				this->OutForwardPropMemoryDescriptions()[0];
 			LayerDataDescription firstOutputData =
 				this->outForwardPropDataDescriptions[0];
-			LayerMemoryDescription firstOutputBackMemDesc =
-				this->OutBackPropMemoryDescriptions()[0];
+
+			auto deviceInfo = device->DeviceInfo();
+			auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+
+			unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
+			kernel->AddSourcePath(convolutionKernelPath);
+			kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
+			kernel->SetKernelName("ConvolutionKernel");
+
+			if (maximumConstantBufferSize > filters->ByteSize())
+			{
+				kernel->AddDefine(convolutionKernelPath, "CONSTANT_FILTERS");
+				maximumConstantBufferSize -= filters->ByteSize();
+			}
+
+			auto byteSize = firstInputData.TotalUnits() * sizeof(T);
+			if (maximumConstantBufferSize > byteSize)
+			{
+				kernel->AddDefine(convolutionKernelPath, "CONSTANT_INPUT");
+				maximumConstantBufferSize -= byteSize;
+			}
+
+			if (maximumConstantBufferSize > biases->ByteSize())
+			{
+				kernel->AddDefine(convolutionKernelPath, "CONSTANT_BIAS");
+				maximumConstantBufferSize -= biases->ByteSize();
+			}
+
+			kernel->AddGlobalSize(firstOutputData.Width);
+			kernel->AddGlobalSize(firstOutputData.Height);
+			kernel->AddGlobalSize(firstOutputData.Units);
+
+			kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_WIDTH", convolutionConfig.FilterWidth());
+			kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_HEIGHT", convolutionConfig.FilterHeight());
+			kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_OFFSET_WIDTH", 0);
+			kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_OFFSET_HEIGHT", 0);
+			kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_WIDTH", firstOutputMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_HEIGHT", firstOutputMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_UNIT", firstOutputMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_WIDTH", firstOutputMemDesc.Width);
+			kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_WIDTH", firstInputData.Width);
+			kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstOutputMemDesc.Width * firstOutputMemDesc.Height);
+			kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING", convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight());
+
+			deviceAndConvolutionKernels.insert(make_pair(device, kernel.get()));
+			program->AttachKernel(move(kernel));
+		}
+
+		template<class T>
+		void ConvolutionLayer<T>::InitializeSumAllUnitsKernel(OCLDevice* device, OCLProgram* program)
+		{
+
+			string sumAllUnitsPath = Path::Combine(OCLProgram::DefaultSourceLocation, "SumAllUnitsKernel.cl");
+
+			LayerMemoryDescription firstInputMemDesc =
+				this->InForwardPropMemoryDescriptions()[0];
+
+			LayerDataDescription firstInputData =
+				this->InForwardPropDataDescriptions()[0];
+
+			auto deviceInfo = device->DeviceInfo();
+			auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+
+			unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
+			kernel->AddSourcePath(sumAllUnitsPath);
+			kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
+			kernel->SetKernelName("SumAllUnitsKernel");
+
+			auto totalInputMemorySize = firstInputMemDesc.TotalMemory() * sizeof(T);
+			if (maximumConstantBufferSize > totalInputMemorySize)
+			{
+				kernel->AddDefine(sumAllUnitsPath, "CONSTANT_INPUT");
+				maximumConstantBufferSize -= totalInputMemorySize;
+			}
+
+			kernel->AddGlobalSize(firstInputData.Width);
+			kernel->AddGlobalSize(firstInputData.Height);
+
+			kernel->AddDefineSubsitute(sumAllUnitsPath, "UNIT_COUNT_INC_PADDING", firstInputData.Units + firstInputMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(sumAllUnitsPath, "UNIT_INPUT_OFFSET", firstInputMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_INPUT_OFFSET", firstInputMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(sumAllUnitsPath, "HEIGHT_INPUT_OFFSET", firstInputMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_OUTPUT_OFFSET", 0);
+			kernel->AddDefineSubsitute(sumAllUnitsPath, "HEIGHT_OUTPUT_OFFSET", 0);
+			kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_INPUT", firstInputMemDesc.Width);
+			kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_OUTPUT", firstInputData.Width);
+			kernel->AddDefineSubsitute(sumAllUnitsPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInputMemDesc.Width * firstInputMemDesc.Height);
+
+			deviceAndSumKernels.insert(make_pair(device, kernel.get()));
+			program->AttachKernel(move(kernel));
+		}
+
+		template<class T>
+		void ConvolutionLayer<T>::InitializeBackPropConvolutionKernel(OCLDevice* device, OCLProgram* program)
+		{		
+
+			string backConvolutionPath = Path::Combine(OCLProgram::DefaultSourceLocation, "BackPropConvolutionKernel.cl");
+
+			LayerDataDescription firstOutputData =
+				this->outForwardPropDataDescriptions[0];
+
+			LayerMemoryDescription firstInMemDesc =
+				this->InBackPropMemoryDescriptions()[0];
+
+			LayerDataDescription firstInputData =
+				this->InForwardPropDataDescriptions()[0];
+
+			auto deviceInfo = device->DeviceInfo();
+			auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+
+			unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
+			kernel->AddSourcePath(backConvolutionPath);
+			kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
+			kernel->SetKernelName("BackPropConvolutionKernel");
+
+			if (maximumConstantBufferSize > filters->ByteSize())
+			{
+				kernel->AddDefine(backConvolutionPath, "CONSTANT_FILTERS");
+				maximumConstantBufferSize -= filters->ByteSize();
+			}
+
+			auto byteSize = firstInMemDesc.TotalMemory() * sizeof(T);
+			if (maximumConstantBufferSize > byteSize)
+			{
+				kernel->AddDefine(backConvolutionPath, "CONSTANT_INPUT_DELTA");
+				maximumConstantBufferSize -= byteSize;
+			}
+
+			kernel->AddGlobalSize(firstInputData.Width);
+			kernel->AddGlobalSize(firstInputData.Height);
+
+			kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_COUNT", firstOutputData.Units);
+			kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_WIDTH", convolutionConfig.FilterWidth());
+			kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_HEIGHT", convolutionConfig.FilterHeight());
+			kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_OFFSET", firstInMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_LIMIT", firstInMemDesc.UnitOffset + firstOutputData.Units);
+			kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_STRIDE", firstInMemDesc.Width);
+			kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_STRIDE", firstInputData.Width);
+			kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_WIDTH_OFFSET", firstInMemDesc.WidthOffset - convolutionConfig.FilterWidth() + 1);
+			kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_HEIGHT_OFFSET", firstInMemDesc.HeightOffset - convolutionConfig.FilterHeight() + 1);
+			kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_WIDTH_OFFSET", 0);
+			kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_HEIGHT_OFFSET", 0);
+			kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInMemDesc.Width * firstInMemDesc.Height);
+			kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING", convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight());
+
+			deviceAndBackConvolutionKernels.insert(make_pair(device, kernel.get()));
+			program->AttachKernel(move(kernel));
+		}
+
+		template<class T>
+		void ConvolutionLayer<T>::InitializeZeroBorderKernel(OCLDevice* device, OCLProgram* program)
+		{
+			string zeroKernelPath = Path::Combine(OCLProgram::DefaultSourceLocation, "ZeroBorderKernel.cl");
+
 			LayerMemoryDescription firstInBackMemDesc =
 				this->InBackPropMemoryDescriptions()[0];
+
+			LayerDataDescription firstOutputData =
+				this->outForwardPropDataDescriptions[0];
+
+			unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
+			kernel->AddSourcePath(zeroKernelPath);
+			kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
+			kernel->SetKernelName("ZeroBorderKernel");
+
+			int borderHorizontalSize = convolutionConfig.FilterWidth() - 1;
+			int borderVerticalSize = convolutionConfig.FilterHeight() - 1;
+
+			int borderStartLeft = firstInBackMemDesc.WidthOffset
+				- borderHorizontalSize;
+			if (borderStartLeft < 0)
+				throw runtime_error("The memory / data descriptions are invalid");
+
+			int borderStartRight = firstInBackMemDesc.WidthOffset
+				+ firstOutputData.Width;
+
+			int borderStartUp = firstInBackMemDesc.HeightOffset
+				- borderVerticalSize;
+			if (borderStartUp < 0)
+				throw runtime_error("The memory / data descriptions are invalid");
+
+			int borderStartDown = firstInBackMemDesc.HeightOffset
+				+ firstOutputData.Height;
+
+			kernel->AddGlobalSize(firstOutputData.Units);
+
+			kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Width * firstInBackMemDesc.Height);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_LEFT", borderStartLeft);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_RIGHT", borderStartRight);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_UP", borderStartUp);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_DOWN", borderStartDown);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_LEFT", borderStartLeft + borderHorizontalSize - 1);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_RIGHT", borderStartRight + borderHorizontalSize - 1);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_UP", borderStartUp + borderVerticalSize - 1);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_DOWN", borderStartDown + borderVerticalSize - 1);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_SIZE_HORIZONTAL", borderHorizontalSize);
+			kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_SIZE_VERTICAL", borderVerticalSize);
+			kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_DATA_WIDTH", firstOutputData.Width);
+			kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_DATA_HEIGHT", firstOutputData.Height);
+			kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_STRIDE", firstInBackMemDesc.Width);
+
+			deviceAndZeroKernels.insert(make_pair(device, kernel.get()));
+			program->AttachKernel(move(kernel));
+		}
+
+		template<class T>
+		void ConvolutionLayer<T>::InitializeMultiplyAllUnitsKernel(OCLDevice* device, OCLProgram* program)
+		{
+
+
+			string multiplyKernelPath = Path::Combine(OCLProgram::DefaultSourceLocation, "MultiplyAllUnitsKernel.cl");
+
+			LayerMemoryDescription firstOutputBackMemDesc =
+				this->OutBackPropMemoryDescriptions()[0];
 			LayerMemoryDescription firstInForwardMemDesc =
 				this->InForwardPropMemoryDescriptions()[0];
 			LayerDataDescription firstInputData =
 				this->InForwardPropDataDescriptions()[0];
 
-			LayerMemoryDescription firstOutputMemDesc =
-				this->OutForwardPropMemoryDescriptions()[0];
+			auto deviceInfo = device->DeviceInfo();
+			auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
 
-			LayerMemoryDescription firstInputMemDesc =
-				this->InForwardPropMemoryDescriptions()[0];
+			unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
+			kernel->AddSourcePath(multiplyKernelPath);
+			kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
+			kernel->SetKernelName("MultiplyAllUnitsKernel");
 
-			LayerMemoryDescription firstInMemDesc =
+			auto deltaBytes = firstOutputBackMemDesc.TotalMemory() * sizeof(T);
+			auto inputBytes = firstInForwardMemDesc.TotalMemory() * sizeof(T);
+
+			if (maximumConstantBufferSize > deltaBytes)
+			{
+				kernel->AddDefine(multiplyKernelPath, "CONSTANT_INPUT_DELTA");
+				maximumConstantBufferSize -= deltaBytes;
+			}
+
+			if (maximumConstantBufferSize > inputBytes)
+			{
+				kernel->AddDefine(multiplyKernelPath, "CONSTANT_INPUT");
+				maximumConstantBufferSize -= inputBytes;
+			}
+
+			kernel->AddGlobalSize(firstInputData.Width);
+			kernel->AddGlobalSize(firstInputData.Height);
+			kernel->AddGlobalSize(firstInputData.Units);
+
+			kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInForwardMemDesc.Width * firstInForwardMemDesc.Height);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstOutputBackMemDesc.Width * firstOutputBackMemDesc.Height);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_STRIDE", firstInputData.Width);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_STRIDE", firstOutputBackMemDesc.Width);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_STRIDE", firstInForwardMemDesc.Width);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_WIDTH_OFFSET", 0);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_HEIGHT_OFFSET", 0);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_WIDTH_OFFSET", firstOutputBackMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_HEIGHT_OFFSET", firstOutputBackMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_UNIT_OFFSET", firstOutputBackMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_WIDTH_OFFSET", firstInForwardMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_HEIGHT_OFFSET", firstInForwardMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_UNIT_OFFSET", firstInForwardMemDesc.UnitOffset);
+
+			deviceAndMultiplyKernels.insert(make_pair(device, kernel.get()));
+			program->AttachKernel(move(kernel));
+		}
+
+		template<class T>
+		void ConvolutionLayer<T>::InitializeSumUnitKernel(OCLDevice* device, OCLProgram* program)
+		{
+
+			string sumUnitPath = Path::Combine(OCLProgram::DefaultSourceLocation, "SumUnitKernel.cl");
+
+			LayerMemoryDescription firstInBackMemDesc =
 				this->InBackPropMemoryDescriptions()[0];
 
-			string convolutionKernelPath = Path::Combine(OCLProgram::DefaultSourceLocation, "ConvolutionKernel.cl");
-			string sumAllUnitsPath = Path::Combine(OCLProgram::DefaultSourceLocation, "SumAllUnitsKernel.cl");
-			string backConvolutionPath = Path::Combine(OCLProgram::DefaultSourceLocation, "BackPropConvolutionKernel.cl");
-			string zeroKernelPath = Path::Combine(OCLProgram::DefaultSourceLocation, "ZeroBorderKernel.cl");
-			string multiplyKernelPath = Path::Combine(OCLProgram::DefaultSourceLocation, "MultiplyAllUnitsKernel.cl");
-			string sumUnitPath = Path::Combine(OCLProgram::DefaultSourceLocation, "SumUnitKernel.cl");
+			LayerDataDescription firstOutputData =
+				this->outForwardPropDataDescriptions[0];
+
+			auto deviceInfo = device->DeviceInfo();
+			auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+
+			unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
+			kernel->AddSourcePath(sumUnitPath);
+			kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
+			kernel->SetKernelName("SumUnitKernel");
+
+			auto deltaBytes = firstInBackMemDesc.TotalMemory() * sizeof(T);
+
+			if (maximumConstantBufferSize > deltaBytes)
+			{
+				kernel->AddDefine(sumUnitPath, "CONSTANT_INPUT");
+				maximumConstantBufferSize -= deltaBytes;
+			}
+
+			kernel->AddGlobalSize(convolutionConfig.FilterCount());
+
+			kernel->AddDefineSubsitute(sumUnitPath, "INPUT_STRIDE", firstInBackMemDesc.Width);
+			kernel->AddDefineSubsitute(sumUnitPath, "INPUT_WIDTH_OFFSET", firstInBackMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(sumUnitPath, "WIDTH_LIMIT", firstInBackMemDesc.WidthOffset +firstOutputData.Width);
+			kernel->AddDefineSubsitute(sumUnitPath, "HEIGHT_LIMIT", firstInBackMemDesc.HeightOffset + firstOutputData.Height);
+			kernel->AddDefineSubsitute(sumUnitPath, "INPUT_HEIGHT_OFFSET", firstInBackMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Width * firstInBackMemDesc.Height);
+			kernel->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", 0); //Since we are splitting the gradient for this kernel
+
+			deviceAndSumUnitKernels.insert(make_pair(device, kernel.get()));
+			program->AttachKernel(move(kernel));
+		}
+
+		template<class T>
+		void ConvolutionLayer<T>::InitializeMultiplyWithOffsetKernel(OCLDevice* device, OCLProgram* program)
+		{
+
 			string multiplyOffsetPath = Path::Combine(OCLProgram::DefaultSourceLocation, "MultiplyWithOffsetKernel.cl");
 
-			vector<OCLDevice*> devices = this->context->GetDevices();
+			LayerMemoryDescription firstInBackMemDesc =
+				this->InBackPropMemoryDescriptions()[0];
 
-			for (auto device : devices)
+			LayerDataDescription firstOutputData =
+				this->outForwardPropDataDescriptions[0];
+
+			LayerDataDescription firstInputData =
+				this->InForwardPropDataDescriptions()[0];
+
+			LayerMemoryDescription firstInForwardMemDesc =
+				this->InForwardPropMemoryDescriptions()[0];
+
+			auto deviceInfo = device->DeviceInfo();
+			auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+
+			unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
+			kernel->AddSourcePath(multiplyOffsetPath);
+			kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
+			kernel->SetKernelName("MultiplyWithOffsetKernel");
+
+			auto deltaBytes = firstInBackMemDesc.TotalMemory() * sizeof(T);
+
+			if (maximumConstantBufferSize > deltaBytes)
 			{
-				auto deviceInfo = device->DeviceInfo();
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-				kernel->AddSourcePath(convolutionKernelPath);
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->SetKernelName("ConvolutionKernel");
-
-				if (maximumConstantBufferSize > filters->ByteSize())
-				{
-					kernel->AddDefine(convolutionKernelPath, "CONSTANT_FILTERS");
-					maximumConstantBufferSize -= filters->ByteSize();
-				}
-
-				auto byteSize = firstInputData.TotalUnits() * sizeof(T);
-				if (maximumConstantBufferSize > byteSize)
-				{
-					kernel->AddDefine(convolutionKernelPath, "CONSTANT_INPUT");
-					maximumConstantBufferSize -= byteSize;
-				}
-
-				if (maximumConstantBufferSize > biases->ByteSize())
-				{
-					kernel->AddDefine(convolutionKernelPath, "CONSTANT_BIAS");
-					maximumConstantBufferSize -= biases->ByteSize();
-				}
-
-				kernel->AddGlobalSize(firstOutputData.Width);
-				kernel->AddGlobalSize(firstOutputData.Height);
-				kernel->AddGlobalSize(firstOutputData.Units);
-
-				kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_WIDTH", convolutionConfig.FilterWidth());
-				kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_HEIGHT", convolutionConfig.FilterHeight());
-				kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_OFFSET_WIDTH", 0);
-				kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_OFFSET_HEIGHT", 0);
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_WIDTH", firstOutputMemDesc.WidthOffset);
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_HEIGHT", firstOutputMemDesc.HeightOffset);
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_OFFSET_UNIT", firstOutputMemDesc.UnitOffset);
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_WIDTH", firstOutputMemDesc.Width);
-				kernel->AddDefineSubsitute(convolutionKernelPath, "INPUT_WIDTH", firstInputData.Width);
-				kernel->AddDefineSubsitute(convolutionKernelPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstOutputMemDesc.Width * firstOutputMemDesc.Height);
-				kernel->AddDefineSubsitute(convolutionKernelPath, "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING", convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight());
-
-				deviceAndConvolutionKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
+				kernel->AddDefine(multiplyOffsetPath, "CONSTANT_INPUT_DELTA");
+				maximumConstantBufferSize -= deltaBytes;
 			}
 
-			summaryCache = this->context->CreateMemory(CL_MEM_READ_WRITE,
-				sizeof(T) * firstInputData.Width * firstInputData.Height);
-			for (auto device : devices)
+			auto inputBytes = firstInForwardMemDesc.TotalMemory() * sizeof(T);
+			if (maximumConstantBufferSize > inputBytes)
 			{
-				auto deviceInfo = device->DeviceInfo();
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-				kernel->AddSourcePath(sumAllUnitsPath);
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->SetKernelName("SumAllUnitsKernel");
-
-				auto totalInputMemorySize = firstInputMemDesc.TotalMemory() * sizeof(T);
-				if (maximumConstantBufferSize > totalInputMemorySize)
-				{
-					kernel->AddDefine(sumAllUnitsPath, "CONSTANT_INPUT");
-					maximumConstantBufferSize -= totalInputMemorySize;
-				}
-
-				kernel->AddGlobalSize(firstInputData.Width);
-				kernel->AddGlobalSize(firstInputData.Height);
-
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "UNIT_COUNT_INC_PADDING", firstInputData.Units + firstInputMemDesc.UnitOffset);
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "UNIT_INPUT_OFFSET", firstInputMemDesc.UnitOffset);
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_INPUT_OFFSET", firstInputMemDesc.WidthOffset);
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "HEIGHT_INPUT_OFFSET", firstInputMemDesc.HeightOffset);
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_OUTPUT_OFFSET", 0);
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "HEIGHT_OUTPUT_OFFSET", 0);
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_INPUT", firstInputMemDesc.Width);
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "WIDTH_OUTPUT", firstInputData.Width);
-				kernel->AddDefineSubsitute(sumAllUnitsPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInputMemDesc.Width * firstInputMemDesc.Height);
-
-				deviceAndSumKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
+				kernel->AddDefine(multiplyOffsetPath, "CONSTANT_INPUT");
+				maximumConstantBufferSize -= inputBytes;
 			}
 
-			for (auto device : devices)
-			{
-				auto deviceInfo = device->DeviceInfo();
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+			kernel->AddGlobalSize(convolutionConfig.FilterWidth());
+			kernel->AddGlobalSize(convolutionConfig.FilterHeight());
+			kernel->AddGlobalSize(convolutionConfig.FilterCount());
 
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-				kernel->AddSourcePath(backConvolutionPath);
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->SetKernelName("BackPropConvolutionKernel");
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_STRIDE", firstInBackMemDesc.Width);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_STRIDE", convolutionConfig.FilterWidth());
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_STRIDE", firstInputData.Width);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_WIDTH_OFFSET", 0);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_HEIGHT_OFFSET", 0);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_WIDTH_OFFSET", firstInBackMemDesc.WidthOffset);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_HEIGHT_OFFSET", firstInBackMemDesc.HeightOffset);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "WIDTH_LIMIT", firstOutputData.Width);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "HEIGHT_LIMIT", firstOutputData.Height);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight());
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Height * firstInBackMemDesc.Width);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_WIDTH_OFFSET", 0);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_HEIGHT_OFFSET", 0);
+			kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_UNIT_OFFSET", 0);
 
-				if (maximumConstantBufferSize > filters->ByteSize())
-				{
-					kernel->AddDefine(backConvolutionPath, "CONSTANT_FILTERS");
-					maximumConstantBufferSize -= filters->ByteSize();
-				}
-
-				auto byteSize = firstInMemDesc.TotalMemory() * sizeof(T);
-				if (maximumConstantBufferSize > byteSize)
-				{
-					kernel->AddDefine(backConvolutionPath, "CONSTANT_INPUT_DELTA");
-					maximumConstantBufferSize -= byteSize;
-				}
-
-				kernel->AddGlobalSize(firstInputData.Width);
-				kernel->AddGlobalSize(firstInputData.Height);
-
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_COUNT", firstOutputData.Units);
-				kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_WIDTH", convolutionConfig.FilterWidth());
-				kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_HEIGHT", convolutionConfig.FilterHeight());
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_OFFSET", firstInMemDesc.UnitOffset);
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_LIMIT", firstInMemDesc.UnitOffset + firstOutputData.Units);
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_STRIDE", firstInMemDesc.Width);
-				kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_STRIDE", firstInputData.Width);
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_WIDTH_OFFSET", firstInMemDesc.WidthOffset - convolutionConfig.FilterWidth() + 1);
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_HEIGHT_OFFSET", firstInMemDesc.HeightOffset - convolutionConfig.FilterHeight() + 1);
-				kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_WIDTH_OFFSET", 0);
-				kernel->AddDefineSubsitute(backConvolutionPath, "OUTPUT_HEIGHT_OFFSET", 0);
-				kernel->AddDefineSubsitute(backConvolutionPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInMemDesc.Width * firstInMemDesc.Height);
-				kernel->AddDefineSubsitute(backConvolutionPath, "FILTER_UNIT_ELEMENT_COUNT_INC_PADDING", convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight());
-
-				deviceAndBackConvolutionKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
-			}
-
-			for (auto device : devices)
-			{
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-				kernel->AddSourcePath(zeroKernelPath);
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->SetKernelName("ZeroBorderKernel");
-
-				int borderHorizontalSize = convolutionConfig.FilterWidth() - 1;
-				int borderVerticalSize = convolutionConfig.FilterHeight() - 1;
-
-				int borderStartLeft = firstInBackMemDesc.WidthOffset
-					- borderHorizontalSize;
-				if (borderStartLeft < 0)
-					throw runtime_error("The memory / data descriptions are invalid");
-
-				int borderStartRight = firstInBackMemDesc.WidthOffset
-					+ firstOutputData.Width;
-
-				int borderStartUp = firstInBackMemDesc.HeightOffset
-					- borderVerticalSize;
-				if (borderStartUp < 0)
-					throw runtime_error("The memory / data descriptions are invalid");
-
-				int borderStartDown = firstInBackMemDesc.HeightOffset
-					+ firstOutputData.Height;
-
-				kernel->AddGlobalSize(firstOutputData.Units);
-
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Width * firstInBackMemDesc.Height);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_LEFT", borderStartLeft);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_RIGHT", borderStartRight);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_UP", borderStartUp);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_START_DOWN", borderStartDown);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_LEFT", borderStartLeft + borderHorizontalSize - 1);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_RIGHT", borderStartRight + borderHorizontalSize - 1);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_UP", borderStartUp + borderVerticalSize - 1);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_LIMIT_DOWN", borderStartDown + borderVerticalSize - 1);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_SIZE_HORIZONTAL", borderHorizontalSize);
-				kernel->AddDefineSubsitute(zeroKernelPath, "BORDER_SIZE_VERTICAL", borderVerticalSize);
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_DATA_WIDTH", firstOutputData.Width);
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_DATA_HEIGHT", firstOutputData.Height);
-				kernel->AddDefineSubsitute(zeroKernelPath, "INPUT_STRIDE", firstInBackMemDesc.Width);
-
-				deviceAndZeroKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
-			}
-
-			for (auto device : devices)
-			{
-				auto deviceInfo = device->DeviceInfo();
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-				kernel->AddSourcePath(multiplyKernelPath);
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->SetKernelName("MultiplyAllUnitsKernel");
-
-				auto deltaBytes = firstOutputBackMemDesc.TotalMemory() * sizeof(T);
-				auto inputBytes = firstInForwardMemDesc.TotalMemory() * sizeof(T);
-
-				if (maximumConstantBufferSize > deltaBytes)
-				{
-					kernel->AddDefine(multiplyKernelPath, "CONSTANT_INPUT_DELTA");
-					maximumConstantBufferSize -= deltaBytes;
-				}
-
-				if (maximumConstantBufferSize > inputBytes)
-				{
-					kernel->AddDefine(multiplyKernelPath, "CONSTANT_INPUT");
-					maximumConstantBufferSize -= inputBytes;
-				}
-
-				kernel->AddGlobalSize(firstInputData.Width);
-				kernel->AddGlobalSize(firstInputData.Height);
-				kernel->AddGlobalSize(firstInputData.Units);
-
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInForwardMemDesc.Width * firstInForwardMemDesc.Height);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstOutputBackMemDesc.Width * firstOutputBackMemDesc.Height);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_STRIDE", firstInputData.Width);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_STRIDE", firstOutputBackMemDesc.Width);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_STRIDE", firstInForwardMemDesc.Width);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_WIDTH_OFFSET", 0);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_DELTA_HEIGHT_OFFSET", 0);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_WIDTH_OFFSET", firstOutputBackMemDesc.WidthOffset);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_HEIGHT_OFFSET", firstOutputBackMemDesc.HeightOffset);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "OUTPUT_UNIT_OFFSET", firstOutputBackMemDesc.UnitOffset);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_WIDTH_OFFSET", firstInForwardMemDesc.WidthOffset);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_HEIGHT_OFFSET", firstInForwardMemDesc.HeightOffset);
-				kernel->AddDefineSubsitute(multiplyKernelPath, "INPUT_UNIT_OFFSET", firstInForwardMemDesc.UnitOffset);
-
-				deviceAndMultiplyKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
-			}
-
-			for (auto device : devices)
-			{
-				auto deviceInfo = device->DeviceInfo();
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-				kernel->AddSourcePath(sumUnitPath);
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->SetKernelName("SumUnitKernel");
-
-				auto deltaBytes = firstInBackMemDesc.TotalMemory() * sizeof(T);
-
-				if (maximumConstantBufferSize > deltaBytes)
-				{
-					kernel->AddDefine(sumUnitPath, "CONSTANT_INPUT");
-					maximumConstantBufferSize -= deltaBytes;
-				}
-
-				kernel->AddGlobalSize(convolutionConfig.FilterCount());
-
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_STRIDE", firstInBackMemDesc.Width);
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_WIDTH_OFFSET", firstInBackMemDesc.WidthOffset);
-				kernel->AddDefineSubsitute(sumUnitPath, "WIDTH_LIMIT", firstInBackMemDesc.WidthOffset +firstOutputData.Width);
-				kernel->AddDefineSubsitute(sumUnitPath, "HEIGHT_LIMIT", firstInBackMemDesc.HeightOffset + firstOutputData.Height);
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_HEIGHT_OFFSET", firstInBackMemDesc.HeightOffset);
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
-				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Width * firstInBackMemDesc.Height);
-				kernel->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", 0); //Since we are splitting the gradient for this kernel
-
-				deviceAndSumUnitKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
-			}
-
-			for (auto device : devices)
-			{
-				auto deviceInfo = device->DeviceInfo();
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-
-				unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
-				kernel->AddSourcePath(multiplyOffsetPath);
-				kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel->SetKernelName("MultiplyWithOffsetKernel");
-
-				auto deltaBytes = firstInBackMemDesc.TotalMemory() * sizeof(T);
-
-				if (maximumConstantBufferSize > deltaBytes)
-				{
-					kernel->AddDefine(multiplyOffsetPath, "CONSTANT_INPUT_DELTA");
-					maximumConstantBufferSize -= deltaBytes;
-				}
-
-				auto inputBytes = firstInForwardMemDesc.TotalMemory() * sizeof(T);
-				if (maximumConstantBufferSize > inputBytes)
-				{
-					kernel->AddDefine(multiplyOffsetPath, "CONSTANT_INPUT");
-					maximumConstantBufferSize -= inputBytes;
-				}
-
-				kernel->AddGlobalSize(convolutionConfig.FilterWidth());
-				kernel->AddGlobalSize(convolutionConfig.FilterHeight());
-				kernel->AddGlobalSize(convolutionConfig.FilterCount());
-
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_STRIDE", firstInBackMemDesc.Width);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_STRIDE", convolutionConfig.FilterWidth());
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_STRIDE", firstInputData.Width);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_WIDTH_OFFSET", 0);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_HEIGHT_OFFSET", 0);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_WIDTH_OFFSET", firstInBackMemDesc.WidthOffset);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_HEIGHT_OFFSET", firstInBackMemDesc.HeightOffset);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "WIDTH_LIMIT", firstOutputData.Width);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "HEIGHT_LIMIT", firstOutputData.Height);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING", convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight());
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "INPUT_DELTA_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Height * firstInBackMemDesc.Width);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_WIDTH_OFFSET", 0);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_HEIGHT_OFFSET", 0);
-				kernel->AddDefineSubsitute(multiplyOffsetPath, "OUTPUT_UNIT_OFFSET", 0);
-
-				deviceAndMultiplyWithOffsetKernels.insert(make_pair(device, kernel.get()));
-				programs[device]->AttachKernel(move(kernel));
-			}
+			deviceAndMultiplyWithOffsetKernels.insert(make_pair(device, kernel.get()));
+			program->AttachKernel(move(kernel));
 		}
 
 		template<class T>
