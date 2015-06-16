@@ -53,8 +53,11 @@ namespace Matuna
 				int queueIndex, OCLMemory* previousInput, OCLMemory* target);
 
 		private:
-			void InitializeImageProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
-			void SetErrorFunctionDefine(LayerKernel<T>* kernel, string path, bool binary);
+			void InitializePrograms();
+			void InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const StandardOutputLayerConfig* config);
+
+			void InitializeErrorKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeOutputKernel(OCLDevice* device, OCLProgram* program);
 		};
 
 	}
