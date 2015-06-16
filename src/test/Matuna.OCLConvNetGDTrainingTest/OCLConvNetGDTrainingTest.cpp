@@ -164,6 +164,9 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 
 SCENARIO("Testing the gradient descent training algorithm")
 {
+	//TODO: Setting dimension to 1 and using only a perceptron layer with linear activation
+	//the descent algorithm fails. Check this out!
+
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());

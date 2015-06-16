@@ -511,7 +511,7 @@ namespace Matuna {
 
 				unique_ptr<OCLProgram> gradientProgram(new OCLProgram());
 				gradientProgram->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				gradientProgram->AddProgramPath(Path::Combine(OCLProgram::DefaultSourceLocation, "AccumulateVectorKernel.cl"));
+				gradientProgram->AddProgramPath(Path::Combine(OCLProgram::DefaultSourceLocation, "AccumulateVectorProgram.cl"));
 				gradientProgram->SetName("GradientProgram" + Converter::ConvertToString(gradientProgram->InstanceCount()));
 				auto programPointer = gradientProgram.get();
 				unique_ptr<LayerKernel<T>> vectorKernelHolder(new LayerKernel<T>());

@@ -161,7 +161,7 @@ namespace Matuna
 		void StandardOutputLayer<T>::InitializeErrorKernel(OCLDevice* device, OCLProgram* program)
 		{
 			string errorSourcePath = Path::Combine(OCLProgram::DefaultSourceLocation,
-				"ImageOutputError.cl");
+				"OutputErrorKernel.cl");
 
 
 			LayerMemoryDescription inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
@@ -248,7 +248,7 @@ namespace Matuna
 		void StandardOutputLayer<T>::InitializeOutputKernel(OCLDevice* device, OCLProgram* program)
 		{
 			string outputSourcePath = Path::Combine(OCLProgram::DefaultSourceLocation,
-				"ImageOutputBackProp.cl");
+				"OutputBackPropKernel.cl");
 
 			LayerMemoryDescription inForwardPropMem = this->InForwardPropMemoryDescriptions()[0];
 			LayerDataDescription inForwardPropData = this->InForwardPropDataDescriptions()[0];
