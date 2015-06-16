@@ -1,30 +1,16 @@
 //Important: This is supposed to be executed as a task since there's only one work unit
 
-/**
- * Macros to define:
- * - MATUNA_MSE:                 Mean Squared Error function
- * - MATUNA_CE:                  Cross Entropy error function
- * - MATUNA_CE_BINARY:           Cross Entropy Binary function
- * - CONSTANT_INPUT:      If we may put the inputs into the constant memory space.
- * - CONSTANT_TARGET:     If we may put the targets into the constant memory space.
- * - INPUT_UNIT_OFFSET:   The offset of the input / target memory .
- * - INPUT_COUNT:         The number of input units.
- * - DOUBLE_PRECISION:    If the kernel is to be executed with double precision.
- * - HALF_MATH:           If we use half precision math
- * - NATIVE_MATH:         If we use native precision math
- */
-
 #include "RealType.h"
 
 //<!@
-#define INPUT_OFFSET_WIDTH -1
-#define INPUT_WIDTH_LIMIT -1
-#define INPUT_HEIGHT_LIMIT -1
-#define INPUT_OFFSET_HEIGHT -1
-#define INPUT_UNIT_OFFSET -1
-#define INPUT_STRIDE -1
-#define INPUT_UNIT_LIMIT -1
-#define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
+#define IN_TARGET_UNIT_MEMORY_WIDTH_OFFSET -1
+#define IN_TARGET_WIDTH_LIMIT -1
+#define IN_TARGET_HEIGHT_LIMIT -1
+#define IN_TARGET_UNIT_LIMIT -1
+#define IN_TARGET_UNIT_MEMORY_HEIGHT_OFFSET -1
+#define IN_TARGET_UNIT_OFFSET -1
+#define IN_TARGET_UNIT_MEMORY_WIDTH -1
+#define IN_TARGET_UNIT_MEMORY_ELEMENTS -1
 //#define MATUNA_MSE
 //#define MATUNA_CE_BINARY
 //#define MATUNA_CE
@@ -56,7 +42,7 @@ __kernel void Error(
 		__global real_t* error)
 {
 
-	const int inputIndex = INPUT_UNIT_OFFSET * INPUT_UNIT_ELEMENT_COUNT_INC_PADDING + INPUT_OFFSET_HEIGHT * INPUT_STRIDE + INPUT_OFFSET_WIDTH;
+	const int inputIndex = IN_TARGET_UNIT_OFFSET * IN_TARGET_UNIT_MEMORY_ELEMENTS + IN_TARGET_UNIT_MEMORY_HEIGHT_OFFSET * IN_TARGET_UNIT_MEMORY_WIDTH + IN_TARGET_UNIT_MEMORY_WIDTH_OFFSET;
 	const real_t inputValue = input[inputIndex];
 	const real_t targetValue = target[inputIndex];
 
@@ -93,13 +79,13 @@ __kernel void Error(
 	int temp1;
 	int temp2;
 	int temp3;
-	for (int i = INPUT_UNIT_OFFSET; i < INPUT_UNIT_LIMIT; i++)
+	for (int i = IN_TARGET_UNIT_OFFSET; i < IN_TARGET_UNIT_LIMIT; i++)
 	{
-		temp1 = INPUT_UNIT_ELEMENT_COUNT_INC_PADDING * i;
-		for (int j = INPUT_OFFSET_HEIGHT; j < INPUT_HEIGHT_LIMIT; j++)
+		temp1 = IN_TARGET_UNIT_MEMORY_ELEMENTS * i;
+		for (int j = IN_TARGET_UNIT_MEMORY_HEIGHT_OFFSET; j < IN_TARGET_HEIGHT_LIMIT; j++)
 		{
-			temp2 = temp1 + INPUT_STRIDE * j;
-			for (int k = INPUT_OFFSET_WIDTH; k < INPUT_WIDTH_LIMIT; k++)
+			temp2 = temp1 + IN_TARGET_UNIT_MEMORY_WIDTH * j;
+			for (int k = IN_TARGET_UNIT_MEMORY_WIDTH_OFFSET; k < IN_TARGET_WIDTH_LIMIT; k++)
 			{
 				temp3 = temp2 + k;
 #ifndef DOUBLE_PRECISION
@@ -141,13 +127,13 @@ __kernel void Error(
 	int temp2;
 	int temp3;
 
-	for (int i = INPUT_UNIT_OFFSET; i < INPUT_UNIT_LIMIT; i++)
+	for (int i = IN_TARGET_UNIT_OFFSET; i < IN_TARGET_UNIT_LIMIT; i++)
 	{
-		temp1 = INPUT_UNIT_ELEMENT_COUNT_INC_PADDING * i;
-		for (int j = INPUT_OFFSET_HEIGHT; j < INPUT_HEIGHT_LIMIT; j++)
+		temp1 = IN_TARGET_UNIT_MEMORY_ELEMENTS * i;
+		for (int j = IN_TARGET_UNIT_MEMORY_HEIGHT_OFFSET; j < IN_TARGET_HEIGHT_LIMIT; j++)
 		{
-			temp2 = temp1 + INPUT_STRIDE * j;
-			for (int k = INPUT_OFFSET_WIDTH; k < INPUT_WIDTH_LIMIT; k++)
+			temp2 = temp1 + IN_TARGET_UNIT_MEMORY_WIDTH * j;
+			for (int k = IN_TARGET_UNIT_MEMORY_WIDTH_OFFSET; k < IN_TARGET_WIDTH_LIMIT; k++)
 			{
 				temp3 = temp2 + k;
 				temp = targets[temp3] - inputs[temp3];

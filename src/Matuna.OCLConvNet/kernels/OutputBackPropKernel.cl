@@ -1,6 +1,4 @@
-// Important: This kernel only supports outputs that are single units and not image units (TODO!!).
 // Furthermore it's important to note that the targets and input have the same memory description by definition of the network.
-// In this case, we only have UNIT_OFFSET that can change the layout of the memory.
 
 /**
  * Macros to define:
@@ -21,16 +19,16 @@
 #include "ActivationFunction.h"
 
 //<!@
-#define INPUT_OFFSET_WIDTH -1
-#define INPUT_OFFSET_HEIGHT -1
-#define OUTPUT_OFFSET_WIDTH -1
-#define OUTPUT_OFFSET_HEIGHT -1
+#define INPUT_UNIT_MEMORY_WIDTH_OFFSET -1
+#define INPUT_UNIT_MEMORY_HEIGHT_OFFSET -1
+#define OUTPUT_UNIT_MEMORY_WIDTH_OFFSET -1
+#define OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET -1
 #define INPUT_UNIT_OFFSET -1
-#define INPUT_STRIDE -1
-#define OUTPUT_STRIDE -1
-#define OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
-#define INPUT_UNIT_ELEMENT_COUNT_INC_PADDING -1
 #define OUTPUT_UNIT_OFFSET -1
+#define INPUT_UNIT_MEMORY_WIDTH -1
+#define OUTPUT_UNIT_MEMORY_WIDTH -1
+#define OUTPUT_UNIT_MEMORY_ELEMENTS -1
+#define INPUT_UNIT_MEMORY_ELEMENTS -1
 //#define MATUNA_DIFFERENCE
 //#define MATUNA_MSE_ANY
 //#define MATUNA_CE_ANY
@@ -58,8 +56,8 @@ __kernel void BackPropagation(
 	const int yIndex = get_global_id(1);
 	const int zIndex = get_global_id(2);
 
-	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + INPUT_OFFSET_HEIGHT) * INPUT_STRIDE + xIndex + INPUT_OFFSET_WIDTH;
-	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + OUTPUT_OFFSET_HEIGHT) * OUTPUT_STRIDE + xIndex + OUTPUT_OFFSET_WIDTH;
+	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_MEMORY_ELEMENTS + (yIndex + INPUT_UNIT_MEMORY_HEIGHT_OFFSET) * INPUT_UNIT_MEMORY_WIDTH + xIndex + INPUT_UNIT_MEMORY_WIDTH_OFFSET;
+	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_MEMORY_ELEMENTS + (yIndex + OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET) * OUTPUT_UNIT_MEMORY_WIDTH + xIndex + OUTPUT_UNIT_MEMORY_WIDTH_OFFSET;
 
 	output[outputIndex] = input[inputIndex] - target[inputIndex];
 }
@@ -83,8 +81,8 @@ __kernel void BackPropagation(
 	const int yIndex = get_global_id(1);
 	const int zIndex = get_global_id(2);
 
-	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + INPUT_OFFSET_HEIGHT) * INPUT_STRIDE + xIndex + INPUT_OFFSET_WIDTH;
-	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + OUTPUT_OFFSET_HEIGHT) * OUTPUT_STRIDE + xIndex + OUTPUT_OFFSET_WIDTH;
+	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_MEMORY_ELEMENTS + (yIndex + INPUT_UNIT_MEMORY_HEIGHT_OFFSET) * INPUT_UNIT_MEMORY_WIDTH + xIndex + INPUT_UNIT_MEMORY_WIDTH_OFFSET;
+	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_MEMORY_ELEMENTS + (yIndex + OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET) * OUTPUT_UNIT_MEMORY_WIDTH + xIndex + OUTPUT_UNIT_MEMORY_WIDTH_OFFSET;
 
 	const real_t tempInput = input[inputIndex];
 	const real_t temp2 = tempInput - target[inputIndex];
@@ -111,8 +109,8 @@ __kernel void BackPropagation(
 	const int yIndex = get_global_id(1);
 	const int zIndex = get_global_id(2);
 
-	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + INPUT_OFFSET_HEIGHT) * INPUT_STRIDE + xIndex + INPUT_OFFSET_WIDTH;
-	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + OUTPUT_OFFSET_HEIGHT) * OUTPUT_STRIDE + xIndex + OUTPUT_OFFSET_WIDTH;
+	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_MEMORY_ELEMENTS + (yIndex + INPUT_UNIT_MEMORY_HEIGHT_OFFSET) * INPUT_UNIT_MEMORY_WIDTH + xIndex + INPUT_UNIT_MEMORY_WIDTH_OFFSET;
+	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_MEMORY_ELEMENTS + (yIndex + OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET) * OUTPUT_UNIT_MEMORY_WIDTH + xIndex + OUTPUT_UNIT_MEMORY_WIDTH_OFFSET;
 
 #if defined(MATUNA_ACTIVATION_DERIVATIVE_SIGMOID)
 	output[outputIndex] = inputs[inputIndex] - target[inputIndex];
@@ -142,8 +140,8 @@ __kernel void BackPropagation(
 	const int yIndex = get_global_id(1);
 	const int zIndex = get_global_id(2);
 
-	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + INPUT_OFFSET_HEIGHT) * INPUT_STRIDE + xIndex + INPUT_OFFSET_WIDTH;
-	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING + (yIndex + OUTPUT_OFFSET_HEIGHT) * OUTPUT_STRIDE + xIndex + OUTPUT_OFFSET_WIDTH;
+	const int inputIndex = (zIndex + INPUT_UNIT_OFFSET)* INPUT_UNIT_MEMORY_ELEMENTS + (yIndex + INPUT_UNIT_MEMORY_HEIGHT_OFFSET) * INPUT_UNIT_MEMORY_WIDTH + xIndex + INPUT_UNIT_MEMORY_WIDTH_OFFSET;
+	const int outputIndex = (zIndex + OUTPUT_UNIT_OFFSET) * OUTPUT_UNIT_MEMORY_ELEMENTS + (yIndex + OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET) * OUTPUT_UNIT_MEMORY_WIDTH + xIndex + OUTPUT_UNIT_MEMORY_WIDTH_OFFSET;
 	
 #if defined(MATUNA_ACTIVATION_DERIVATIVE_SIGMOID)
 	output[outputIndex] = -target[inputIndex] * (ONE - input[inputIndex]);

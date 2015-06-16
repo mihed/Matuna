@@ -221,23 +221,23 @@ namespace Matuna
 				"The error function is not supported by the output kernel");
 
 			imageErrorKernel->AddDefineSubsitute(errorSourcePath,
-				"INPUT_OFFSET_WIDTH", inputUnitMemoryWidthOffset);
+				"IN_TARGET_UNIT_MEMORY_WIDTH_OFFSET", inputUnitMemoryWidthOffset);
 			imageErrorKernel->AddDefineSubsitute(errorSourcePath,
-				"INPUT_WIDTH_LIMIT",
+				"IN_TARGET_WIDTH_LIMIT",
 				inputUnitMemoryWidthOffset + dataWidth);
 			imageErrorKernel->AddDefineSubsitute(errorSourcePath,
-				"INPUT_HEIGHT_LIMIT",
+				"IN_TARGET_HEIGHT_LIMIT",
 				inputUnitMemoryHeightOffset + dataHeight);
 			imageErrorKernel->AddDefineSubsitute(errorSourcePath,
-				"INPUT_OFFSET_HEIGHT", inputUnitMemoryHeightOffset);
+				"IN_TARGET_UNIT_MEMORY_HEIGHT_OFFSET", inputUnitMemoryHeightOffset);
 			imageErrorKernel->AddDefineSubsitute(errorSourcePath,
-				"INPUT_UNIT_OFFSET", inputUnitOffset);
-			imageErrorKernel->AddDefineSubsitute(errorSourcePath, "INPUT_STRIDE",
+				"IN_TARGET_UNIT_OFFSET", inputUnitOffset);
+			imageErrorKernel->AddDefineSubsitute(errorSourcePath, "IN_TARGET_UNIT_MEMORY_WIDTH",
 				inputUnitMemoryWidth);
 			imageErrorKernel->AddDefineSubsitute(errorSourcePath,
-				"INPUT_UNIT_LIMIT", inputUnitOffset + dataUnits);
+				"IN_TARGET_UNIT_LIMIT", inputUnitOffset + dataUnits);
 			imageErrorKernel->AddDefineSubsitute(errorSourcePath,
-				"INPUT_UNIT_ELEMENT_COUNT_INC_PADDING",
+				"IN_TARGET_UNIT_MEMORY_ELEMENTS",
 				inputUnitMemoryWidth * inputUnitMemoryHeight);
 
 			imageErrorKernels.insert(make_pair(device, imageErrorKernel.get()));
@@ -301,29 +301,29 @@ namespace Matuna
 			imageOutputKernel->AddGlobalSize(globalUnits);
 
 			imageOutputKernel->AddDefineSubsitute(outputSourcePath,
-				"INPUT_OFFSET_WIDTH", inputUnitMemoryWidthOffset);
+				"INPUT_UNIT_MEMORY_WIDTH_OFFSET", inputUnitMemoryWidthOffset);
 			imageOutputKernel->AddDefineSubsitute(outputSourcePath,
-				"INPUT_OFFSET_HEIGHT", inputUnitMemoryHeightOffset);
+				"INPUT_UNIT_MEMORY_HEIGHT_OFFSET", inputUnitMemoryHeightOffset);
 			imageOutputKernel->AddDefineSubsitute(outputSourcePath,
 				"INPUT_UNIT_OFFSET", inputUnitOffset);
 
 			imageOutputKernel->AddDefineSubsitute(outputSourcePath,
-				"OUTPUT_OFFSET_WIDTH", outputUnitMemoryWidthOffset);
+				"OUTPUT_UNIT_MEMORY_WIDTH_OFFSET", outputUnitMemoryWidthOffset);
 			imageOutputKernel->AddDefineSubsitute(outputSourcePath,
-				"OUTPUT_OFFSET_HEIGHT", outputUnitMemoryHeightOffset);
+				"OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET", outputUnitMemoryHeightOffset);
 			imageOutputKernel->AddDefineSubsitute(outputSourcePath,
 				"OUTPUT_UNIT_OFFSET", outputUnitOffset);
 
-			imageOutputKernel->AddDefineSubsitute(outputSourcePath, "INPUT_STRIDE",
+			imageOutputKernel->AddDefineSubsitute(outputSourcePath, "INPUT_UNIT_MEMORY_WIDTH",
 				inputUnitMemoryWidth);
-			imageOutputKernel->AddDefineSubsitute(outputSourcePath, "OUTPUT_STRIDE",
+			imageOutputKernel->AddDefineSubsitute(outputSourcePath, "OUTPUT_UNIT_MEMORY_WIDTH",
 				outputUnitMemoryWidth);
 
 			imageOutputKernel->AddDefineSubsitute(outputSourcePath,
-				"OUTPUT_UNIT_ELEMENT_COUNT_INC_PADDING",
+				"OUTPUT_UNIT_MEMORY_ELEMENTS",
 				outputUnitMemoryHeight * outputUnitMemoryWidth);
 			imageOutputKernel->AddDefineSubsitute(outputSourcePath,
-				"INPUT_UNIT_ELEMENT_COUNT_INC_PADDING",
+				"INPUT_UNIT_MEMORY_ELEMENTS",
 				inputUnitMemoryHeight * inputUnitMemoryWidth);
 
 			bool useBinary = false;
