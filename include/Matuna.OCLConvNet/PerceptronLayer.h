@@ -83,12 +83,14 @@ namespace Matuna
 			Matrix<T> GetWeights();
 			Matrix<T> GetBias();
 
-			//TODO: Add some read / write parameters. Now it's all random
-
 		private:
+			void InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const PerceptronLayerConfig* config);
 			void InitializeParameters();
-			void InitializeImageProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
-			void InitializeProgram(unordered_map<OCLDevice*, unique_ptr<OCLProgram>>& programs);
+			void InitializePrograms();
+
+			void InitializeGradientPerceptronKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeBackPropPerceptronKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeForwardPerceptronKernel(OCLDevice* device, OCLProgram* program);
 		};
 
 	}
