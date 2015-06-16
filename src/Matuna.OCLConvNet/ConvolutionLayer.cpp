@@ -206,9 +206,6 @@ namespace Matuna
 			}
 
 			InitializeParameters();
-			//HACK---------------------
-			unordered_map<OCLDevice*, unique_ptr<OCLProgram>> fixThisPrograms;
-			//END HACK-----------------
 
 			unordered_map<OCLDevice*, unique_ptr<OCLProgram>> programs;
 			auto backActivationFunction = this->BackPropActivationFunction();
@@ -244,44 +241,10 @@ namespace Matuna
 
 				program->SetName("ConvolutionLayerProgram" + Converter::ConvertToString(program->InstanceCount()));
 				programs.insert(make_pair(device, move(program)));
-
-				//HACK---------------------
-
-				unique_ptr<OCLProgram> fixThisProgram(new OCLProgram());
-
-				fixThisProgram->SetUseRelaxedMath(convolutionConfig.UseRelaxedMath());
-				if (convolutionConfig.ComputationPrecision() == MatunaHalfPrecision)
-					fixThisProgram->AddDefine("HALF_MATH");
-				else if (convolutionConfig.ComputationPrecision() == MatunaNativePrecision)
-					fixThisProgram->AddDefine("NATIVE_MATH");
-
-				fixThisProgram->AddIncludePath(OCLProgram::DefaultSourceLocation);
-
-				if (is_same<cl_double, T>::value) 
-					fixThisProgram->AddDefine("DOUBLE_PRECISION");
-
-				if (backActivationFunction == MatunaSigmoidActivation)
-					fixThisProgram->AddDefine("MATUNA_ACTIVATION_DERIVATIVE_SIGMOID");
-				else if (backActivationFunction == MatunaTanhActivation)
-					fixThisProgram->AddDefine("MATUNA_ACTIVATION_DERIVATIVE_TANH");
-				else if (backActivationFunction == MatunaSoftMaxActivation)
-					throw invalid_argument("Softmax is not allowed in a convolution layer at the moment");
-
-				if (activationFunction == MatunaSigmoidActivation)
-					fixThisProgram->AddDefine("MATUNA_ACTIVATION_SIGMOID");
-				else if (activationFunction == MatunaTanhActivation)
-					fixThisProgram->AddDefine("MATUNA_ACTIVATION_TANH");
-				else if (activationFunction == MatunaSoftMaxActivation)
-					fixThisProgram->AddDefine("MATUNA_ACTIVATION_SOFTMAX");
-
-				fixThisProgram->SetName("fixThisProgram" + Converter::ConvertToString(program->InstanceCount()));
-				fixThisPrograms.insert(make_pair(device, move(fixThisProgram)));
-
-				//END HACK-----------------
-
 			}
 
 			InitializeProgram(programs);
+
 			//Attaching and compiling all the programs 
 			for (auto device : devices)
 			{
@@ -289,46 +252,7 @@ namespace Matuna
 				vector<OCLDevice*> oneDeviceVector;
 				oneDeviceVector.push_back(device);
 
-				//HACK---------------------
-				LayerMemoryDescription firstInBackMemDesc =
-					this->InBackPropMemoryDescriptions()[0];
-				LayerDataDescription firstOutputData =
-					this->outForwardPropDataDescriptions[0];
-				string sumUnitPath = Path::Combine(OCLProgram::DefaultSourceLocation, "SumUnitKernel.cl");
-				auto deviceInfo = device->DeviceInfo();
-				auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
-
-				unique_ptr<LayerKernel<T>> kernel2(new LayerKernel<T>());
-				kernel2->AddSourcePath(sumUnitPath);
-				kernel2->AddIncludePath(OCLProgram::DefaultSourceLocation);
-				kernel2->SetKernelName("SumUnitKernel");
-
-				auto deltaBytes = firstInBackMemDesc.TotalMemory() * sizeof(T);
-
-				if (maximumConstantBufferSize > deltaBytes)
-				{
-					kernel2->AddDefine(sumUnitPath, "CONSTANT_INPUT");
-					maximumConstantBufferSize -= deltaBytes;
-				}
-
-				kernel2->AddGlobalSize(convolutionConfig.FilterCount());
-
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_STRIDE", firstInBackMemDesc.Width);
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_WIDTH_OFFSET", firstInBackMemDesc.WidthOffset);
-				kernel2->AddDefineSubsitute(sumUnitPath, "WIDTH_LIMIT", firstInBackMemDesc.WidthOffset +firstOutputData.Width);
-				kernel2->AddDefineSubsitute(sumUnitPath, "HEIGHT_LIMIT", firstInBackMemDesc.HeightOffset + firstOutputData.Height);
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_HEIGHT_OFFSET", firstInBackMemDesc.HeightOffset);
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
-				kernel2->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Width * firstInBackMemDesc.Height);
-				kernel2->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", 0); //Since we are splitting the gradient for this kernel
-
-				deviceAndSumUnitKernels2.insert(make_pair(device, kernel2.get()));
-				fixThisPrograms[device]->AttachKernel(move(kernel2));
-
-				//END HACK-----------------
-
 				this->context->AttachProgram(move(programs[device]), oneDeviceVector);
-				this->context->AttachProgram(move(fixThisPrograms[device]), oneDeviceVector);
 
 				//Set all the filters and biases
 				deviceAndConvolutionKernels[device]->SetMemoryArg(filters.get(), 2);
@@ -622,7 +546,7 @@ namespace Matuna
 				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_HEIGHT_OFFSET", firstInBackMemDesc.HeightOffset);
 				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_OFFSET", firstInBackMemDesc.UnitOffset);
 				kernel->AddDefineSubsitute(sumUnitPath, "INPUT_UNIT_ELEMENT_COUNT_INC_PADDING", firstInBackMemDesc.Width * firstInBackMemDesc.Height);
-				kernel->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", convolutionConfig.FilterHeight() * convolutionConfig.FilterWidth() * convolutionConfig.FilterCount());
+				kernel->AddDefineSubsitute(sumUnitPath, "OUTPUT_OFFSET", 0); //Since we are splitting the gradient for this kernel
 
 				deviceAndSumUnitKernels.insert(make_pair(device, kernel.get()));
 				programs[device]->AttachKernel(move(kernel));
@@ -733,7 +657,7 @@ namespace Matuna
 			multiplyWithOffsetKernel->SetMemoryArg(summaryCache.get(), 0);
 			multiplyWithOffsetKernel->SetMemoryArg(delta, 1);
 			multiplyWithOffsetKernel->SetMemoryArg(gradient[0], 2);
-			auto sumUnitKernel = deviceAndSumUnitKernels2[device];
+			auto sumUnitKernel = deviceAndSumUnitKernels[device];
 			sumUnitKernel->SetMemoryArg(delta, 0);
 			sumUnitKernel->SetMemoryArg(gradient[1], 1);
 

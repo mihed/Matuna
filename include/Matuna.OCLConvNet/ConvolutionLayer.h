@@ -40,9 +40,6 @@ namespace Matuna
 			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndSumUnitKernels;
 			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndMultiplyWithOffsetKernels;
 
-			//HACK: this must be changed when removed the deprecated functions 
-			unordered_map<OCLDevice*,  LayerKernel<T>*> deviceAndSumUnitKernels2;
-
 			ConvolutionLayerConfig convolutionConfig;
 			unique_ptr<OCLMemory> filters;
 			unique_ptr<OCLMemory> biases;
