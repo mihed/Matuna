@@ -17,13 +17,15 @@ namespace Matuna
 
 		OCLDevice::OCLDevice(OCLContext* context,
 			const OCLDeviceInfo& deviceInfo,
-			const vector<cl_command_queue>& queues) :
-		context(context), deviceInfo(deviceInfo), queues(queues), deviceID(
-			deviceInfo.DeviceID())
+			const vector<cl_command_queue>& queues) : deviceInfo(deviceInfo)
 		{
 			if (queues.size() == 0)
 				throw invalid_argument(
 				"We cannot initialize a device without a device queue");
+
+			this->context = context;
+			this->queues = queues;
+			this->deviceID = deviceInfo.DeviceID();
 		}
 
 		OCLDevice::~OCLDevice()

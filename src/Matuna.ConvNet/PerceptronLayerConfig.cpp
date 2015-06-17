@@ -16,12 +16,12 @@ PerceptronLayerConfig::PerceptronLayerConfig(int units,
 		MatunaActivationFunction activationFunction,
 		MatunaConnectionType connectionType, bool useRelaxedMath,
 		MatunaComputationPrecision computationPrecision) :
-		ForwardBackPropLayerConfig(useRelaxedMath, computationPrecision), units(
-				units), activationFunction(activationFunction), connectionType(
-				connectionType)
+		ForwardBackPropLayerConfig(useRelaxedMath, computationPrecision)
 
 {
-
+	this->units = units;
+	this->activationFunction = activationFunction;
+	this->connectionType = connectionType;
 }
 
 PerceptronLayerConfig::~PerceptronLayerConfig()

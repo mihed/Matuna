@@ -28,7 +28,6 @@ size_t ConvNetConfig::LayerCount() const
 {
 	return forwardBackConfigs.size();
 }
-;
 
 bool ConvNetConfig::HasOutputLayer() const
 {

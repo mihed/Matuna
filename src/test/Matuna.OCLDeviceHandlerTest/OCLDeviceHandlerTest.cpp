@@ -40,13 +40,11 @@ SCENARIO("Fetching device information", "[DeviceInfo]")
 			"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
 	}
 	WHEN("Fetching the device info from the platform infos"){
-		size_t size1;
 		THEN("The device infos should be printable and working")
 		{
 			for (auto& platformInfo : platformInfos)
 			{
 				auto deviceInfos = OCLHelper::GetDeviceInfos(platformInfo);
-				size1 = deviceInfos.size();
 				for (auto& info : deviceInfos)
 					cout << info.GetString().c_str() << endl;
 			}

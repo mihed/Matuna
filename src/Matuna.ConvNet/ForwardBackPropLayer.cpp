@@ -34,7 +34,6 @@ bool ForwardBackPropLayer::Interlocked() const
 {
 	return outputInterlocked && BackPropLayer::Interlocked();
 }
-;
 
 vector<LayerMemoryDescription> ForwardBackPropLayer::OutForwardPropMemoryDescriptions() const
 {

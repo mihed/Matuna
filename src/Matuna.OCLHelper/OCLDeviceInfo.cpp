@@ -1,9 +1,9 @@
 /*
- * OCLDeviceInfo.cpp
- *
- *  Created on: Apr 26, 2015
- *      Author: Mikael
- */
+* OCLDeviceInfo.cpp
+*
+*  Created on: Apr 26, 2015
+*      Author: Mikael
+*/
 
 #include "OCLDeviceInfo.h"
 #include <sstream>
@@ -54,37 +54,50 @@ namespace Matuna {
 			string deviceProfile,
 			string deviceVersion, 
 			string deviceOCLVersion,
-			string deviceExtensions) :
-		platformInfo(platformInfo), deviceID(deviceID), globalMemoryCacheType(
-			globalMemoryCacheType), localMemoryType(localMemoryType), type(
-			type), vendorID(vendorID), maxComputeUnits(maxComputeUnits), maxWorkItemDimensions(
-			maxWorkItemDimensions), maxWorkItemSizes(maxWorkItemSizes), maxWorkGroupSize(
-			maxWorkGroupSize), maxClockFrequency(maxClockFrequency), preferredCharVectorWidth(
-			preferredCharVectorWidth), preferredShortVectorWidth(
-			preferredShortVectorWidth), preferredIntVectorWidth(
-			preferredIntVectorWidth), preferredLongVectorWidth(
-			preferredLongVectorWidth), preferredFloatVectorWidth(
-			preferredFloatVectorWidth), preferredDoubleVectorWidth(
-			preferredDoubleVectorWidth), preferredHalfVectorWidth(
-			preferredHalfVectorWidth), nativeCharVectorWidth(
-			nativeCharVectorWidth), nativeShortVectorWidth(
-			nativeShortVectorWidth), nativeIntVectorWidth(
-			nativeIntVectorWidth), nativeLongVectorWidth(
-			nativeLongVectorWidth), nativeFloatVectorWidth(
-			nativeFloatVectorWidth), nativeDoubleVectorWidth(
-			nativeDoubleVectorWidth), nativeHalfVectorWidth(
-			nativeHalfVectorWidth), maxMemoryAllocationSize(
-			maxMemoryAllocationSize), imageSupport(imageSupport), maxParametersSize(
-			maxParametersSize), globalMemoryCacheSize(
-			globalMemoryCacheSize), globalMemorySize(globalMemorySize), maxConstantBufferSize(
-			maxConstantBufferSize), maxConstantArguments(
-			maxConstantArguments), localMemorySize(localMemorySize), deviceAvailable(
-			deviceAvailable), compilerAvailable(compilerAvailable), deviceName(
-			deviceName), deviceVendor(deviceVendor), driverVersion(
-			driverVersion), deviceProfile(deviceProfile), deviceVersion(
-			deviceVersion), deviceOCLVersion(deviceOCLVersion), deviceExtensions(
-			deviceExtensions) {
+			string deviceExtensions) : platformInfo(platformInfo)
 
+		{
+			this->deviceID=deviceID;
+			this->globalMemoryCacheType=globalMemoryCacheType;
+			this->localMemoryType=localMemoryType;
+			this->type=type;
+			this->vendorID=vendorID;
+			this->maxComputeUnits = maxComputeUnits;
+			this->maxWorkItemDimensions=maxWorkItemDimensions;
+			this->maxWorkItemSizes=maxWorkItemSizes;
+			this->maxWorkGroupSize=maxWorkGroupSize;
+			this->maxClockFrequency=maxClockFrequency;
+			this->preferredCharVectorWidth=preferredCharVectorWidth;
+			this->preferredShortVectorWidth=preferredShortVectorWidth;
+			this->preferredIntVectorWidth=preferredIntVectorWidth;
+			this->preferredLongVectorWidth=preferredLongVectorWidth;
+			this->preferredFloatVectorWidth=preferredFloatVectorWidth;
+			this->preferredDoubleVectorWidth=preferredDoubleVectorWidth;
+			this->preferredHalfVectorWidth=preferredHalfVectorWidth;
+			this->nativeCharVectorWidth=nativeCharVectorWidth;
+			this->nativeShortVectorWidth=nativeShortVectorWidth;
+			this->nativeIntVectorWidth=nativeIntVectorWidth;
+			this->nativeLongVectorWidth=nativeLongVectorWidth;
+			this->nativeFloatVectorWidth=nativeFloatVectorWidth;
+			this->nativeDoubleVectorWidth=nativeDoubleVectorWidth;
+			this->nativeHalfVectorWidth=nativeHalfVectorWidth;
+			this->maxMemoryAllocationSize=maxMemoryAllocationSize;
+			this->imageSupport=imageSupport;
+			this->maxParametersSize=maxParametersSize;
+			this->globalMemoryCacheSize=globalMemoryCacheSize;
+			this->globalMemorySize=globalMemorySize;
+			this->maxConstantBufferSize=maxConstantBufferSize;
+			this->maxConstantArguments=maxConstantArguments;
+			this->localMemorySize=localMemorySize;
+			this->deviceAvailable=deviceAvailable;
+			this->compilerAvailable=compilerAvailable;
+			this->deviceName=deviceName;
+			this->deviceVendor=deviceVendor;
+			this->driverVersion=driverVersion;
+			this->deviceProfile=deviceProfile;
+			this->deviceVersion=deviceVersion;
+			this->deviceOCLVersion=deviceOCLVersion;
+			this->deviceExtensions=deviceExtensions; 
 		}
 
 		OCLDeviceInfo::~OCLDeviceInfo() {

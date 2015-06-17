@@ -25,8 +25,10 @@ namespace Matuna
 
 		public:
 			OCLCompilationException(const string& message)
-				: runtime_error(message), message(message)
-			{};
+				: runtime_error(message)
+			{
+				this->message = message;
+			};
 
 			virtual ~OCLCompilationException() throw() {}
 
@@ -50,8 +52,11 @@ namespace Matuna
 
 		public:
 			OCLException(int errorCode, const string& message)
-				: runtime_error(message), message(message), errorCode(errorCode)
+				: runtime_error(message)
 			{
+				this->message = message;
+				this->errorCode = errorCode;
+
 				switch (abs(errorCode))
 				{
 				case 0:

@@ -17,9 +17,11 @@ namespace MachineLearning
 {
 
 BackPropLayer::BackPropLayer(
-	const vector<LayerDataDescription>& inputLayerDescriptions, MatunaActivationFunction backPropActivation) :
-	inForwardPropDataDescriptions(inputLayerDescriptions), backPropActivation(backPropActivation)
+	const vector<LayerDataDescription>& inputLayerDescriptions, MatunaActivationFunction backPropActivation)
 {
+	this->inForwardPropDataDescriptions = inputLayerDescriptions;
+	this->backPropActivation = backPropActivation;
+
 	inputInterlocked = false;
 	outputInterlocked = false;
 	forwardInputInterlocked = false;

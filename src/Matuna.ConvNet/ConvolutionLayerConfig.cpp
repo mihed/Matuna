@@ -16,12 +16,13 @@ ConvolutionLayerConfig::ConvolutionLayerConfig(int filterCount, int filterWidth,
 		int filterHeight, MatunaActivationFunction activationFunction,
 		MatunaConnectionType connectionType, bool useRelaxedMath,
 		MatunaComputationPrecision computationPrecision) :
-		ForwardBackPropLayerConfig(useRelaxedMath, computationPrecision), filterCount(
-				filterCount), filterWidth(filterWidth), filterHeight(
-				filterHeight), activationFunction(activationFunction), connectionType(
-				connectionType)
+		ForwardBackPropLayerConfig(useRelaxedMath, computationPrecision)
 {
-
+	 this->filterCount = filterCount;
+	 this->filterWidth = filterWidth;
+	 this->filterHeight = filterHeight;
+	 this->activationFunction = activationFunction;
+	 this->connectionType = connectionType;
 }
 
 ConvolutionLayerConfig::~ConvolutionLayerConfig()

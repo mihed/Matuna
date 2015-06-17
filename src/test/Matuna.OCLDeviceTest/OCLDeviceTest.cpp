@@ -27,7 +27,7 @@ SCENARIO("Acquiring memory, writing memory, reading memory", "[OCLMemory][OCLDev
 	unique_ptr<cl_float[]> inputBuffer(new cl_float[bufferSize]);
 	unique_ptr<cl_float[]> outputBuffer(new cl_float[bufferSize]);
 	auto rawInputBuffer = inputBuffer.get();
-	for (int i = 0; i < bufferSize; i++)
+	for (size_t i = 0; i < bufferSize; i++)
 		rawInputBuffer[i] = static_cast<cl_float>(i);
 
 	GIVEN("All the contexts with all devices with a single device queue")
@@ -49,7 +49,7 @@ SCENARIO("Acquiring memory, writing memory, reading memory", "[OCLMemory][OCLDev
 						auto rawOutputBuffer = outputBuffer.get();
 						INFO("Reading the memory from the device")
 							device->ReadMemory(inputMemory.get(), sizeof(cl_float) * bufferSize, outputBuffer.get());
-						for (int i = 0; i < bufferSize; i++)
+						for (size_t i = 0; i < bufferSize; i++)
 							CHECK(rawInputBuffer[i] == rawOutputBuffer[i]);
 					}
 				}

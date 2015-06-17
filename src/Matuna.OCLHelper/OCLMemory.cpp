@@ -15,11 +15,12 @@ namespace Matuna
 
 		OCLMemory::OCLMemory(cl_mem memory,
 			OCLContext* owningContext,
-			const cl_mem_flags readWriteFlag, size_t byteSize) :
-		memory(memory), owningContext(owningContext), readWriteFlag(
-			readWriteFlag), byteSize(byteSize)
+			const cl_mem_flags readWriteFlag, size_t byteSize)
 		{
-
+			this->owningContext = owningContext;
+			this->memory = memory;
+			this->readWriteFlag = readWriteFlag;
+			this->byteSize = byteSize;
 		}
 
 		OCLMemory::~OCLMemory()

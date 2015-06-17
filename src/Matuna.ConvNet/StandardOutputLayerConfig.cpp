@@ -15,10 +15,9 @@ namespace MachineLearning
 StandardOutputLayerConfig::StandardOutputLayerConfig(
 		MatunaErrorFunction errorFunction, bool useRelaxedMath,
 		MatunaComputationPrecision computationPrecision) :
-		OutputLayerConfig(useRelaxedMath, computationPrecision), errorFunction(
-				errorFunction)
+		OutputLayerConfig(useRelaxedMath, computationPrecision)
 {
-
+	this->errorFunction = errorFunction;
 }
 
 StandardOutputLayerConfig::~StandardOutputLayerConfig()
