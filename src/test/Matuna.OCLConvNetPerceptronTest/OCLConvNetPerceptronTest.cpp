@@ -106,7 +106,7 @@ void CalculateORPerceptron(unique_ptr<ConvNetConfig> config, const vector<OCLDev
 	}
 
 	CHECK(targets.size() == inputs.size());
-	for (int i = 0; i < targets.size(); i++)
+	for (size_t i = 0; i < targets.size(); i++)
 	{
 		auto output = network.FeedForwardUnaligned(inputs[i].data(), 0);
 		auto difference = abs(targets[i] - output[0]);
@@ -180,7 +180,7 @@ void CalculateANDPerceptron(unique_ptr<ConvNetConfig> config, const vector<OCLDe
 	}
 
 	CHECK(targets.size() == inputs.size());
-	for (int i = 0; i < targets.size(); i++)
+	for (size_t i = 0; i < targets.size(); i++)
 	{
 		auto output = network.FeedForwardUnaligned(inputs[i].data(), 0);
 		auto difference = abs(targets[i] - output[0]);
@@ -287,6 +287,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 			activationFunction = MatunaTanhActivation;
 			cout << "Tanh" << endl;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 
 		//Simply to avoid overflow when using softmax
@@ -377,11 +379,11 @@ SCENARIO("Forward propagating a ConvNet network using image inputs for a percept
 
 					INFO("Forward propagating the network by the use of matrices");
 					Matrixf input = inputs[0].Reshape(inputs[0].ElementCount(), 1);
-					for (int i = 1; i < inputs.size(); i++)
+					for (size_t i = 1; i < inputs.size(); i++)
 						input = input.AppendDown(inputs[i].Reshape(inputs[i].ElementCount(), 1));
 
 					Matrixf result = input;
-					for (int i = 0; i < weights.size(); i++)
+					for (size_t i = 0; i < weights.size(); i++)
 					{
 
 						result = weights[i] * result + biases[i];
@@ -806,7 +808,7 @@ SCENARIO("Forward propagating multi-layer perceptron network using cross entropy
 
 					INFO("Forward propagating the network by the use of matrices");
 					Matrix<float> result = input;
-					for (int i = 0; i < weights.size(); i++)
+					for (size_t i = 0; i < weights.size(); i++)
 					{
 
 						result = weights[i] * result + biases[i];
@@ -908,7 +910,7 @@ SCENARIO("Forward propagating multi-layer perceptron network")
 
 					INFO("Forward propagating the network by the use of matrices");
 					Matrix<float> result = input;
-					for (int i = 0; i < weights.size(); i++)
+					for (size_t i = 0; i < weights.size(); i++)
 					{
 
 						result = weights[i] * result + biases[i];

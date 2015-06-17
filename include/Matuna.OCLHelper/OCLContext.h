@@ -60,7 +60,7 @@ namespace Matuna
 			*@return a unique pointer to OCLMemory
 			*/
 			unique_ptr<OCLMemory> CreateMemory(cl_mem_flags flags,
-				size_t bytes) const;
+				size_t bytes);
 
 			/**
 			*@brief
@@ -88,13 +88,9 @@ namespace Matuna
 			*@return a unique pointer to OCLMemory
 			*/
 			unique_ptr<OCLMemory> CreateMemory(cl_mem_flags flags, size_t bytes,
-				void* buffer) const;
+				void* buffer);
 
-			size_t DeviceCount() const
-			{
-				return devices.size();
-			}
-			;
+			size_t DeviceCount() const;
 
 			void AttachProgram(unique_ptr<OCLProgram> program, const vector<OCLDevice*>& affectedDevicesk);
 			void DetachProgram(OCLProgram* program);

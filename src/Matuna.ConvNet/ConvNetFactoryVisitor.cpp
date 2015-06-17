@@ -175,7 +175,7 @@ void ConvNetFactoryVisitor::InterlockAndAddLayer(const ConvolutionLayerConfig* c
 	layers.push_back(move(layer));
 }
 
-void ConvNetFactoryVisitor::InterlockAndAddLayer(const StandardOutputLayerConfig* const config, unique_ptr<OutputLayer> layer)
+void ConvNetFactoryVisitor::InterlockAndAddLayer(const StandardOutputLayerConfig* const, unique_ptr<OutputLayer> layer)
 {
 	if (outputIsCalled)
 		throw invalid_argument("The output layer has already been created. We cannot proceed");

@@ -83,6 +83,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 			activationFunction = MatunaTanhActivation;
 			cout << "Tanh " << endl;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 
 		int filterCount = dimensionGenerator(mt);
@@ -121,6 +123,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 			activationFunction = MatunaTanhActivation;
 			cout << "Tanh " << endl;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 
 		//Simply to avoid overflow when using softmax
@@ -205,9 +209,9 @@ SCENARIO("Testing the gradient descent training algorithm")
 			algorithmConfig->SetBatchSize(5);
 			algorithmConfig->SetEpochs(100);
 			algorithmConfig->SetSamplesPerEpoch(5);
-			algorithmConfig->SetStepSizeCallback([] (int x){ return 0.00001;});
+			algorithmConfig->SetStepSizeCallback([] (int){ return 0.00001;});
 
-			for (int i = 0; i < network.OutputForwardMemoryDescriptions().size(); i++)
+			for (size_t i = 0; i < network.OutputForwardMemoryDescriptions().size(); i++)
 			{
 				auto tempInData = network.InputForwardDataDescriptions();
 				auto tempInMem = network.InputForwardMemoryDescriptions();

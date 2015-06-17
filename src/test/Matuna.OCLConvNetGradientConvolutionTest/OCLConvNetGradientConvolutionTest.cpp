@@ -69,6 +69,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 			activationFunction = MatunaTanhActivation;
 			cout << "Tanh activation" << endl;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 
 		int filterCount = unitGenerator(mt);
@@ -125,8 +127,6 @@ SCENARIO("Calculating the gradient of a ConvNet using convolution layers")
 			LayerDataDescription outputDescription = network.OutputForwardDataDescriptions()[0];
 			LayerDataDescription outBackDescription = network.OutputBackDataDescriptions()[0];
 			int inputUnits = inputDescription.Units;
-			int inputHeight = inputDescription.Height;
-			int inputWidth = inputDescription.Width;
 
 			vector<Matrixd> inputs;
 			unique_ptr<double[]> inputMemory(new double[inputDescription.TotalUnits()]);
@@ -163,7 +163,7 @@ SCENARIO("Calculating the gradient of a ConvNet using convolution layers")
 
 			Matrixd finiteDifferenceGradient(parameterCount, 1);
 
-			for (int i = 0; i < parameterCount; i++)
+			for (size_t i = 0; i < parameterCount; i++)
 			{
 				Matrixd param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;

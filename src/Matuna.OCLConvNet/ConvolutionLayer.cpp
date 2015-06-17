@@ -10,6 +10,7 @@
 #include "Matuna.Helper/Path.h"
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Converter.h"
+#include "CheckPrecision.h"
 #include <stdexcept>
 #include <type_traits>
 #include <random>
@@ -20,7 +21,6 @@ namespace Matuna
 {
 	namespace MachineLearning
 	{
-
 		template<class T>
 		ConvolutionLayer<T>::ConvolutionLayer(shared_ptr<OCLContext> context,
 			const vector<LayerDataDescription>& inputLayerDescriptions,
@@ -41,20 +41,11 @@ namespace Matuna
 				throw runtime_error("Not implemented exception");
 
 			//Make sure the type we want to execute is supported on the device.
-			vector<OCLDevice*> devices = context->GetDevices();
-			for (auto device : devices) {
+			static_assert(is_same<cl_double, T>::value || is_same<cl_float, T>::value, "The type is not yet supported");
+			for (auto device : context->GetDevices()) 
+			{
 				auto deviceInfo = device->DeviceInfo();
-				if (is_same<cl_double, T>::value) {
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else if (is_same<cl_float, T>::value) {
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
+				CheckPrecision<is_same<cl_double, T>::value>::Check(deviceInfo);
 			}
 
 			InitializeMemoryDescriptions(inputLayerDescriptions, config);
@@ -709,10 +700,10 @@ namespace Matuna
 			if (gradient.size() != 2)
 				throw invalid_argument("The gradient size is not valid");
 
-			if (gradient[0]->ByteSize() / sizeof(T) != (convolutionConfig.FilterCount() * convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight()))
+			if (gradient[0]->ByteSize() / sizeof(T) != static_cast<size_t>(convolutionConfig.FilterCount() * convolutionConfig.FilterWidth() * convolutionConfig.FilterHeight()))
 				throw invalid_argument("The first gradient does not contain the correct amount of memory");
 
-			if (gradient[1]->ByteSize() / sizeof(T) != (convolutionConfig.FilterCount()))
+			if (gradient[1]->ByteSize() / sizeof(T) != static_cast<size_t>(convolutionConfig.FilterCount()))
 				throw invalid_argument("The second gradient does not contain the correct amount of memory");
 
 			auto sumAllUnitsKernel = deviceAndSumKernels[device];

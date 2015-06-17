@@ -212,6 +212,7 @@ void LayerKernel<T>::AddLocalSize(size_t size)
 	if (localWorkSize.size() > 3)
 		throw invalid_argument("The local work size cannot be greater than 3");
 
+	localWorkSize.push_back(size);
 }
 
 template class LayerKernel<cl_float> ;

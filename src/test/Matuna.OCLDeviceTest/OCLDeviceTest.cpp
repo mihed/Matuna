@@ -28,7 +28,7 @@ SCENARIO("Acquiring memory, writing memory, reading memory", "[OCLMemory][OCLDev
 	unique_ptr<cl_float[]> outputBuffer(new cl_float[bufferSize]);
 	auto rawInputBuffer = inputBuffer.get();
 	for (int i = 0; i < bufferSize; i++)
-		rawInputBuffer[i] = static_cast<int>(i);
+		rawInputBuffer[i] = static_cast<cl_float>(i);
 
 	GIVEN("All the contexts with all devices with a single device queue")
 	{
@@ -71,7 +71,6 @@ SCENARIO("Making sure that we get exception when using memory from different con
 			"a system without OCL drivers or that we have a bug in the GetPlatformInfo() function.");
 	}
 
-	int dummy = 100;
 	if (platformInfos.size() == 1)
 	{
 		WARN(
@@ -101,7 +100,7 @@ SCENARIO("Making sure that we get exception when using memory from different con
 
 			THEN("We must have an exception when reading from devices in a different context")
 			{
-				for (int i = 1; i < count; i++)
+				for (size_t i = 1; i < count; i++)
 				{
 					auto firstDevice = devices[i - 1][0];
 					auto secondDevice = devices[i][0];

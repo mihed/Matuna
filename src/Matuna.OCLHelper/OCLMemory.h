@@ -30,7 +30,7 @@ final
 	private:
 		cl_mem memory;
 		cl_mem_flags readWriteFlag;
-		const OCLContext* const owningContext;
+		OCLContext* owningContext;
 		size_t byteSize;
 	public:
 
@@ -39,7 +39,7 @@ final
 		 *
 		 *The normal usage of this function is throug the OCLDevice.
 		 */
-		OCLMemory(cl_mem memory, const OCLContext* const owningDevice,
+		OCLMemory(cl_mem memory, OCLContext* owningContext,
 				cl_mem_flags readWriteFlag, size_t byteSize);
 		~OCLMemory();
 
@@ -47,29 +47,13 @@ final
 		 *@brief The accessor of the memory: read, write or read-write.
 		 *@return The OCL memory accessor flag of this memor.
 		 */
-		cl_mem_flags ReadWriteFlag() const
-		{
-			return readWriteFlag;
-		}
-		;
+		cl_mem_flags ReadWriteFlag() const;
 
-		const OCLContext* const OwningContext() const
-		{
-			return owningContext;
-		}
-		;
+		OCLContext* OwningContext() const;
 
-		cl_mem GetCLMemory() const
-		{
-			return memory;
-		}
-		;
+		cl_mem GetCLMemory() const;
 
-		size_t ByteSize() const
-		{
-			return byteSize;
-		}
-		;
+		size_t ByteSize() const;
 	};
 
 	} /* namespace Helper */

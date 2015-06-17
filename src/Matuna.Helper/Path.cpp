@@ -44,7 +44,7 @@ string Path::Combine(const vector<string>& strings) {
 	if (count == 0)
 		return result;
 	result = strings[0];
-	for(int i = 1; i < count; i++)
+	for(size_t i = 1; i < count; i++)
 		result += Combine(result,strings[i]);
 
 	return result;

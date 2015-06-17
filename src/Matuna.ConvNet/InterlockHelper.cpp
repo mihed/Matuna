@@ -86,7 +86,7 @@ vector<LayerMemoryDescription> InterlockHelper::CalculateCompatibleMemory(
 	if (count != right.size())
 		throw invalid_argument("The vector size does not match");
 
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		result.push_back(CalculateCompatibleMemory(left[i], right[i]));
 
 	return result;
@@ -146,7 +146,7 @@ bool InterlockHelper::IsCompatible(const vector<LayerMemoryDescription>& right,
 	if (count != right.size())
 		throw invalid_argument("The vector size does not match");
 
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		if (!IsCompatible(left[i], right[i]))
 			return false;
 
@@ -195,7 +195,7 @@ bool InterlockHelper::IsCompatible(const vector<LayerDataDescription>& data,
 	if (count != data.size())
 		throw invalid_argument("The vector size does not match");
 
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		if (!IsCompatible(data[i], memory[i]))
 			return false;
 
@@ -228,7 +228,7 @@ bool InterlockHelper::MemoryEquals(const vector<LayerMemoryDescription>& right,
 	if (count != right.size())
 		throw invalid_argument("The vector size does not match");
 
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		if (!MemoryEquals(left[i], right[i]))
 			return false;
 
@@ -255,7 +255,7 @@ bool InterlockHelper::DataEquals(const vector<LayerDataDescription>& right,
 	if (count != right.size())
 		throw invalid_argument("The vector size does not match");
 
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		if (!DataEquals(left[i], right[i]))
 			return false;
 

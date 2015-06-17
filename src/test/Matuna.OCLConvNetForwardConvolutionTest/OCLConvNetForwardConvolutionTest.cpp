@@ -77,6 +77,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 		case 3:
 			activationFunction = MatunaTanhActivation;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 		unique_ptr<ForwardBackPropLayerConfig> convConfig(new ConvolutionLayerConfig(
 			unitGenerator(mt), filterGenerator(mt), filterGenerator(mt),
@@ -164,11 +166,11 @@ SCENARIO("Forward propagating a convolution layer in an OCLConvNet")
 				vector<Matrixf> nextInputs;
 				LayerDataDescription outputDescription = convLayers[i]->OutForwardPropDataDescriptions()[0];
 				CHECK(tempFilters.size() == tempBiases.size());
-				for (int j = 0; j < tempFilters.size(); j++)
+				for (size_t j = 0; j < tempFilters.size(); j++)
 				{
 					auto& filter = tempFilters[j];
 					Matrixf tempResult = Matrixf::Zeros(outputDescription.Height, outputDescription.Width);
-					for (int k = 0; k < tempInputs.size(); k++)
+					for (size_t k = 0; k < tempInputs.size(); k++)
 						tempResult += tempInputs[k].Convolve(filter);
 
 					tempResult += tempBiases[j];
@@ -186,7 +188,7 @@ SCENARIO("Forward propagating a convolution layer in an OCLConvNet")
 			}
 
 			CHECK(tempInputs.size() == oclResult.size());
-			for (int i = 0; i < tempInputs.size(); i++)
+			for (size_t i = 0; i < tempInputs.size(); i++)
 			{
 				auto difference = (tempInputs[i] - oclResult[i]).Norm2Square() / tempInputs.size();
 				cout << "Difference " << difference << endl;

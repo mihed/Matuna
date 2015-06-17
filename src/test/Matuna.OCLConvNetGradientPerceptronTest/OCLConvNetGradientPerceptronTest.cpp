@@ -56,6 +56,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 		case 3:
 			activationFunction = MatunaTanhActivation;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 
 		//Simply to avoid overflow when using softmax
@@ -126,6 +128,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfigWithImage(mt19937& 
 		case 3:
 			activationFunction = MatunaTanhActivation;
 			break;
+		default:
+			throw runtime_error("This activation is not implemented yet");
 		}
 
 		//Simply to avoid overflow when using softmax
@@ -229,7 +233,7 @@ SCENARIO("Calculating the gradient of a ConvNet using perceptron layers with ima
 
 			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
 
-			for (int i = 0; i < parameterCount; i++)
+			for (size_t i = 0; i < parameterCount; i++)
 			{
 				Matrix<double> param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;
@@ -307,7 +311,7 @@ SCENARIO("Calculating the gradient of a ConvNet using softmax")
 
 			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
 
-			for (int i = 0; i < parameterCount; i++)
+			for (size_t i = 0; i < parameterCount; i++)
 			{
 				Matrix<double> param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;
@@ -384,7 +388,7 @@ SCENARIO("Calculating the gradient of a ConvNet using perceptron layers")
 
 			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
 
-			for (int i = 0; i < parameterCount; i++)
+			for (size_t i = 0; i < parameterCount; i++)
 			{
 				Matrix<double> param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;

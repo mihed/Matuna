@@ -79,6 +79,11 @@ namespace Matuna
 			return get<0>((*tempIterator).second).get();
 		}
 
+		size_t OCLContext::DeviceCount() const
+		{
+			return devices.size();
+		}
+
 		bool OCLContext::ProgramAdded(const string& name) const
 		{
 			return programs.find(name) != programs.end();
@@ -90,7 +95,7 @@ namespace Matuna
 		}
 
 		unique_ptr<OCLMemory> OCLContext::CreateMemory(cl_mem_flags flags,
-			size_t bytes) const
+			size_t bytes)
 		{
 			cl_int error;
 			cl_mem memory = clCreateBuffer(context, flags, bytes, nullptr, &error);
@@ -100,7 +105,7 @@ namespace Matuna
 		}
 
 		unique_ptr<OCLMemory> OCLContext::CreateMemory(cl_mem_flags flags,
-			size_t bytes, void* buffer) const
+			size_t bytes, void* buffer)
 		{
 			cl_int error;
 			cl_mem memory = clCreateBuffer(context, flags, bytes, buffer, &error);

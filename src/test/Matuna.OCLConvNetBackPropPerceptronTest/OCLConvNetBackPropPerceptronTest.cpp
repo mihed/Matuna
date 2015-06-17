@@ -45,12 +45,12 @@ double TanhActivationDouble(double x)
 
 float SigmoidActivationDerivativeFloat(float x)
 {
-	return x * (1 - x);
+	return x * (1.0f - x);
 }
 
 double SigmoidActivationDerivativeDouble(double x)
 {
-	return  x * (1 - x);
+	return  x * (1.0 - x);
 }
 
 float TanhActivationDerivativeFloat(float x)
@@ -97,6 +97,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfig(mt19937& mt,
 		case 3:
 			activationFunction = MatunaTanhActivation;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 
 		//Simply to avoid overflow when using softmax
@@ -173,6 +175,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetPerceptronConfigWithImage(mt19937& 
 		case 3:
 			activationFunction = MatunaTanhActivation;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 
 		//Simply to avoid overflow when using softmax
@@ -244,9 +248,8 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 					auto layerCount = layers.size();
 
 					ConvolutionLayer<double>* convLayer = dynamic_cast<ConvolutionLayer<double>*>(layers[0]);
-					StandardOutputLayer<double>* outputLayer = dynamic_cast<StandardOutputLayer<double>*>(network.GetOutputLayer());
 					vector<PerceptronLayer<double>*> perceptronlayers;
-					for (int i = 1; i < layerCount; i++)
+					for (size_t i = 1; i < layerCount; i++)
 						perceptronlayers.push_back(dynamic_cast<PerceptronLayer<double>*>(layers[i]));
 
 					auto filters = convLayer->GetFilters();
@@ -291,11 +294,11 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 
 					vector<Matrixd> convOutput;
 					LayerDataDescription outputDescription = convLayer->OutForwardPropDataDescriptions()[0];
-					for (int j = 0; j < filters.size(); j++)
+					for (size_t j = 0; j < filters.size(); j++)
 					{
 						auto& filter = filters[j];
 						Matrixd tempResult = Matrixd::Zeros(outputDescription.Height, outputDescription.Width);
-						for (int k = 0; k < inputs.size(); k++)
+						for (size_t k = 0; k < inputs.size(); k++)
 							tempResult += inputs[k].Convolve(filter);
 
 						tempResult += convBiases[j];
@@ -310,14 +313,14 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 					}
 
 					Matrixd perceptronInput = convOutput[0].Reshape(convOutput[0].ElementCount(), 1);
-					for (int i = 1; i < convOutput.size(); i++)
+					for (size_t i = 1; i < convOutput.size(); i++)
 						perceptronInput = perceptronInput.AppendDown(convOutput[i].Reshape(convOutput[i].ElementCount(), 1));
 
 					Matrixd result = perceptronInput;
 
 					vector<Matrix<double>> intermediatePerceptronInputs;
 					intermediatePerceptronInputs.push_back(perceptronInput);
-					for (int i = 0; i < weights.size(); i++)
+					for (size_t i = 0; i < weights.size(); i++)
 					{
 
 						result = weights[i] * result + biases[i];
@@ -333,7 +336,7 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 
 							result.Transform([](double x) { return exp(x); });
 							auto resultSum = result.Sum();
-							result = (1.0f / resultSum) * result;
+							result = (1.0 / resultSum) * result;
 						}
 
 						intermediatePerceptronInputs.push_back(result);
@@ -351,7 +354,7 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 					INFO("Comparing the manually calculated perceptron with the OCL version");
 					for (int i = 0; i < outputDataDesc.Units; i++)
 					{
-						float absDifference;
+						double absDifference;
 						if (abs(result.At(i, 0))  > 1E-8)
 							absDifference = abs((outputPointer[i] - result.At(i, 0)) / result.At(i, 0));
 						else
@@ -426,7 +429,7 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 
 					CHECK(manualOutputDeltas.size() == oclBackResult.size());
 
-					for (int i = 0; i < manualOutputDeltas.size(); i++)
+					for (size_t i = 0; i < manualOutputDeltas.size(); i++)
 					{
 						//cout << "Manual result: \n" << manualOutputDeltas[i].GetString() << endl;
 						auto difference = (manualOutputDeltas[i] - oclBackResult[i]).Norm2Square() / oclBackResult[i].ElementCount();
@@ -501,7 +504,7 @@ SCENARIO("Back propagating a perceptron using Softmax")
 					Matrix<double> result = input;
 					vector<Matrix<double>> inputs;
 					inputs.push_back(result);
-					for (int i = 0; i < weights.size(); i++)
+					for (size_t i = 0; i < weights.size(); i++)
 					{
 
 						result = weights[i] * result + biases[i];
@@ -536,7 +539,7 @@ SCENARIO("Back propagating a perceptron using Softmax")
 					INFO("Comparing the manually calculated perceptron with the OCL version");
 					for (int i = 0; i < outputDataDesc.Units; i++)
 					{
-						float absDifference;
+						double absDifference;
 						if (abs(result.At(i, 0))  > 1E-8)
 							absDifference = abs((outputPointer[i] - result.At(i, 0)) / result.At(i, 0));
 						else
@@ -588,8 +591,6 @@ SCENARIO("Back propagating a perceptron using MSE")
 	mt19937 mt(device());
 	uniform_int_distribution<int> dimensionGenerator(1, 100);
 	uniform_int_distribution<int> layerGenerator(1, 8);
-
-	int iterations = 0;
 
 	WHEN("Back propagating a perceptron layer")
 	{
@@ -643,7 +644,7 @@ SCENARIO("Back propagating a perceptron using MSE")
 					Matrix<double> result = input;
 					vector<Matrix<double>> inputs;
 					inputs.push_back(result);
-					for (int i = 0; i < weights.size(); i++)
+					for (size_t i = 0; i < weights.size(); i++)
 					{
 
 						result = weights[i] * result + biases[i];
@@ -671,7 +672,7 @@ SCENARIO("Back propagating a perceptron using MSE")
 					INFO("Comparing the manually calculated perceptron with the OCL version");
 					for (int i = 0; i < outputDataDesc.Units; i++)
 					{
-						float absDifference;
+						double absDifference;
 						if (abs(result.At(i, 0))  > 1E-8)
 							absDifference = abs((outputPointer[i] - result.At(i, 0)) / result.At(i, 0));
 						else
@@ -687,12 +688,12 @@ SCENARIO("Back propagating a perceptron using MSE")
 
 					if (activationFunctions[activationFunctions.size() - 1] == MatunaSigmoidActivation)
 					{
-						result.Transform(&SigmoidActivationDerivativeFloat);
+						result.Transform(&SigmoidActivationDerivativeDouble);
 						delta = delta % result;
 					}
 					else if (activationFunctions[activationFunctions.size() - 1] == MatunaTanhActivation)
 					{
-						result.Transform(&TanhActivationDerivativeFloat);
+						result.Transform(&TanhActivationDerivativeDouble);
 						delta = delta % result;
 					}
 

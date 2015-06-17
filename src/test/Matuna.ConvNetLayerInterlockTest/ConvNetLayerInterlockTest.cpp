@@ -1,9 +1,9 @@
 /*
- * LayerInterlockTest.cpp
- *
- *  Created on: May 3, 2015
- *      Author: Mikael
- */
+* LayerInterlockTest.cpp
+*
+*  Created on: May 3, 2015
+*      Author: Mikael
+*/
 #define CATCH_CONFIG_MAIN
 #include "catch/catch.hpp"
 
@@ -30,7 +30,7 @@ using namespace std;
 using namespace Matuna::MachineLearning;
 
 void CheckUnitDescription(const LayerDataDescription& left,
-	const LayerDataDescription& right)
+						  const LayerDataDescription& right)
 {
 	CHECK(left.Height == right.Height);
 	CHECK(left.Width == right.Width);
@@ -46,16 +46,16 @@ void CheckUnitDescription(const LayerDataDescription& left,
 }
 
 void CheckUnitDescription(const vector<LayerDataDescription>& left,
-	const vector<LayerDataDescription>& right)
+						  const vector<LayerDataDescription>& right)
 {
 	auto count = left.size();
 	CHECK(count == right.size());
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		CheckUnitDescription(left[i], right[i]);
 }
 
 void CheckMemoryDescription(const LayerMemoryDescription& left,
-	const LayerMemoryDescription& right)
+							const LayerMemoryDescription& right)
 {
 	CHECK(left.Height == right.Height);
 	CHECK(left.Width == right.Width);
@@ -81,18 +81,18 @@ void CheckMemoryDescription(const LayerMemoryDescription& left,
 }
 
 void CheckMemoryDescription(const vector<LayerMemoryDescription>& left,
-	const vector<LayerMemoryDescription>& right)
+							const vector<LayerMemoryDescription>& right)
 {
 	auto count = left.size();
 	CHECK(count == right.size());
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		CheckMemoryDescription(left[i], right[i]);
 }
 
 SCENARIO("Creating compatible memory with the interlock helper", "[InterlockHelper]")
 {
-	unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-	default_random_engine generator(seed);
+	random_device tempDevice;
+	mt19937 generator(tempDevice());
 	uniform_int_distribution<int> dimensionGenerator(1, 10000);
 
 	int tests = 10000;
@@ -169,8 +169,8 @@ SCENARIO("Creating compatible memory with the interlock helper", "[InterlockHelp
 
 SCENARIO("Creating a network from configurations.", "[InterlockHelper][ILayerConfig][ILayerConfigVisitor]")
 {
-	unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-	default_random_engine generator(seed);
+	random_device tempDevice;
+	mt19937 generator(tempDevice());
 	uniform_int_distribution<int> unitGenerator(1, 100);
 	uniform_int_distribution<int> dimensionGenerator(1, 10000);
 	uniform_int_distribution<int> numConfigsGenerator(1, 100);

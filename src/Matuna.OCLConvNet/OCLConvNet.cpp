@@ -7,6 +7,7 @@
 
 #include "OCLConvNet.h"
 #include "OCLConvNetFactoryVisitor.h"
+#include "CheckPrecision.h"
 #include "Matuna.OCLHelper/OCLHelper.h"
 #include "Matuna.ConvNet/GradientDescentConfig.h"
 #include "Matuna.Helper/FileHelper.h"
@@ -65,6 +66,9 @@ namespace Matuna {
 		void OCLConvNet<T>::InitializeContexts(
 			const vector<OCLDeviceInfo>& deviceInfos) {
 
+
+				static_assert(is_same<cl_double, T>::value || is_same<cl_float, T>::value, "The type is not supported");
+
 				unordered_map<cl_platform_id, tuple<OCLPlatformInfo, vector<OCLDeviceInfo>> > platformsAndDevices;
 				for (auto& deviceInfo : deviceInfos) {
 					if (!deviceInfo.DeviceAvailable())
@@ -74,17 +78,7 @@ namespace Matuna {
 						throw invalid_argument(
 						"The device does not have an available compiler");
 
-					if (is_same<cl_double, T>::value) {
-						if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-							throw invalid_argument(
-							"The template argument is not supported on the chosen devices");
-					} else if (is_same<cl_float, T>::value) {
-						if (deviceInfo.PreferredFloatVectorWidth() == 0)
-							throw invalid_argument(
-							"The template argument is not supported on the chosen devices");
-					} else
-						throw runtime_error(
-						"The template argument does not match the supported arguments");
+					CheckPrecision<is_same<cl_double, T>::value>::Check(deviceInfo);
 
 					auto platformInfo = deviceInfo.PlatformInfo();
 					auto platformID = platformInfo.PlatformID();
@@ -391,7 +385,7 @@ namespace Matuna {
 					//Write gradient memory to the host buffer
 					auto rawGradient = gradient.get();
 					rawGradient += gradientMemoryPosition;
-					for (int k = 0; k < parametersCount.size(); k++)
+					for (size_t k = 0; k < parametersCount.size(); k++)
 					{
 						device->ReadMemory(gradientsPointers[k], gradientsPointers[k]->ByteSize(),
 							rawGradient, 0, true);
@@ -432,7 +426,7 @@ namespace Matuna {
 					//Write gradient memory to the host buffer
 					auto rawGradient = gradient.get();
 					rawGradient += gradientMemoryPosition;
-					for (int k = 0; k < parametersCount.size(); k++)
+					for (size_t k = 0; k < parametersCount.size(); k++)
 					{
 						device->ReadMemory(gradientsPointers[k], gradientsPointers[k]->ByteSize(),
 							rawGradient, 0, true);
@@ -523,20 +517,7 @@ namespace Matuna {
 
 				auto deviceInfo = device->DeviceInfo();
 				if (is_same<cl_double, T>::value) 
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-					else
-						gradientProgram->AddDefine("DOUBLE_PRECISION");
-
-				} else if (is_same<cl_float, T>::value) {
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
+					gradientProgram->AddDefine("DOUBLE_PRECISION");
 
 				T currentStepSize = -stepSizeCallback(0);
 
@@ -589,7 +570,7 @@ namespace Matuna {
 					accumulatedGradientsPointers.push_back(vector<OCLMemory*>());
 
 					vector<size_t> parameterCount = layers[i]->GetMultipleParameterCount();
-					for (int k = 0; k < parameterCount.size(); k++) {
+					for (size_t k = 0; k < parameterCount.size(); k++) {
 						unique_ptr<OCLMemory> tempGradientMemory1 =
 							contexts[0]->CreateMemory(CL_MEM_READ_WRITE,
 							sizeof(T) * parameterCount[k]);
@@ -606,7 +587,8 @@ namespace Matuna {
 				}
 
 				int batchIterations = samplesPerEpoch / batchSize;
-				int remainder = samplesPerEpoch % batchSize;
+				//TODO:
+				//int remainder = samplesPerEpoch % batchSize;
 				bool stopped = false;
 
 				for (int epoch = 0; epoch < epochs; epoch++) {
@@ -685,7 +667,7 @@ namespace Matuna {
 							//If this is the first sample, add the memory to the accumulator and continue
 							if (sample == 0) {
 								for (int i = 0; i < layerCount; i++) {
-									for (int j = 0; j < gradientsPointers[i].size(); j++) {
+									for (size_t j = 0; j < gradientsPointers[i].size(); j++) {
 										if (gradientsPointers[i][j]->ByteSize()
 											== accumulatedGradientsPointers[i][j]->ByteSize())
 											device->CopyCLMemory(gradientsPointers[i][j],
@@ -703,7 +685,7 @@ namespace Matuna {
 								for (int i = 0; i < layerCount; i++) {
 									vector<size_t> parameterCount =
 										layers[i]->GetMultipleParameterCount();
-									for (int j = 0; j < gradientsPointers[i].size(); j++) {
+									for (size_t j = 0; j < gradientsPointers[i].size(); j++) {
 										vectorKernel->SetMemoryArg(
 											accumulatedGradientsPointers[i][j], 1);
 										vectorKernel->SetMemoryArg(gradientsPointers[i][j], 0);
@@ -738,20 +720,20 @@ namespace Matuna {
 								throw runtime_error(
 								"The accumulated gradients do not match the layer parameters");
 
-							for (int j = 0; j < accumulatedGradientsPointers[i].size();
-								j++) {
-									if (parametersToUpdate[j]->ByteSize()
-										!= accumulatedGradientsPointers[i][j]->ByteSize())
-										throw runtime_error(
-										"The gradient and the parameter memories does not match");
+							for (size_t j = 0; j < accumulatedGradientsPointers[i].size(); j++) 
+							{
+								if (parametersToUpdate[j]->ByteSize()
+									!= accumulatedGradientsPointers[i][j]->ByteSize())
+									throw runtime_error(
+									"The gradient and the parameter memories does not match");
 
-									scalarKernel->SetMemoryArg(
-										accumulatedGradientsPointers[i][j], 0);
-									scalarKernel->SetMemoryArg(
-										parametersToUpdate[j], 1);
-									scalarKernel->ClearGlobalSizes();
-									scalarKernel->AddGlobalSize(parameterCount[j]);
-									device->ExecuteKernel(scalarKernel, 0, false);
+								scalarKernel->SetMemoryArg(
+									accumulatedGradientsPointers[i][j], 0);
+								scalarKernel->SetMemoryArg(
+									parametersToUpdate[j], 1);
+								scalarKernel->ClearGlobalSizes();
+								scalarKernel->AddGlobalSize(parameterCount[j]);
+								device->ExecuteKernel(scalarKernel, 0, false);
 							}
 						}
 
@@ -759,14 +741,15 @@ namespace Matuna {
 						trainer->BatchFinished(-1);
 					}
 
+					trainer->EpochFinished();
+
+					//TODO:
+					//for (int k = 0; k < remainder; k++)
+					//	throw runtime_error(
+					//	"Non dividable batch size is not implemented yet");
+
 					if (stopped)
 						break;
-
-					for (int k = 0; k < remainder; k++)
-						throw runtime_error(
-						"Non dividable batch size is not implemented yet");
-
-					trainer->EpochFinished();
 				}
 				contexts[0]->DetachProgram(programPointer);
 		}

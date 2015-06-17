@@ -43,7 +43,7 @@ namespace Matuna
 		}
 
 		template<class T> 
-		void TestConvNetTrainer<T>::UnmapInputAndTarget(T* input, T* target, int formatIndex)
+		void TestConvNetTrainer<T>::UnmapInputAndTarget(T*, T*, int)
 		{
 			//cout << "Unmaped" << endl;
 		}
@@ -73,7 +73,7 @@ namespace Matuna
 		}
 
 		template<class T> 
-		void TestConvNetTrainer<T>::BatchFinished(T error)
+		void TestConvNetTrainer<T>::BatchFinished(T)
 		{
 			//cout << "Batch finished" << endl;
 		}

@@ -99,6 +99,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConvolutionConfig(mt19937& mt,
 		case 3:
 			activationFunction = MatunaTanhActivation;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet.");
 		}
 		unique_ptr<ForwardBackPropLayerConfig> convConfig(new ConvolutionLayerConfig(
 			unitGenerator(mt), filterGenerator(mt), filterGenerator(mt),
@@ -184,24 +186,24 @@ SCENARIO("Back propagating a convolution layer in an OCLConvNet")
 				activationFunctions.push_back(convLayer->GetConfig().ActivationFunction());
 			}
 
-			int count = filters.size();
+			size_t count = filters.size();
 			CHECK(count == biases.size());
 			auto tempInputs = inputs;
 			vector<vector<Matrixf>> intermediateInputs;
 			intermediateInputs.push_back(tempInputs);
 			INFO("Manually calculating the network");
-			for (int i = 0; i < count; i++)
+			for (size_t i = 0; i < count; i++)
 			{
 				auto& tempFilters = filters[i];
 				auto& tempBiases = biases[i];
 				vector<Matrixf> nextInputs;
 				LayerDataDescription outputDescription = convLayers[i]->OutForwardPropDataDescriptions()[0];
 				CHECK(tempFilters.size() == tempBiases.size());
-				for (int j = 0; j < tempFilters.size(); j++)
+				for (size_t j = 0; j < tempFilters.size(); j++)
 				{
 					auto& filter = tempFilters[j];
 					Matrixf tempResult = Matrixf::Zeros(outputDescription.Height, outputDescription.Width);
-					for (int k = 0; k < tempInputs.size(); k++)
+					for (size_t k = 0; k < tempInputs.size(); k++)
 						tempResult += tempInputs[k].Convolve(filter);
 
 					tempResult += tempBiases[j];
@@ -225,7 +227,7 @@ SCENARIO("Back propagating a convolution layer in an OCLConvNet")
 			CHECK(tempInputs.size() == oclForwardResult.size());
 
 			vector<Matrixf> outputDeltas;
-			for (int i = 0; i < tempInputs.size(); i++)
+			for (size_t i = 0; i < tempInputs.size(); i++)
 			{
 				auto differenceMatrix = tempInputs[i] - oclForwardResult[i];
 				auto difference = differenceMatrix.Norm2Square() / tempInputs.size();
@@ -282,12 +284,12 @@ SCENARIO("Back propagating a convolution layer in an OCLConvNet")
 				LayerDataDescription dataDesc = convLayer->InForwardPropDataDescriptions()[0];
 				auto& tempInputs = intermediateInputs[i];
 				auto activationFunction = activationFunctions[i - 1];
-				CHECK(tempInputs.size() == dataDesc.Units);
+				CHECK(tempInputs.size() == static_cast<size_t>(dataDesc.Units));
 				CHECK(tempFilters.size() == outputDeltas.size());
 				for (auto& input : tempInputs)
 				{
 					Matrixf tempOutput = Matrixf::Zeros(dataDesc.Height, dataDesc.Width);
-					for (int j = 0; j < tempFilters.size(); j++)
+					for (size_t j = 0; j < tempFilters.size(); j++)
 					{
 						auto& filter = tempFilters[j];
 						tempOutput += outputDeltas[j].AddZeroBorder(filter.ColumnCount() - 1,
@@ -318,7 +320,7 @@ SCENARIO("Back propagating a convolution layer in an OCLConvNet")
 			}
 
 			CHECK(oclBackResult.size() == outputDeltas.size());
-			for (int i = 0; i < outputDeltas.size(); i++)
+			for (size_t i = 0; i < outputDeltas.size(); i++)
 			{
 				//cout << oclBackResult[i].GetString() << endl;
 				//cout << outputDeltas[i].GetString() << endl;

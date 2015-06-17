@@ -6,6 +6,7 @@
 */
 
 #include "PerceptronLayer.h"
+#include "CheckPrecision.h"
 #include "Matuna.OCLHelper/OCLProgram.h"
 #include "Matuna.ConvNet/InterlockHelper.h"
 #include "Matuna.Helper/Path.h"
@@ -42,7 +43,7 @@ namespace Matuna
 			if (inputLayerDescriptions.size() > 1)
 			{
 				auto count = inputLayerDescriptions.size();
-				for (int i = 1; i < count; i++)
+				for (size_t i = 1; i < count; i++)
 					if (!InterlockHelper::DataEquals(inputLayerDescriptions[i - 1],
 						inputLayerDescriptions[i]))
 						throw invalid_argument(
@@ -50,20 +51,11 @@ namespace Matuna
 			}
 
 			//Make sure the type we want to execute is supported on the device.
-			vector<OCLDevice*> devices = context->GetDevices();
-			for (auto device : devices) {
+			static_assert(is_same<cl_double, T>::value || is_same<cl_float, T>::value, "The type is not yet supported");
+			for (auto device : context->GetDevices()) 
+			{
 				auto deviceInfo = device->DeviceInfo();
-				if (is_same<cl_double, T>::value) {
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else if (is_same<cl_float, T>::value) {
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				} else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
+				CheckPrecision<is_same<cl_double, T>::value>::Check(deviceInfo);
 			}
 
 			InitializeMemoryDescriptions(inputLayerDescriptions, config);
@@ -438,17 +430,17 @@ namespace Matuna
 			mt19937 mt(tempDevice());
 
 			//TODO: The initial weight values could be something to tweak
-			uniform_real_distribution<T> uniformDistribution(-0.1, 0.1);
+			uniform_real_distribution<double> uniformDistribution(-0.1, 0.1);
 
 			vector<T> initialWeightValues;
 			initialWeightValues.resize(weightCount);
 			for (int i = 0; i < weightCount; i++)
-				initialWeightValues[i] = uniformDistribution(mt);
+				initialWeightValues[i] = static_cast<T>(uniformDistribution(mt));
 
 			vector<T> initialBiasValues;
 			initialBiasValues.resize(biasCount);
 			for (int i = 0; i < biasCount; i++)
-				initialBiasValues[i] = uniformDistribution(mt);
+				initialBiasValues[i] = static_cast<T>(uniformDistribution(mt));
 
 			//Since this is initialization, we don't really care about which device and device queue we are using
 			OCLDevice* device = this->context->GetDevices()[0];
@@ -504,10 +496,10 @@ namespace Matuna
 			if (gradient.size() != 2)
 				throw invalid_argument("The gradient size is not valid");
 
-			if (gradient[0]->ByteSize() / sizeof(T) != (inputDescription.TotalUnits() * config.Units()))
+			if (gradient[0]->ByteSize() / sizeof(T) != static_cast<size_t>(inputDescription.TotalUnits() * config.Units()))
 				throw invalid_argument("The first gradient does not contain the correct amount of memory");
 
-			if (gradient[1]->ByteSize() / sizeof(T) != (config.Units()))
+			if (gradient[1]->ByteSize() / sizeof(T) != static_cast<size_t>(config.Units()))
 				throw invalid_argument("The second gradient does not contain the correct amount of memory");
 
 			auto& kernel = deviceAndImageGradientKernels[device];

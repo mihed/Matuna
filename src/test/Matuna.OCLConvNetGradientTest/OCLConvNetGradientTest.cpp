@@ -60,6 +60,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 		case 3:
 			activationFunction = MatunaTanhActivation;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 
 		unique_ptr<ConvolutionLayerConfig> convConfig(
@@ -85,6 +87,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 		case 3:
 			activationFunction = MatunaTanhActivation;
 			break;
+		default:
+			throw runtime_error("The activation is not implemented yet");
 		}
 
 		//Simply to avoid overflow when using softmax
@@ -196,7 +200,7 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution and pe
 
 			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
 
-			for (int i = 0; i < parameterCount; i++)
+			for (size_t i = 0; i < parameterCount; i++)
 			{
 				Matrix<double> param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;

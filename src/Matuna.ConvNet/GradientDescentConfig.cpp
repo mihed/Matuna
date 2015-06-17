@@ -48,10 +48,9 @@ void GradientDescentConfig<T>::SetEpochs(int epochs)
 }
 
 template<class T>
-void GradientDescentConfig<T>::SetMomentum(T momentum)
+void GradientDescentConfig<T>::SetMomentum(T)
 {
 	throw runtime_error("Not implemented");
-	this->momentum = momentum;
 }
 
 template<class T>
@@ -89,7 +88,6 @@ template<class T>
 T GradientDescentConfig<T>::GetMomentum()
 {
 	throw runtime_error("Not implemented");
-	return momentum;
 }
 
 template class GradientDescentConfig<float> ;

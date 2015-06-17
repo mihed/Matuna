@@ -40,7 +40,7 @@ class OCLDevice
 final
 {
 	private:
-		const OCLContext* const context;
+		OCLContext* context;
 		vector<cl_command_queue> queues;
 		cl_device_id deviceID;
 		OCLDeviceInfo deviceInfo;
@@ -55,7 +55,7 @@ final
 		 *@param context The context on which the device runs
 		 *@param deviceInfo The OCLDeviceInfo containing the information about the device to be created.
 		 */
-		OCLDevice(const OCLContext* const context,
+		OCLDevice(OCLContext* context,
 				const OCLDeviceInfo& deviceInfo,
 				const vector<cl_command_queue>& queues);
 
@@ -114,17 +114,9 @@ final
 		 *
 		 *@return OCLDeviceInfo
 		 */
-		OCLDeviceInfo DeviceInfo() const
-		{
-			return deviceInfo;
-		}
-		;
+		OCLDeviceInfo DeviceInfo() const;
 
-		cl_device_id DeviceID() const
-		{
-			return deviceID;
-		}
-		;
+		cl_device_id DeviceID() const;
 	};
 
 	}

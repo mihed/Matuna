@@ -6,6 +6,7 @@
 */
 
 #include "StandardOutputLayer.h"
+#include "CheckPrecision.h"
 #include "Matuna.ConvNet/InterlockHelper.h"
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Path.h"
@@ -37,7 +38,7 @@ namespace Matuna
 			if (inputLayerDescriptions.size() > 1)
 			{
 				auto count = inputLayerDescriptions.size();
-				for (int i = 1; i < count; i++)
+				for (size_t i = 1; i < count; i++)
 					if (!InterlockHelper::DataEquals(inputLayerDescriptions[i - 1],
 						inputLayerDescriptions[i]))
 						throw invalid_argument(
@@ -45,25 +46,11 @@ namespace Matuna
 			}
 
 			//Make sure the type we want to execute is supported on the device.
-			vector<OCLDevice*> devices = context->GetDevices();
-			for (auto device : devices)
+			static_assert(is_same<cl_double, T>::value || is_same<cl_float, T>::value, "The type is not yet supported");
+			for (auto device : context->GetDevices()) 
 			{
 				auto deviceInfo = device->DeviceInfo();
-				if (is_same<cl_double, T>::value)
-				{
-					if (deviceInfo.PreferredDoubleVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else if (is_same<cl_float, T>::value)
-				{
-					if (deviceInfo.PreferredFloatVectorWidth() == 0)
-						throw invalid_argument(
-						"The template argument is not supported on the chosen devices");
-				}
-				else
-					throw runtime_error(
-					"The template argument does not match the supported arguments");
+				CheckPrecision<is_same<cl_double, T>::value>::Check(deviceInfo);
 			}
 
 			InitializeMemoryDescriptions(inputLayerDescriptions, outputLayerConfig);
@@ -76,7 +63,7 @@ namespace Matuna
 		}
 
 		template<class T>
-		void StandardOutputLayer<T>::InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const StandardOutputLayerConfig* config)
+		void StandardOutputLayer<T>::InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const StandardOutputLayerConfig*)
 		{
 			//The targets must have the same data descriptions as the inputs
 			inBackPropDataDescriptions = inputLayerDescriptions;

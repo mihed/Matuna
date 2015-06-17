@@ -35,7 +35,7 @@ private:
 	vector<Matrix<T>> targets;
 	vector<Matrix<T>> tests;
 	vector<Matrix<T>> testTargets;
-	int counter;
+	size_t counter;
 
 public:
 	TestConvNetTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
@@ -65,22 +65,21 @@ public:
 			counter = 0;
 	}
 
-	virtual void UnmapInputAndTarget(T* input, T* target,int formatIndex) override
+	virtual void UnmapInputAndTarget(T*, T*, int) override
 	{
 
 	}
 
-	virtual void BatchFinished(T error) override
+	virtual void BatchFinished(T) override
 	{
 		//cout << "Counter: " << counter << endl;
 	}
 
 	virtual void EpochFinished() override
 	{
-		T totalError = 0;
 		int correctClassifications = 0;
 		int totalClassifications = tests.size();
-		for (int i = 0; i < tests.size(); i++)
+		for (size_t i = 0; i < tests.size(); i++)
 		{
 			Matrix<T> result(10, 1, network->FeedForwardAligned(tests[i].Data, 0).get());
 			int maxIndex = 0;
@@ -135,7 +134,7 @@ public:
 };
 
 
-int main(int argc, char* argv[])
+int main(int, char**)
 {
 
 	auto trainingImages = AssetLoader<float>::ReadTrainingImages();
@@ -196,9 +195,9 @@ int main(int argc, char* argv[])
 	unique_ptr<GradientDescentConfig<float>> trainingConfig(new GradientDescentConfig<float>());
 	trainingConfig->SetBatchSize(60);
 	trainingConfig->SetEpochs(10);
-	auto callBack = [] (int x) 
+	auto callBack = [] (int) 
 	{ 
-		return 0.001;
+		return 0.001f;
 	};
 
 	trainingConfig->SetStepSizeCallback(callBack);

@@ -17,8 +17,8 @@ OutputLayerTest::OutputLayerTest(
 		const OutputLayerConfig* config) :
 		OutputLayer(inputLayerDescriptions, backPropActivation, config)
 {
-	unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-	default_random_engine generator(seed);
+	random_device tempDevice;
+	mt19937 generator(tempDevice());
 	uniform_int_distribution<int> unitGenerator(1, 100);
 	uniform_int_distribution<int> paddingGenerator(1, 40);
 	uniform_int_distribution<int> dimensionGenerator(1, 10000);
