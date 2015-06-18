@@ -1,17 +1,10 @@
 # <Copyright Holder>. Copyright (C) <Copyright Year(s)>. <License>.
-
-#
-# Debugging Options
-#
-
-SET (CMAKE_VERBOSE_MAKEFILE 0) # Use 1 for debugging, 0 for release
-
 #
 # Project Properties
 #
-
 CMAKE_MINIMUM_REQUIRED (VERSION 3.2.0)
 PROJECT (Matuna)
+
 SET (APPLICATION_NAME "Matuna")
 SET (APPLICATION_CODENAME "Platon")
 SET (APPLICATION_COPYRIGHT_YEARS "2015")
@@ -25,39 +18,6 @@ SET (APPLICATION_VENDOR_NAME "Your Company")
 SET (APPLICATION_VENDOR_URL "yourcompany.com")
 SET (APPLICATION_ID "${APPLICATION_VENDOR_ID}.${PROJECT_NAME}")
 
-
-if(MSVC)
-  # Force to always compile with W4
-  if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-    string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-  endif()
-elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-  # Update if necessary
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
-endif()
-
-INCLUDE(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-
-if(COMPILER_SUPPORTS_CXX11)
-    	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
-    	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
-
-#
-# We need to specifiy the standard lib if we compile for Android
-#
-
-IF(ANDROID)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++")
-ENDIF(ANDROID)
-
 #
 # Project Output Paths
 #
@@ -67,60 +27,60 @@ SET (EXECUTABLE_OUTPUT_PATH "${MAINFOLDER}/bin")
 SET (LIBRARY_OUTPUT_PATH "${MAINFOLDER}/lib")
 
 #
-# Moving headers to include.
+# Moving all source headers to include
 #
 
-FILE(REMOVE_RECURSE ${MAINFOLDER}/include)
-FILE(MAKE_DIRECTORY ${MAINFOLDER}/include)
+SET(PROJECT_INCLUDE_DIRECTORY "${MAINFOLDER}/include")
+FILE(REMOVE_RECURSE ${PROJECT_INCLUDE_DIRECTORY})
+FILE(MAKE_DIRECTORY ${PROJECT_INCLUDE_DIRECTORY})
 
-#TODO: make sure we keep the folder structure
-FILE (GLOB MATUNA_HEADERS *.h *.hpp)
-FILE(COPY ${MATUNA_HEADERS} DESTINATION ${MAINFOLDER}/include)
+FUNCTION(TraverseAndCopy directory copyDirectory)
+	FILE(GLOB children RELATIVE ${directory} ${directory}/*)
+	FOREACH(child ${children})
+		IF(IS_DIRECTORY child)
+			SET(newCopyDirectory "${copyDirectory}/${child}")
+			SET(childDirectory "${directory}/${child}")
+			FILE(GLOB MatunaHeaders *.h *.hpp)
+			FILE(COPY ${MatunaHeaders} DESTINATION ${newCopyDirectory})
+			TraverseAndCopy(childDirectory newCopyDirectory)
+		ENDIF()
+	ENDFOREACH()
+ENDFUNCTION()
+
+TraverseAndCopy(${PROJECT_SOURCE_DIR} ${PROJECT_INCLUDE_DIRECTORY})
 
 #
 # Project Search Paths
 #
 
-SET (ALL_INCLUDE_DIRECTORIES "${MAINFOLDER}/include")
-LIST (APPEND ALL_INCLUDE_DIRECTORIES "${MAINFOLDER}/thirdparty/include") 
-
+SET (ALL_INCLUDE_DIRECTORIES "${MAINFOLDER}/thirdparty/include")
 IF(ANDROID)
 	LIST (APPEND ALL_INCLUDE_DIRECTORIES "${MAINFOLDER}/thirdparty/include/Android")
 ENDIF(ANDROID)
+LIST (APPEND ALL_INCLUDE_DIRECTORIES "${MAINFOLDER}/src")
+
+INCLUDE_DIRECTORIES(${ALL_INCLUDE_DIRECTORIES})
+SET (CMAKE_MODULE_PATH "${MAINFOLDER}/share/cmake")
 
 LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}")
 LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}/tools")
 LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}/thirdparty")
 
-SET (CMAKE_MODULE_PATH "${MAINFOLDER}/share/cmake")
-INCLUDE_DIRECTORIES(${ALL_INCLUDE_DIRECTORIES})
-
 #
-# Locate Project Prerequisites 
+# Add Project Prerequisites 
 #
 
-IF(NOT ANDROID)
-	FIND_PACKAGE(OpenCL REQUIRED)
-	IF(DEFINED OpenCL_INCLUDE_DIRS)
-		INCLUDE_DIRECTORIES(${OpenCL_INCLUDE_DIRS})
-	ELSEIF(DEFINED OpenCL_INCLUDES)
-		INCLUDE_DIRECTORIES(${OpenCL_INCLUDES})
-	ELSE (DEFINED OpenCL_INCLUDE_DIRS)
-		MESSAGE(FATAL_ERROR "The OpenCL include directory could not be found")
-	ENDIF(DEFINED OpenCL_INCLUDE_DIRS)
+INCLUDE(TuneUpCompilerWarnings)
+INCLUDE(C11Support)
+INCLUDE(OpenCLSupport)
 
-	IF(DEFINED OpenCL_LIBRARIES)
-		SET(OCL_LIBRARY ${OpenCL_LIBRARIES})
-		LINK_DIRECTORIES(${OpenCL_LIBRARIES})
-	ELSEIF(DEFINED OpenCL_LIBS)
-		SET(OCL_LIBRARY ${OpenCL_LIBS})
-		LINK_DIRECTORIES(${OpenCL_LIBS})
-	ELSE(DEFINED OpenCL_LIBRARIES)
-		MESSAGE(FATAL_ERROR "The OCL library directory could not be found")
-	ENDIF(DEFINED OpenCL_LIBRARIES)
-ELSE(NOT ANDROID)
-	SET(OCL_LIBRARY ${MAINFOLDER}/thirdparty/lib/Android/libOpenCL.so)
-ENDIF(NOT ANDROID)
+#
+# We need to specifiy the standard lib if we compile for Android
+#
+
+IF(ANDROID)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++")
+ENDIF(ANDROID)
 
 #
 # Configure Files
@@ -144,22 +104,12 @@ ENDFOREACH (CONFIGINPUT ${CONFIGINPUTS})
 # Add Build Targets.
 #
 
-ADD_SUBDIRECTORY(thirdparty)
 ADD_SUBDIRECTORY(Matuna.OCLHelper)
 ADD_SUBDIRECTORY(Matuna.Helper)
 ADD_SUBDIRECTORY(Matuna.Math)
 ADD_SUBDIRECTORY(Matuna.ConvNet)
 ADD_SUBDIRECTORY(Matuna.OCLConvNet)
-ADD_SUBDIRECTORY(test)
-ADD_SUBDIRECTORY(samples)
 
-#
-# Add Install Targets
-#
-
-IF (EXISTS "${MAINFOLDER}/include/${PROJECT_NAME}" AND IS_DIRECTORY "${MAINFOLDER}/include/${PROJECT_NAME}")
-    INSTALL(DIRECTORY "${MAINFOLDER}/include/${PROJECT_NAME}" DESTINATION "include")
-ENDIF (EXISTS "${MAINFOLDER}/include/${PROJECT_NAME}" AND IS_DIRECTORY "${MAINFOLDER}/include/${PROJECT_NAME}")
 
 #
 # Add Documentation Targets

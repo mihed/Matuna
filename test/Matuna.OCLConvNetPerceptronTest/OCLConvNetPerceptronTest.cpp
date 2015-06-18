@@ -95,7 +95,7 @@ void CalculateORPerceptron(unique_ptr<ConvNetConfig> config, const vector<OCLDev
 	INFO("Setting the network parameters to the previosly calculated OR parameters");
 	network.SetParameters(parameters.get());
 
-	CHECK(network.GetParameterCount() == 3);
+	CHECK(network.GetParameterCount() == size_t(3));
 
 	INFO("Making sure the read parameters correspond to the set parameters");
 	unique_ptr<T[]> readParameters = move(network.GetParameters());
@@ -110,13 +110,13 @@ void CalculateORPerceptron(unique_ptr<ConvNetConfig> config, const vector<OCLDev
 	{
 		auto output = network.FeedForwardUnaligned(inputs[i].data(), 0);
 		auto difference = abs(targets[i] - output[0]);
-		if (difference >= 0.01)
+		if (difference >= T(0.01f))
 		{
 			auto allContexts = network.GetOCLContexts();
 			for (auto context : allContexts)
 				cout << "The failed platform: " << endl << context->GetPlatformInfo().GetString().c_str() << endl;
 		}
-		REQUIRE(difference < 0.01);
+		REQUIRE(difference < T(0.01f));
 	}
 }
 
@@ -169,7 +169,7 @@ void CalculateANDPerceptron(unique_ptr<ConvNetConfig> config, const vector<OCLDe
 	INFO("Setting the network parameters to the previosly calculated AND parameters");
 	network.SetParameters(parameters.get());
 
-	CHECK(network.GetParameterCount() == 3);
+	CHECK(network.GetParameterCount() == size_t(3));
 
 	INFO("Making sure the read parameters correspond to the set parameters");
 	unique_ptr<T[]> readParameters = move(network.GetParameters());

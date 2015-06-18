@@ -1,0 +1,34 @@
+
+
+CMAKE_MINIMUM_REQUIRED (VERSION 3.2.0)
+PROJECT (thirdparty)
+
+SET (MAINFOLDER "${PROJECT_SOURCE_DIR}/../..")
+SET (EXECUTABLE_OUTPUT_PATH "${MAINFOLDER}/bin")
+SET (LIBRARY_OUTPUT_PATH "${MAINFOLDER}/lib")
+
+SET (CMAKE_MODULE_PATH "${MAINFOLDER}/share/cmake")
+
+#
+# Include the C11 support and compiler warnings
+#
+
+INCLUDE(TuneUpCompilerWarnings)
+INCLUDE(C11Support)
+
+#
+# We need to specifiy the standard lib if we compile for Android
+#
+
+IF(ANDROID)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++")
+ENDIF(ANDROID)
+
+FILE (GLOB_RECURSE tinyxml2_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp)
+
+ADD_LIBRARY(tinyxml2 STATIC ${tinyxml2_SRCS})
+SET_TARGET_PROPERTIES(tinyxml2 PROPERTIES LINKER_LANGUAGE CXX)
+SET_TARGET_PROPERTIES(tinyxml2 PROPERTIES VERSION "${APPLICATION_VERSION_MAJOR}.${APPLICATION_VERSION_MINOR}" OUTPUT_NAME "tinyxml2" CLEAN_DIRECT_OUTPUT 1)
+
+#Install directives
+

@@ -621,7 +621,7 @@ namespace Matuna {
 
 							trainer->UnmapInputAndTarget(input, target, formatIndex);
 
-							for (int i = 0; i < layerCount; i++)
+							for (size_t i = 0; i < layerCount; i++)
 								layers[i]->EnqueueForwardPropagation(device, 0,
 								inputMemories[i].get(), inputMemories[i + 1].get(),
 								false);
@@ -666,7 +666,7 @@ namespace Matuna {
 
 							//If this is the first sample, add the memory to the accumulator and continue
 							if (sample == 0) {
-								for (int i = 0; i < layerCount; i++) {
+								for (size_t i = 0; i < layerCount; i++) {
 									for (size_t j = 0; j < gradientsPointers[i].size(); j++) {
 										if (gradientsPointers[i][j]->ByteSize()
 											== accumulatedGradientsPointers[i][j]->ByteSize())
@@ -682,7 +682,7 @@ namespace Matuna {
 
 								device->WaitForDeviceQueue(0);
 							} else {
-								for (int i = 0; i < layerCount; i++) {
+								for (size_t i = 0; i < layerCount; i++) {
 									vector<size_t> parameterCount =
 										layers[i]->GetMultipleParameterCount();
 									for (size_t j = 0; j < gradientsPointers[i].size(); j++) {
@@ -708,7 +708,7 @@ namespace Matuna {
 							currentStepSize = stepSize;
 						}
 
-						for (int i = 0; i < layerCount; i++) 
+						for (size_t i = 0; i < layerCount; i++) 
 						{
 							vector<OCLMemory*> parametersToUpdate =
 								layers[i]->GetParameters();

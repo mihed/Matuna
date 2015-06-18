@@ -95,7 +95,7 @@ SCENARIO("Making sure that we get exception when using memory from different con
 				memories.push_back(context->CreateMemory(CL_MEM_READ_ONLY, sizeof(cl_float) * dummyBuffer.size()));
 
 			auto count = memories.size();
-			CHECK(count >= 1);
+			CHECK(count >= size_t(1));
 			CHECK(devices.size() == count);
 
 			THEN("We must have an exception when reading from devices in a different context")

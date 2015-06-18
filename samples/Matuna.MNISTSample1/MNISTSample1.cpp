@@ -97,8 +97,8 @@ public:
 				correctClassifications++;
 		}
 
-		printf("Correct classifications: %i \n", correctClassifications);
-		printf("False classifications: %i \n", totalClassifications - correctClassifications);
+		printf("Correct classifications: %i \n", static_cast<int>(correctClassifications));
+		printf("False classifications: %i \n", static_cast<int>(totalClassifications - correctClassifications));
 		printf("Performance: %f \n", float(correctClassifications) / totalClassifications);
 	}
 
