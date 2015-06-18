@@ -185,7 +185,7 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution and pe
 			auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1,
 				0, 4);
 
-			auto parameterCount = network.GetParameterCount();
+			int parameterCount = static_cast<int>(network.GetParameterCount());
 
 			unique_ptr<double[]> gradient = network.CalculateGradientUnaligned(
 				rawInputs.get(), 0, target.Data);
@@ -200,7 +200,7 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution and pe
 
 			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
 
-			for (size_t i = 0; i < parameterCount; i++)
+			for (int i = 0; i < parameterCount; i++)
 			{
 				Matrix<double> param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;

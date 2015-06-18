@@ -276,7 +276,7 @@ SCENARIO("Back propagating a convolution layer in an OCLConvNet")
 			CHECK(convLayers.size() == filters.size());
 			CHECK(convLayers.size() == activationFunctions.size());
 			CHECK((convLayers.size() + 1) == intermediateInputs.size());
-			for (int i = convLayers.size() - 1; i >= 1; i--)
+			for (int i = static_cast<int>(convLayers.size()) - 1; i >= 1; i--)
 			{
 				vector<Matrixf> tempOutputs;
 				auto& tempFilters = filters[i];

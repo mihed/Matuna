@@ -95,7 +95,7 @@ namespace Matuna
 
 				CheckOCLError(
 					clEnqueueNDRangeKernel(queue, kernelToExecute,
-					globalDimensionSize, nullptr, globalWorkSize.data(),
+					static_cast<cl_uint>(globalDimensionSize), nullptr, globalWorkSize.data(),
 					localWorkSize.data(), 0, nullptr, nullptr),
 					"Could not enqueue the kernel to the device queue");
 			}
@@ -103,7 +103,7 @@ namespace Matuna
 			{
 				CheckOCLError(
 					clEnqueueNDRangeKernel(queue, kernelToExecute,
-					globalDimensionSize, nullptr, globalWorkSize.data(),
+					static_cast<cl_uint>(globalDimensionSize), nullptr, globalWorkSize.data(),
 					nullptr, 0, nullptr, nullptr),
 					"Could not enqueue the kernel to the device queue");
 			}

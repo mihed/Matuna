@@ -29,7 +29,7 @@ namespace Matuna
 				deviceIDs.push_back(get<1>(configAndInfo).DeviceID());
 
 			cl_int error;
-			context = clCreateContext(0, deviceIDs.size(), deviceIDs.data(), nullptr,
+			context = clCreateContext(0, static_cast<cl_uint>(deviceIDs.size()), deviceIDs.data(), nullptr,
 				nullptr, &error);
 			CheckOCLError(error, "Could not create the native OCL context");
 
@@ -144,7 +144,7 @@ namespace Matuna
 			}
 
 			cl_program clProgram = clCreateProgramWithSource(context,
-				rawProgramFiles.size(), rawProgramFiles.data(),
+				static_cast<cl_uint>(rawProgramFiles.size()), rawProgramFiles.data(),
 				rawProgramLengths.data(), &error);
 			CheckOCLError(error, "Could not create the program from the source");
 
@@ -152,7 +152,7 @@ namespace Matuna
 			for (auto device : affectedDevices)
 				deviceIDs.push_back(device->DeviceID());
 
-			error = clBuildProgram(clProgram, deviceIDs.size(), deviceIDs.data(),
+			error = clBuildProgram(clProgram, static_cast<cl_uint>(deviceIDs.size()), deviceIDs.data(),
 				compilerOptions.c_str(), nullptr, nullptr);
 
 			if (error != CL_BUILD_PROGRAM_FAILURE && error != CL_SUCCESS)

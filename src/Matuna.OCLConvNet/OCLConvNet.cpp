@@ -230,9 +230,9 @@ namespace Matuna {
 					inputMemories.push_back(move(outputMemory));
 				}
 
-				int count = layers.size();
+				auto count = layers.size();
 
-				for (int i = 0; i < count; i++)
+				for (size_t i = 0; i < count; i++)
 					layers[i]->EnqueueForwardPropagation(device, 0, inputMemories[i].get(),
 					inputMemories[i + 1].get(), false);
 
@@ -258,7 +258,7 @@ namespace Matuna {
 					backPropOutputMemory.get(), true);
 				targetMemory.reset();
 
-				for (int i = count - 1; i >= 1; i--) {
+				for (int i = static_cast<int>(count) - 1; i >= 1; i--) {
 					inBackPropMemoryDescription =
 						layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
 					unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(
@@ -331,9 +331,9 @@ namespace Matuna {
 					inputMemories.push_back(move(outputMemory));
 				}
 
-				int count = layers.size();
+				auto count = layers.size();
 
-				for (int i = 0; i < count; i++)
+				for (size_t i = 0; i < count; i++)
 					layers[i]->EnqueueForwardPropagation(device, 0, inputMemories[i].get(),
 					inputMemories[i + 1].get(), false);
 
@@ -362,7 +362,7 @@ namespace Matuna {
 					backPropOutputMemory.get(), true);
 				targetMemory.reset();
 
-				int gradientMemoryPosition = 0;
+				size_t gradientMemoryPosition = 0;
 				if (layers.size() != 0) 
 				{
 					//Allocate memory for the gradient
@@ -394,7 +394,7 @@ namespace Matuna {
 					}
 				}
 
-				for (int i = count - 1; i >= 1; i--) 
+				for (int i = static_cast<int>(count) - 1; i >= 1; i--) 
 				{
 					inBackPropMemoryDescription =
 						layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
@@ -449,7 +449,7 @@ namespace Matuna {
 			auto pointerPosition = parameters.get();
 
 			//The parameters are always given in reverse order since it's easier for the gradient calculation
-			for (int i = layers.size() - 1; i >= 0; i--) {
+			for (int i = static_cast<int>(layers.size()) - 1; i >= 0; i--) {
 				layers[i]->GetParameters(pointerPosition, device, 0, false);
 				pointerPosition += layers[i]->GetParameterCount();
 			}
@@ -467,7 +467,7 @@ namespace Matuna {
 			auto pointerPosition = parameters;
 
 			//The parameters are always given in reverse order since it's easier for the gradient calculation
-			for (int i = layers.size() - 1; i >= 0; i--) {
+			for (int i = static_cast<int>(layers.size()) - 1; i >= 0; i--) {
 				layers[i]->SetParameters(pointerPosition, device, 0, false);
 				pointerPosition += layers[i]->GetParameterCount();
 			}
@@ -556,14 +556,14 @@ namespace Matuna {
 					inputMemories.push_back(move(outputMemory));
 				}
 
-				int layerCount = layers.size();
+				size_t layerCount = layers.size();
 				//Allocate memory for the gradients
 				vector<vector<unique_ptr<OCLMemory>>> gradients;
 				vector<vector<OCLMemory*>> gradientsPointers;
 				vector<vector<unique_ptr<OCLMemory>>> accumulatedGradients;
 				vector<vector<OCLMemory*>> accumulatedGradientsPointers;
 
-				for (int i = 0; i < layerCount; i++) {
+				for (size_t i = 0; i < layerCount; i++) {
 					gradients.push_back(vector<unique_ptr<OCLMemory>>());
 					accumulatedGradients.push_back(vector<unique_ptr<OCLMemory>>());
 					gradientsPointers.push_back(vector<OCLMemory*>());
@@ -642,7 +642,7 @@ namespace Matuna {
 									gradientsPointers[layerCount - 1], true);
 							}
 
-							for (int i = layerCount - 1; i >= 1; i--) {
+							for (int i = static_cast<int>(layerCount) - 1; i >= 1; i--) {
 								inBackPropMemoryDescription =
 									layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
 

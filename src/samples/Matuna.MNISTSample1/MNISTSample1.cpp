@@ -77,8 +77,8 @@ public:
 
 	virtual void EpochFinished() override
 	{
-		int correctClassifications = 0;
-		int totalClassifications = tests.size();
+		size_t correctClassifications = 0;
+		size_t totalClassifications = tests.size();
 		for (size_t i = 0; i < tests.size(); i++)
 		{
 			Matrix<T> result(10, 1, network->FeedForwardAligned(tests[i].Data, 0).get());

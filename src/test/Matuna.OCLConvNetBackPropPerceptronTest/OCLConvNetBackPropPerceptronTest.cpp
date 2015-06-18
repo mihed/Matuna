@@ -399,7 +399,7 @@ SCENARIO("Back propagating a perceptron where the input is an image")
 
 					//cout << "Perceptron delta: \n" << perceptronDelta.GetString() << endl;
 
-					for (int i = weights.size() - 1; i >= 0; i--)
+					for (int i = static_cast<int>(weights.size()) - 1; i >= 0; i--)
 					{
 						auto& input = intermediatePerceptronInputs[i];
 						auto weight = weights[i].Transpose();
@@ -553,7 +553,7 @@ SCENARIO("Back propagating a perceptron using Softmax")
 					INFO("Calculating the manually back-propagated network"); //We know that we use softmax here in the last layer.
 					auto delta = result - target;
 
-					for (int i = activationFunctions.size() - 1; i >= 1; i--)
+					for (int i = static_cast<int>(activationFunctions.size()) - 1; i >= 1; i--)
 					{
 						auto& input = inputs[i];
 						auto weight = weights[i].Transpose();
@@ -697,7 +697,7 @@ SCENARIO("Back propagating a perceptron using MSE")
 						delta = delta % result;
 					}
 
-					for (int i = activationFunctions.size() - 1; i >= 1; i--)
+					for (int i = static_cast<int>(activationFunctions.size()) - 1; i >= 1; i--)
 					{
 						auto& input = inputs[i];
 						auto weight = weights[i].Transpose();

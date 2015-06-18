@@ -147,7 +147,7 @@ SCENARIO("Calculating the gradient of a ConvNet using convolution layers")
 				targets.push_back(target);
 			}
 
-			auto parameterCount = network.GetParameterCount();
+			int parameterCount = static_cast<int>(network.GetParameterCount());
 
 			unique_ptr<double[]> gradient =  network.CalculateGradientUnaligned(inputMemory.get(), 0, targetMemory.get());
 			Matrixd gradientMatrix(parameterCount, 1, gradient.get());
@@ -163,7 +163,7 @@ SCENARIO("Calculating the gradient of a ConvNet using convolution layers")
 
 			Matrixd finiteDifferenceGradient(parameterCount, 1);
 
-			for (size_t i = 0; i < parameterCount; i++)
+			for (int i = 0; i < parameterCount; i++)
 			{
 				Matrixd param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;

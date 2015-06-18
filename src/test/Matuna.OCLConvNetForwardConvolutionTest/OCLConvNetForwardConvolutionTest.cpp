@@ -156,10 +156,10 @@ SCENARIO("Forward propagating a convolution layer in an OCLConvNet")
 				activationFunctions.push_back(convLayer->GetConfig().ActivationFunction());
 			}
 
-			int count = filters.size();
+			auto count = filters.size();
 			auto tempInputs = inputs;
 			INFO("Manually calculating the network");
-			for (int i = 0; i < count; i++)
+			for (size_t i = 0; i < count; i++)
 			{
 				auto& tempFilters = filters[i];
 				auto& tempBiases = biases[i];

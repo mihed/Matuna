@@ -219,7 +219,7 @@ SCENARIO("Calculating the gradient of a ConvNet using perceptron layers with ima
 
 			auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1, 0, 4);
 
-			auto parameterCount = network.GetParameterCount();
+			int parameterCount = static_cast<int>(network.GetParameterCount());
 
 			unique_ptr<double[]> gradient = network.CalculateGradientUnaligned(rawInputs.get(), 0, target.Data);
 			Matrix<double> gradientMatrix(parameterCount, 1, gradient.get());
@@ -233,7 +233,7 @@ SCENARIO("Calculating the gradient of a ConvNet using perceptron layers with ima
 
 			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
 
-			for (size_t i = 0; i < parameterCount; i++)
+			for (int i = 0; i < parameterCount; i++)
 			{
 				Matrix<double> param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;
@@ -297,7 +297,7 @@ SCENARIO("Calculating the gradient of a ConvNet using softmax")
 			auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1);
 			target = (1.0 / target.Sum()) * target;
 
-			auto parameterCount = network.GetParameterCount();
+			int parameterCount = static_cast<int>(network.GetParameterCount());
 
 			unique_ptr<double[]> gradient = network.CalculateGradientUnaligned(input.Data, 0, target.Data);
 			Matrix<double> gradientMatrix(parameterCount, 1, gradient.get());
@@ -311,7 +311,7 @@ SCENARIO("Calculating the gradient of a ConvNet using softmax")
 
 			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
 
-			for (size_t i = 0; i < parameterCount; i++)
+			for (int i = 0; i < parameterCount; i++)
 			{
 				Matrix<double> param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;
@@ -374,7 +374,7 @@ SCENARIO("Calculating the gradient of a ConvNet using perceptron layers")
 			auto input = Matrix<double>::RandomNormal(inputDataDesc.Units, 1, 0, 4);
 			auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1, 0, 4);
 
-			auto parameterCount = network.GetParameterCount();
+			int parameterCount = static_cast<int>(network.GetParameterCount());
 
 			unique_ptr<double[]> gradient = network.CalculateGradientUnaligned(input.Data, 0, target.Data);
 			Matrix<double> gradientMatrix(parameterCount, 1, gradient.get());
@@ -388,7 +388,7 @@ SCENARIO("Calculating the gradient of a ConvNet using perceptron layers")
 
 			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
 
-			for (size_t i = 0; i < parameterCount; i++)
+			for (int i = 0; i < parameterCount; i++)
 			{
 				Matrix<double> param1 = parameterMatrix;
 				param1.At(i, 0) = param1.At(i, 0) - h;
