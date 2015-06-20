@@ -60,10 +60,10 @@ namespace Matuna
 				throw runtime_error("Could not retrieve the executable path");
 #else	//We assume a linux based system here
 			char szTmp[32];
-			auto size = sizeof(char) * FILENAME_MAX;
+			size_t size = sizeof(char) * FILENAME_MAX;
 			sprintf(szTmp, "/proc/%d/exe", getpid());
-			auto linkSize = readlink(szTmp, rawPath.get(), size);
-			int bytes = size - 1 < linkSize ? size - 1 : linkSize;
+			size_t linkSize = readlink(szTmp, rawPath.get(), size);
+			size_t bytes = size - 1 < linkSize ? size - 1 : linkSize;
 			if(bytes >= 0)
 			{
 				rawPath[bytes] = '\0';
