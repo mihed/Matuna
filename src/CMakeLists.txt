@@ -2,6 +2,7 @@
 #
 # Project Properties
 #
+SET (CMAKE_VERBOSE_MAKEFILE 0) # Use 1 for debugging, 0 for release
 CMAKE_MINIMUM_REQUIRED (VERSION 3.2.0)
 PROJECT (Matuna)
 
@@ -23,31 +24,7 @@ SET (APPLICATION_ID "${APPLICATION_VENDOR_ID}.${PROJECT_NAME}")
 #
 
 SET (MAINFOLDER "${PROJECT_SOURCE_DIR}/..")
-SET (EXECUTABLE_OUTPUT_PATH "${MAINFOLDER}/bin")
-SET (LIBRARY_OUTPUT_PATH "${MAINFOLDER}/lib")
-
-#
-# Moving all source headers to include
-#
-
-SET(PROJECT_INCLUDE_DIRECTORY "${MAINFOLDER}/include")
-FILE(REMOVE_RECURSE ${PROJECT_INCLUDE_DIRECTORY})
-FILE(MAKE_DIRECTORY ${PROJECT_INCLUDE_DIRECTORY})
-
-FUNCTION(TraverseAndCopy directory copyDirectory)
-	FILE(GLOB children RELATIVE ${directory} ${directory}/*)
-	FOREACH(child ${children})
-		IF(IS_DIRECTORY child)
-			SET(newCopyDirectory "${copyDirectory}/${child}")
-			SET(childDirectory "${directory}/${child}")
-			FILE(GLOB MatunaHeaders *.h *.hpp)
-			FILE(COPY ${MatunaHeaders} DESTINATION ${newCopyDirectory})
-			TraverseAndCopy(childDirectory newCopyDirectory)
-		ENDIF()
-	ENDFOREACH()
-ENDFUNCTION()
-
-TraverseAndCopy(${PROJECT_SOURCE_DIR} ${PROJECT_INCLUDE_DIRECTORY})
+SET (CMAKE_MODULE_PATH "${MAINFOLDER}/share/cmake")
 
 #
 # Project Search Paths
@@ -60,11 +37,6 @@ ENDIF(ANDROID)
 LIST (APPEND ALL_INCLUDE_DIRECTORIES "${MAINFOLDER}/src")
 
 INCLUDE_DIRECTORIES(${ALL_INCLUDE_DIRECTORIES})
-SET (CMAKE_MODULE_PATH "${MAINFOLDER}/share/cmake")
-
-LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}")
-LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}/tools")
-LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}/thirdparty")
 
 #
 # Add Project Prerequisites 
@@ -73,14 +45,8 @@ LIST (APPEND CMAKE_PREFIX_PATH "${MAINFOLDER}/thirdparty")
 INCLUDE(TuneUpCompilerWarnings)
 INCLUDE(C11Support)
 INCLUDE(OpenCLSupport)
-
-#
-# We need to specifiy the standard lib if we compile for Android
-#
-
-IF(ANDROID)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++")
-ENDIF(ANDROID)
+INCLUDE(AndroidCompilerFlags)
+INCLUDE(SetProjectPaths)
 
 #
 # Configure Files
@@ -99,6 +65,31 @@ FOREACH (CONFIGINPUT ${CONFIGINPUTS})
     STRING (REPLACE ".h.in.cmake" ".h" CONFIGOUTPUT2 "${CONFIGOUTPUT1}")
     CONFIGURE_FILE ("${CONFIGINPUT}" "${CONFIGOUTPUT2}")
 ENDFOREACH (CONFIGINPUT ${CONFIGINPUTS})
+
+
+#
+# Moving all source headers to include
+#
+
+SET(PROJECT_INCLUDE_DIRECTORY "${MAINFOLDER}/include")
+
+FUNCTION(TraverseAndCopy directory copyDirectory)
+	FILE(MAKE_DIRECTORY ${copyDirectory})
+	FILE(GLOB MatunaHeaders ${directory}/*.h  ${directory}/*.hpp)
+	FILE(COPY ${MatunaHeaders} DESTINATION ${copyDirectory})
+	FILE(GLOB children ${directory}/*)	
+	FOREACH(child ${children})
+		IF(IS_DIRECTORY ${child})
+			GET_FILENAME_COMPONENT(childFolderName ${child} NAME)
+			SET(newCopyDirectory "${copyDirectory}/${childFolderName}")
+			SET(childDirectory "${directory}/${childFolderName}")
+			TraverseAndCopy(${childDirectory} ${newCopyDirectory})
+		ENDIF()
+	ENDFOREACH()
+ENDFUNCTION()
+
+FILE(REMOVE_RECURSE ${PROJECT_INCLUDE_DIRECTORY})
+TraverseAndCopy(${PROJECT_SOURCE_DIR} ${PROJECT_INCLUDE_DIRECTORY})
 
 #
 # Add Build Targets.

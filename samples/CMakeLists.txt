@@ -1,29 +1,17 @@
 
 
+SET (CMAKE_VERBOSE_MAKEFILE 0) # Use 1 for debugging, 0 for release
 CMAKE_MINIMUM_REQUIRED (VERSION 3.2.0)
 PROJECT (Matuna.Samples)
 
 SET (MAINFOLDER "${PROJECT_SOURCE_DIR}/..")
-SET (EXECUTABLE_OUTPUT_PATH "${MAINFOLDER}/bin")
-SET (LIBRARY_OUTPUT_PATH "${MAINFOLDER}/lib")
-
 SET (CMAKE_MODULE_PATH "${MAINFOLDER}/share/cmake")
-
-#
-# Include the C11 support and compiler warnings
-#
 
 INCLUDE(TuneUpCompilerWarnings)
 INCLUDE(C11Support)
 INCLUDE(OpenCLSupport)
-
-#
-# We need to specifiy the standard lib if we compile for Android
-#
-
-IF(ANDROID)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++")
-ENDIF(ANDROID)
+INCLUDE(AndroidCompilerFlags)
+INCLUDE(SetProjectPaths)
 
 SET (ALL_INCLUDE_DIRECTORIES "${MAINFOLDER}/thirdparty/include")
 LIST (APPEND ALL_INCLUDE_DIRECTORIES "${MAINFOLDER}/include")
@@ -33,10 +21,24 @@ ENDIF(ANDROID)
 
 INCLUDE_DIRECTORIES(${ALL_INCLUDE_DIRECTORIES})
 
-#Copy the assets to the binary path
-
-FILE(COPY assets DESTINATION ${MAINFOLDER}/bin/)
-
 #Add targets
 
-ADD_SUBDIRECTORY(Matuna.MNISTSample1)
+FILE (GLOB_RECURSE sources_SRCS Matuna.MNISTSample1/*.cpp Matuna.MNISTSample1/*.cxx Matuna.MNISTSample1/*.cc Matuna.MNISTSample1/*.C  Matuna.MNISTSample1/*.c  Matuna.MNISTSample1/*.h  Matuna.MNISTSample1/*.hpp)
+ADD_EXECUTABLE(Matuna.MNISTSample1 ${sources_SRCS})
+TARGET_LINK_LIBRARIES(Matuna.MNISTSample1 Matuna.OCLConvNet Matuna.OCLHelper ${OCL_LIBRARY} Matuna.ConvNet Matuna.Helper Matuna.Math)
+SET_TARGET_PROPERTIES(Matuna.MNISTSample1 PROPERTIES LINKER_LANGUAGE CXX)
+SET_TARGET_PROPERTIES(Matuna.MNISTSample1 PROPERTIES OUTPUT_NAME "Matuna.MNISTSample1" CLEAN_DIRECT_OUTPUT 1)
+
+ADD_CUSTOM_COMMAND(
+TARGET Matuna.MNISTSample1 
+POST_BUILD
+COMMAND ${CMAKE_COMMAND}
+ARGS -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/assets ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/assets
+)
+
+ADD_CUSTOM_COMMAND(
+TARGET Matuna.MNISTSample1
+POST_BUILD
+COMMAND ${CMAKE_COMMAND}
+ARGS -E copy_directory ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/kernels ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/kernels
+)

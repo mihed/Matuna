@@ -1,9 +1,0 @@
-FILE (GLOB_RECURSE sources_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp)
-
-ADD_EXECUTABLE(Matuna.OCLDeviceHandlerTest ${sources_SRCS})
-TARGET_LINK_LIBRARIES(Matuna.OCLDeviceHandlerTest Matuna.OCLHelper)
-SET_TARGET_PROPERTIES(Matuna.OCLDeviceHandlerTest PROPERTIES LINKER_LANGUAGE CXX)
-SET_TARGET_PROPERTIES(Matuna.OCLDeviceHandlerTest PROPERTIES VERSION "${APPLICATION_VERSION_MAJOR}.${APPLICATION_VERSION_MINOR}" OUTPUT_NAME "Matuna.OCLDeviceHandlerTest" CLEAN_DIRECT_OUTPUT 1)
-
-#Install directives
-

@@ -1,9 +1,0 @@
-FILE (GLOB_RECURSE sources_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp)
-
-ADD_EXECUTABLE(Matuna.OCLConvNetStandardOutputLayerTest ${sources_SRCS})
-TARGET_LINK_LIBRARIES(Matuna.OCLConvNetStandardOutputLayerTest Matuna.OCLConvNet Matuna.ConvNet Matuna.Math)
-SET_TARGET_PROPERTIES(Matuna.OCLConvNetStandardOutputLayerTest PROPERTIES LINKER_LANGUAGE CXX)
-SET_TARGET_PROPERTIES(Matuna.OCLConvNetStandardOutputLayerTest PROPERTIES VERSION "${APPLICATION_VERSION_MAJOR}.${APPLICATION_VERSION_MINOR}" OUTPUT_NAME "Matuna.OCLConvNetStandardOutputLayerTest" CLEAN_DIRECT_OUTPUT 1)
-
-#Install directives
-

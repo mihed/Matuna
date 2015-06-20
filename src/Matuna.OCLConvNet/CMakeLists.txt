@@ -1,14 +1,16 @@
 FILE (GLOB_RECURSE OCLConvNet_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp kernels/*.cl kernels/*.h)
-FILE (GLOB OCLConvNet_HEADERS *.h *.hpp) #WORKS HERE BUT NOT VERY GENERIC
-FILE (GLOB_RECURSE ConvNetKernels kernels/*.cl kernels/*.h) #FIXME: Works but sucks
+
+message(STATUS ${OCL_LIBRARY})
 
 ADD_LIBRARY(Matuna.OCLConvNet STATIC ${OCLConvNet_SRCS})
-TARGET_LINK_LIBRARIES(Matuna.OCLConvNet Matuna.ConvNet Matuna.OCLHelper Matuna.Helper Matuna.Math)
+TARGET_LINK_LIBRARIES(Matuna.OCLConvNet ${OCL_LIBRARY} Matuna.ConvNet Matuna.OCLHelper Matuna.Helper Matuna.Math)
 SET_TARGET_PROPERTIES(Matuna.OCLConvNet PROPERTIES LINKER_LANGUAGE CXX)
 SET_TARGET_PROPERTIES(Matuna.OCLConvNet PROPERTIES VERSION "${APPLICATION_VERSION_MAJOR}.${APPLICATION_VERSION_MINOR}" OUTPUT_NAME "Matuna.OCLConvNet" CLEAN_DIRECT_OUTPUT 1)
-FILE(COPY ${OCLConvNet_HEADERS} DESTINATION ${MAINFOLDER}/include/Matuna.OCLConvNet)
-FILE(COPY ${ConvNetKernels} DESTINATION ${MAINFOLDER}/lib/kernels) #FIXME: This sucks
-FILE(COPY ${ConvNetKernels} DESTINATION ${MAINFOLDER}/bin/kernels) #FIXME: This sucks
 
-#Install directives
+ADD_CUSTOM_COMMAND(
+TARGET Matuna.OCLConvNet 
+POST_BUILD
+COMMAND ${CMAKE_COMMAND}
+ARGS -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/kernels ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/kernels
+)
 
