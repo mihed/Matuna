@@ -33,6 +33,7 @@ namespace Matuna
 			VanillaSamplingLayerConfig config;
 
 			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndVanillaSamplingKernels;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndVanillaUpSamplingKernels;
 
 		public:
 			VanillaSamplingLayer(shared_ptr<OCLContext> context,
@@ -72,6 +73,7 @@ namespace Matuna
 			void InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const VanillaSamplingLayerConfig* config);
 			void InitializePrograms();
 			void InitializeVanillaSamplingKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeVanillaUpSamplingKernel(OCLDevice* device, OCLProgram* program);
 		};
 
 	} /* namespace MachineLearning */

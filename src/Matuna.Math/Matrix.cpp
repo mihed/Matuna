@@ -419,9 +419,32 @@ namespace Matuna
 			resultColumns = resultColumns == 0 ? 1 : resultColumns;
 
 			Matrix<T> result(resultRows, resultColumns);
+			int tempIndex;
+			int tempIndex2;
 			for (int i = 0; i < resultRows; i++)
+			{
+				tempIndex = i * resultColumns;
+				tempIndex2 = (i * heightSamplingSize) * columns;
 				for (int j = 0; j < resultColumns; j++)
-					result.Data[i * resultColumns + j] = Data[(i * heightSamplingSize) * columns + j * widthSamplingSize];
+					result.Data[tempIndex + j] = Data[tempIndex2 + j * widthSamplingSize];
+			}
+
+			return result;
+		}
+
+		template<class T>
+		Matrix<T> Matrix<T>::VanillaUpSample(int widthSamplingSize, int heightSamplingSize, int resultRows, int resultColumns) const
+		{
+			Matrix<T> result = Matrix<T>::Zeros(resultRows, resultColumns);
+			int tempIndex;
+			int tempIndex2;
+			for (int i = 0; i < rows; i++)
+			{
+				tempIndex = (i * heightSamplingSize) * resultColumns;
+				tempIndex2 = i * columns;
+				for (int j = 0; j < columns; j++)
+					result.Data[tempIndex + j * widthSamplingSize] = Data[tempIndex2 + j];
+			}
 
 			return result;
 		}

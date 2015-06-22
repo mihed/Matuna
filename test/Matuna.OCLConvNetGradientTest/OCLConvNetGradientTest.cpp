@@ -13,6 +13,7 @@
 #include "Matuna.ConvNet/PerceptronLayerConfig.h"
 #include "Matuna.ConvNet/ConvolutionLayerConfig.h"
 #include "Matuna.ConvNet/StandardOutputLayerConfig.h"
+#include "Matuna.ConvNet/VanillaSamplingLayerConfig.h"
 #include "Matuna.Math/Matrix.h"
 #include <memory>
 #include <random>
@@ -24,11 +25,14 @@ using namespace Matuna::Math;
 using namespace Matuna::Helper;
 
 unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
-											uniform_int_distribution<int>& perceptronLayerGenerator,
-											uniform_int_distribution<int>& convolutionLayerGenerator,
-											uniform_int_distribution<int>& imageDimensionGenerator,
-											uniform_int_distribution<int>& filterDimensionGenerator,
-											uniform_int_distribution<int>& dimensionGenerator, bool useSoftMax)
+													uniform_int_distribution<int>& perceptronLayerGenerator,
+													uniform_int_distribution<int>& convolutionLayerGenerator,
+													uniform_int_distribution<int>& imageDimensionGenerator,
+													uniform_int_distribution<int>& filterDimensionGenerator,
+													uniform_int_distribution<int>& dimensionGenerator,
+													uniform_int_distribution<int>& vanillaSamplingSizeGenerator,
+													bool useSoftMax,
+													bool useVanillaSampling)
 {
 	vector<LayerDataDescription> dataDescriptions;
 	LayerDataDescription dataDescription;
@@ -70,6 +74,12 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 			filterDimensionGenerator(mt), activationFunction));
 
 		config->AddToBack(move(convConfig));
+		if (useVanillaSampling)
+		{
+			unique_ptr<VanillaSamplingLayerConfig> samplingConfig(
+				new VanillaSamplingLayerConfig(vanillaSamplingSizeGenerator(mt), vanillaSamplingSizeGenerator(mt)));
+			config->AddToBack(move(samplingConfig));
+		}
 	}
 
 	INFO("Creating the layers config");
@@ -128,15 +138,16 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 	return move(config);
 }
 
-SCENARIO("Calcultating the gradient of a ConvNet using random convolution and perceptron layers")
+SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perceptron and vanilla sampling layers")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
 	uniform_int_distribution<int> dimensionGenerator(1, 5);
-	uniform_int_distribution<int> imageDimensionGenerator(30, 60);
+	uniform_int_distribution<int> imageDimensionGenerator(100, 200);
 	uniform_int_distribution<int> perceptronLayerGenerator(1, 2);
 	uniform_int_distribution<int> convolutionLayerGenerator(1, 2);
+	uniform_int_distribution<int> vanillaSamplingSizeGenerator(1, 3);
 	uniform_int_distribution<int> filterGenerator(1, 10);
 
 	for (int dummy = 0; dummy < 5; dummy++)
@@ -155,9 +166,17 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution and pe
 
 		for (auto& deviceInfo : deviceInfos)
 		{
-			auto config = CreateRandomConvNetConfig(mt, perceptronLayerGenerator,
+
+			unique_ptr<ConvNetConfig> config;
+
+			if (dummy < 4)
+				config = CreateRandomConvNetConfig(mt, perceptronLayerGenerator,
 				convolutionLayerGenerator, imageDimensionGenerator,
-				filterGenerator, dimensionGenerator, false);
+				filterGenerator, dimensionGenerator, vanillaSamplingSizeGenerator, false, true);
+			else
+				config = CreateRandomConvNetConfig(mt, perceptronLayerGenerator,
+				convolutionLayerGenerator, imageDimensionGenerator,
+				filterGenerator, dimensionGenerator, vanillaSamplingSizeGenerator, false, false);
 
 			OCLConvNet<double> network(deviceInfo, move(config));
 

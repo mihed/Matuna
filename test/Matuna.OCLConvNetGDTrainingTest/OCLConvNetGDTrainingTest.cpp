@@ -14,6 +14,7 @@
 #include "Matuna.ConvNet/PerceptronLayerConfig.h"
 #include "Matuna.ConvNet/StandardOutputLayerConfig.h"
 #include "Matuna.ConvNet/ConvolutionLayerConfig.h"
+#include "Matuna.ConvNet/VanillaSamplingLayerConfig.h"
 #include "Matuna.OCLConvNet/PerceptronLayer.h"
 #include "TestConvNetTrainer.h"
 #include "Matuna.Math/Matrix.h"
@@ -31,7 +32,10 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 													uniform_int_distribution<int>& convolutionLayerGenerator,
 													uniform_int_distribution<int>& imageDimensionGenerator,
 													uniform_int_distribution<int>& filterDimensionGenerator,
-													uniform_int_distribution<int>& dimensionGenerator, bool useSoftMax)
+													uniform_int_distribution<int>& dimensionGenerator, 
+													uniform_int_distribution<int>& vanillaSamplingSizeGenerator,
+													bool useSoftMax,
+													bool useVanillaSampling)
 {
 	vector<LayerDataDescription> dataDescriptions;
 	LayerDataDescription dataDescription;
@@ -101,6 +105,21 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 			filterHeight, activationFunction));
 
 		config->AddToBack(move(convConfig));
+
+		if (useVanillaSampling)
+		{
+
+			cout << "-----Vanilla " << i << "------------" << endl;
+
+			int samplingWidth = vanillaSamplingSizeGenerator(mt);
+			int samplingHeight = vanillaSamplingSizeGenerator(mt);
+
+			cout << "Sampling width: " << samplingWidth << " Sampling height: " << samplingHeight << endl;
+
+			unique_ptr<VanillaSamplingLayerConfig> samplingConfig(
+				new VanillaSamplingLayerConfig(samplingWidth, samplingHeight));
+			config->AddToBack(move(samplingConfig));
+		}
 	}
 
 	INFO("Creating the layers config");
@@ -174,10 +193,11 @@ SCENARIO("Testing the gradient descent training algorithm")
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
-	uniform_int_distribution<int> dimensionGenerator(1, 10);
-	uniform_int_distribution<int> imageDimensionGenerator(40, 100);
+	uniform_int_distribution<int> dimensionGenerator(1, 5);
+	uniform_int_distribution<int> imageDimensionGenerator(300, 400);
 	uniform_int_distribution<int> perceptronLayerGenerator(1, 3);
 	uniform_int_distribution<int> convolutionLayerGenerator(1, 3);
+	uniform_int_distribution<int> vanillaSamplingSizeGenerator(1, 3);
 	uniform_int_distribution<int> filterGenerator(1, 10);
 
 	for (int dummy = 0; dummy < 5; dummy++)
@@ -196,9 +216,17 @@ SCENARIO("Testing the gradient descent training algorithm")
 
 		for (auto& deviceInfo : deviceInfos)
 		{
-			auto config = CreateRandomConvNetConfig(mt, perceptronLayerGenerator,
+
+			unique_ptr<ConvNetConfig> config;
+
+			if (dummy > 4)
+				config = CreateRandomConvNetConfig(mt, perceptronLayerGenerator,
 				convolutionLayerGenerator, imageDimensionGenerator,
-				filterGenerator, dimensionGenerator, false);
+				filterGenerator, dimensionGenerator, vanillaSamplingSizeGenerator, false, false);
+			else
+				config = CreateRandomConvNetConfig(mt, perceptronLayerGenerator,
+				convolutionLayerGenerator, imageDimensionGenerator,
+				filterGenerator, dimensionGenerator, vanillaSamplingSizeGenerator, false, true);
 
 			OCLConvNet<double> network(deviceInfo, move(config));
 

@@ -129,9 +129,18 @@ namespace Matuna
 				if (is_same<cl_double, T>::value) 
 					program->AddDefine("DOUBLE_PRECISION");
 
+				auto backActivationFunction = this->BackPropActivationFunction();
+				if (backActivationFunction == MatunaSigmoidActivation)
+					program->AddDefine("MATUNA_ACTIVATION_DERIVATIVE_SIGMOID");
+				else if (backActivationFunction == MatunaTanhActivation)
+					program->AddDefine("MATUNA_ACTIVATION_DERIVATIVE_TANH");
+				else if (backActivationFunction == MatunaSoftMaxActivation)
+					throw invalid_argument("Softmax is not allowed in a convolution layer at the moment");
+
 				program->SetName("VanillaSamlingProgram" + Converter::ConvertToString(program->InstanceCount()));
 
 				InitializeVanillaSamplingKernel(device, program.get());
+				InitializeVanillaUpSamplingKernel(device, program.get());
 
 				vector<OCLDevice*> oneDeviceVector;
 				oneDeviceVector.push_back(device);
@@ -185,6 +194,66 @@ namespace Matuna
 		}
 
 		template<class T>
+		void VanillaSamplingLayer<T>::InitializeVanillaUpSamplingKernel(OCLDevice* device, OCLProgram* program)
+		{
+			string vanillaSamplingKernelPath = Path::Combine(OCLProgram::DefaultSourceLocation, "VanillaUpSamplingKernel.cl");
+
+			LayerDataDescription inDataDesc = this->InForwardPropDataDescriptions()[0];
+			LayerDataDescription outDataDesc = this->OutForwardPropDataDescriptions()[0];
+			LayerMemoryDescription inBackMemoryDesc = this->InBackPropMemoryDescriptions()[0];
+			LayerMemoryDescription inForwardMemoryDesc = this->InForwardPropMemoryDescriptions()[0];
+			LayerMemoryDescription outBackMemoryDesc = this->OutBackPropMemoryDescriptions()[0];
+
+			auto deviceInfo = device->DeviceInfo();
+			auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+
+			unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
+			kernel->AddSourcePath(vanillaSamplingKernelPath);
+			kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
+			kernel->SetKernelName("VanillaUpSamplingKernel");
+
+			auto byteSize = inBackMemoryDesc.TotalMemory() * sizeof(T);
+			if (maximumConstantBufferSize > byteSize)
+			{
+				kernel->AddDefine(vanillaSamplingKernelPath, "CONSTANT_INPUT_DELTA");
+				maximumConstantBufferSize -= byteSize;
+			}
+			byteSize = inForwardMemoryDesc.TotalMemory() * sizeof(T);
+			if (maximumConstantBufferSize > byteSize)
+			{
+				kernel->AddDefine(vanillaSamplingKernelPath, "CONSTANT_INPUT");
+				maximumConstantBufferSize -= byteSize;
+			}
+
+			kernel->AddGlobalSize(inDataDesc.Width);
+			kernel->AddGlobalSize(inDataDesc.Height);
+			kernel->AddGlobalSize(inDataDesc.Units);
+
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "MAX_INPUT_DELTA_X_INDEX", outDataDesc.Width);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "MAX_INPUT_DELTA_Y_INDEX", outDataDesc.Height);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "SAMPLING_SIZE_WIDTH", config.SamplingSizeWidth());
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "SAMPLING_SIZE_HEIGHT", config.SamplingSizeHeight());
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_DELTA_UNIT_MEMORY_WIDTH_OFFSET", inBackMemoryDesc.WidthOffset);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_DELTA_UNIT_MEMORY_HEIGHT_OFFSET", inBackMemoryDesc.HeightOffset);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "OUTPUT_UNIT_MEMORY_WIDTH_OFFSET", outBackMemoryDesc.WidthOffset);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET", outBackMemoryDesc.HeightOffset);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_UNIT_MEMORY_WIDTH_OFFSET", inForwardMemoryDesc.WidthOffset);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_UNIT_MEMORY_HEIGHT_OFFSET", inForwardMemoryDesc.HeightOffset);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "OUTPUT_UNIT_OFFSET", outBackMemoryDesc.UnitOffset);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_DELTA_UNIT_OFFSET", inBackMemoryDesc.UnitOffset);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_UNIT_OFFSET", inForwardMemoryDesc.UnitOffset);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "OUTPUT_UNIT_MEMORY_WIDTH", outBackMemoryDesc.Width);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_DELTA_UNIT_MEMORY_WIDTH", inBackMemoryDesc.Width);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_UNIT_MEMORY_WIDTH", inForwardMemoryDesc.Width);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "OUTPUT_UNIT_MEMORY_ELEMENTS", outBackMemoryDesc.Width * outBackMemoryDesc.Height);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_DELTA_UNIT_MEMORY_ELEMENTS", inBackMemoryDesc.Width * inBackMemoryDesc.Height);
+			kernel->AddDefineSubsitute(vanillaSamplingKernelPath, "INPUT_UNIT_MEMORY_ELEMENTS", inForwardMemoryDesc.Width * inForwardMemoryDesc.Height);
+
+			deviceAndVanillaUpSamplingKernels.insert(make_pair(device, kernel.get()));
+			program->AttachKernel(move(kernel));
+		}
+
+		template<class T>
 		void VanillaSamplingLayer<T>::EnqueueForwardPropagation(OCLDevice* device, int queueIndex,
 			OCLMemory* previousInput, OCLMemory* output, bool blocking)
 		{
@@ -196,10 +265,14 @@ namespace Matuna
 
 		template<class T>
 		void VanillaSamplingLayer<T>::EnqueueBackPropagation(OCLDevice* device, int queueIndex,
-			OCLMemory* previousInput, OCLMemory* delta,
+			OCLMemory* input, OCLMemory* delta,
 			OCLMemory* deltaOutput, bool blocking)
 		{
-
+			auto kernel = deviceAndVanillaUpSamplingKernels[device];
+			kernel->SetMemoryArg(input, 0);
+			kernel->SetMemoryArg(delta, 1);
+			kernel->SetMemoryArg(deltaOutput, 2);
+			device->ExecuteKernel(kernel, queueIndex, blocking);
 		}
 
 		template<class T>
