@@ -34,7 +34,7 @@ inline int ReverseInt(int i)
 }
 
 template<class T>
-class AssetLoader
+class MNISTAssetLoader
 {
 private:
 	static vector<Matrix<T>> ReadMNIST(string path, int count)
@@ -126,8 +126,8 @@ private:
 	}
 
 public:
-	AssetLoader();
-	~AssetLoader();
+	MNISTAssetLoader();
+	~MNISTAssetLoader();
 
 	static vector<Matrix<T>> ReadTestImages(int count = 10000)
 	{

@@ -14,6 +14,7 @@
 #include "Matuna.ConvNet/PerceptronLayerConfig.h"
 #include "Matuna.ConvNet/StandardOutputLayerConfig.h"
 #include "Matuna.ConvNet/ConvolutionLayerConfig.h"
+#include "Matuna.ConvNet/VanillaSamplingLayerConfig.h"
 #include "Matuna.ConvNet/ConvNetTrainer.h"
 #include "Matuna.ConvNet/GradientDescentConfig.h"
 
@@ -134,12 +135,27 @@ public:
 };
 
 
+//This represents the network given in http://research.microsoft.com/pubs/68920/icdar03.pdf
 int main(int, char**)
 {
 
 	auto trainingImages = MNISTAssetLoader<float>::ReadTrainingImages();
-	auto testImages = MNISTAssetLoader<float>::ReadTestImages(1000);
-	auto testTargets = MNISTAssetLoader<float>::ReadTestTargets(1000);
+
+	//Let us add a border of one too the images according to the paper
+	vector<Matrix<float>> fixedTrainingImages;
+	for (auto image : trainingImages)
+		fixedTrainingImages.push_back(image.AddZeroBorder(0, 1, 0, 1));
+
+	trainingImages.clear();
+
+	auto testImages = MNISTAssetLoader<float>::ReadTestImages();
+	vector<Matrix<float>> fixedTestImages;
+	for (auto image : testImages)
+		fixedTestImages.push_back(image.AddZeroBorder(0, 1, 0, 1));
+
+	testImages.clear();
+
+	auto testTargets = MNISTAssetLoader<float>::ReadTestTargets();
 	auto trainingTargets = MNISTAssetLoader<float>::ReadTrainingTargets();
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 
@@ -162,21 +178,25 @@ int main(int, char**)
 
 	vector<LayerDataDescription> inputDataDescriptions;
 	LayerDataDescription inputDesc;
-	inputDesc.Height = trainingImages[0].RowCount();
-	inputDesc.Width = trainingImages[0].ColumnCount();
+	inputDesc.Height = fixedTrainingImages[0].RowCount();
+	inputDesc.Width = fixedTrainingImages[0].ColumnCount();
 	inputDesc.Units = 1;
 	inputDataDescriptions.push_back(inputDesc);
 	unique_ptr<ConvNetConfig> config(new ConvNetConfig(inputDataDescriptions));
 	vector<OCLDeviceInfo> deviceInfos;
 	deviceInfos.push_back(deviceInfo);
 
-	unique_ptr<ConvolutionLayerConfig> convLayerConfig1(new ConvolutionLayerConfig(16, 8, 8, MatunaTanhActivation));
-	unique_ptr<ConvolutionLayerConfig> convLayerConfig2(new ConvolutionLayerConfig(32, 4, 4, MatunaTanhActivation));
-	unique_ptr<PerceptronLayerConfig> perceptronConfig1(new PerceptronLayerConfig(64, MatunaTanhActivation));
+	unique_ptr<ConvolutionLayerConfig> convLayerConfig1(new ConvolutionLayerConfig(5, 5, 5, MatunaTanhActivation));
+	unique_ptr<VanillaSamplingLayerConfig> vanillaLayerConfig1(new VanillaSamplingLayerConfig(2, 2));
+	unique_ptr<ConvolutionLayerConfig> convLayerConfig2(new ConvolutionLayerConfig(50, 5, 5, MatunaTanhActivation));
+	unique_ptr<VanillaSamplingLayerConfig> vanillaLayerConfig2(new VanillaSamplingLayerConfig(2, 2));
+	unique_ptr<PerceptronLayerConfig> perceptronConfig1(new PerceptronLayerConfig(100, MatunaTanhActivation));
 	unique_ptr<PerceptronLayerConfig> perceptronConfig2(new PerceptronLayerConfig(10, MatunaSoftMaxActivation));
 	unique_ptr<StandardOutputLayerConfig> outputLayerConfig(new StandardOutputLayerConfig(MatunaCrossEntropy));
 	config->AddToBack(move(convLayerConfig1));
+	config->AddToBack(move(vanillaLayerConfig1));
 	config->AddToBack(move(convLayerConfig2));
+	config->AddToBack(move(vanillaLayerConfig2));
 	config->AddToBack(move(perceptronConfig1));
 	config->AddToBack(move(perceptronConfig2));
 	config->SetOutputConfig(move(outputLayerConfig));
@@ -185,19 +205,24 @@ int main(int, char**)
 	auto tempTrainer = new TestConvNetTrainer<float>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
 		network.InputForwardMemoryDescriptions(),
 		network.OutputForwardMemoryDescriptions(), &network);
-	tempTrainer->SetInputs(trainingImages);
+	tempTrainer->SetInputs(fixedTrainingImages);
 	tempTrainer->SetTargets(trainingTargets);
-	tempTrainer->SetTests(testImages);
+	tempTrainer->SetTests(fixedTestImages);
 	tempTrainer->SetTestTargets(testTargets);
 
 	unique_ptr<ConvNetTrainer<float>> trainer(tempTrainer);
 
 	unique_ptr<GradientDescentConfig<float>> trainingConfig(new GradientDescentConfig<float>());
 	trainingConfig->SetBatchSize(60);
-	trainingConfig->SetEpochs(10);
-	auto callBack = [] (int) 
+	trainingConfig->SetEpochs(40);
+	auto callBack = [] (int epoch) 
 	{ 
-		return 0.001f;
+		if (epoch < 4)
+			return 0.001f;
+		else if (epoch < 10)
+			return 0.0001f;
+		else
+			return 0.000001f;
 	};
 
 	trainingConfig->SetStepSizeCallback(callBack);
