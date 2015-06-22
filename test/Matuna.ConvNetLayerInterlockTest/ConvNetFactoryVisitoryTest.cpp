@@ -1,13 +1,14 @@
 /*
- * ConvNetFactoryVisitorTest.cpp
- *
- *  Created on: May 5, 2015
- *      Author: Mikael
- */
+* ConvNetFactoryVisitorTest.cpp
+*
+*  Created on: May 5, 2015
+*      Author: Mikael
+*/
 
 #include "Matuna.ConvNet/PerceptronLayerConfig.h"
 #include "Matuna.ConvNet/StandardOutputLayerConfig.h"
 #include "Matuna.ConvNet/ConvolutionLayerConfig.h"
+#include "Matuna.ConvNet/VanillaSamplingLayerConfig.h"
 #include "Matuna.ConvNet/ConvNetConfig.h"
 #include "Matuna.ConvNet/ConvNet.h"
 #include "Matuna.ConvNet/InterlockHelper.h"
@@ -32,31 +33,40 @@ void ConvNetFactoryVisitorTest::Visit(const ConvNetConfig* const cnnConfig)
 }
 
 void ConvNetFactoryVisitorTest::Visit(
-		const PerceptronLayerConfig* const perceptronConfig)
+	const PerceptronLayerConfig* const perceptronConfig)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new ForthBackPropLayerTest(inputDataDescriptions, backPropActivation, perceptronConfig));
+		new ForthBackPropLayerTest(inputDataDescriptions, backPropActivation, perceptronConfig));
 
 	this->InterlockAndAddLayer(perceptronConfig, move(layer));
 }
 
 void ConvNetFactoryVisitorTest::Visit(
-		const ConvolutionLayerConfig* const convolutionConfig)
+	const ConvolutionLayerConfig* const convolutionConfig)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
-			new ForthBackPropLayerTest(inputDataDescriptions,
-			backPropActivation,
-					convolutionConfig));
+		new ForthBackPropLayerTest(inputDataDescriptions,
+		backPropActivation,
+		convolutionConfig));
 
 	this->InterlockAndAddLayer(convolutionConfig, move(layer));
 }
 
 void ConvNetFactoryVisitorTest::Visit(
-		const StandardOutputLayerConfig* const outputConfig)
+	const StandardOutputLayerConfig* const outputConfig)
 {
 	unique_ptr<OutputLayer> layer(
 		new OutputLayerTest(inputDataDescriptions, backPropActivation, outputConfig));
 
 	this->InterlockAndAddLayer(outputConfig, move(layer));
+}
+
+void ConvNetFactoryVisitorTest::Visit(
+	const VanillaSamplingLayerConfig* const config)
+{
+	unique_ptr<ForwardBackPropLayer> layer(
+		new ForthBackPropLayerTest(inputDataDescriptions, backPropActivation, config));
+
+	this->InterlockAndAddLayer(config, move(layer));
 }
 

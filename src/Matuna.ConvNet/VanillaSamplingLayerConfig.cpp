@@ -1,37 +1,42 @@
 /*
- * VanillaSamplingLayerConfig.cpp
- *
- *  Created on: Jun 21, 2015
- *      Author: Mikael
- */
+* VanillaSamplingLayerConfig.cpp
+*
+*  Created on: Jun 21, 2015
+*      Author: Mikael
+*/
 
 #include "VanillaSamplingLayerConfig.h"
 
 namespace Matuna
 {
-namespace MachineLearning
-{
+	namespace MachineLearning
+	{
 
-VanillaSamplingLayerConfig::VanillaSamplingLayerConfig(int samplingSize) :
-	samplingSize(samplingSize)
-{
+		VanillaSamplingLayerConfig::VanillaSamplingLayerConfig(int samplingSizeWidth, int samplingSizeHeight)
+		{
+			this->samplingSizeHeight = samplingSizeHeight;
+			this->samplingSizeWidth = samplingSizeWidth;
+		}
 
-}
+		VanillaSamplingLayerConfig::~VanillaSamplingLayerConfig()
+		{
 
-VanillaSamplingLayerConfig::~VanillaSamplingLayerConfig()
-{
+		}
 
-}
+		int VanillaSamplingLayerConfig::SamplingSizeWidth() const
+		{
+			return samplingSizeWidth;
+		}
 
-int VanillaSamplingLayerConfig::SamplingSize()
-{
-	return samplingSize;
-}
+		int VanillaSamplingLayerConfig::SamplingSizeHeight() const
+		{
+			return samplingSizeHeight;
+		}
 
-void VanillaSamplingLayerConfig::Accept(ILayerConfigVisitor* visitor)
-{
-	visitor->Visit(this);
-}
+		void VanillaSamplingLayerConfig::Accept(ILayerConfigVisitor* visitor)
+		{
+			visitor->Visit(this);
+		}
 
-} /* namespace MachineLearning */
+	} /* namespace MachineLearning */
 } /* namespace Matuna */

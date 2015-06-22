@@ -22,6 +22,7 @@ public:
 	virtual void Visit(const PerceptronLayerConfig* const perceptronConfig) override;
 	virtual void Visit(const ConvolutionLayerConfig* const convolutionConfig) override;
 	virtual void Visit(const StandardOutputLayerConfig* const convolutionConfig) override;
+	virtual void Visit(const VanillaSamplingLayerConfig* const convolutionConfig) override;
 
 };
 

@@ -95,17 +95,17 @@ vector<LayerMemoryDescription> InterlockHelper::CalculateCompatibleMemory(
 bool InterlockHelper::IsCompatible(const LayerMemoryDescription& right,
 		const LayerMemoryDescription& left)
 {
-	if (right.Height < 0)
+	if (right.Height <= 0)
 		throw runtime_error("Invalid memory");
-	if (left.Height < 0)
+	if (left.Height <= 0)
 		throw runtime_error("Invalid memory");
-	if (right.Width < 0)
+	if (right.Width <= 0)
 		throw runtime_error("Invalid memory");
-	if (left.Width < 0)
+	if (left.Width <= 0)
 		throw runtime_error("Invalid memory");
-	if (right.Units < 0)
+	if (right.Units <= 0)
 		throw runtime_error("Invalid memory");
-	if (left.Units < 0)
+	if (left.Units <= 0)
 		throw runtime_error("Invalid memory");
 	if (left.WidthOffset < 0)
 		throw runtime_error("Invalid memory");
@@ -156,18 +156,18 @@ bool InterlockHelper::IsCompatible(const vector<LayerMemoryDescription>& right,
 bool InterlockHelper::IsCompatible(const LayerDataDescription& data,
 		const LayerMemoryDescription& memory)
 {
-	if (data.Width < 0)
+	if (data.Width <= 0)
 		throw runtime_error("Invalid data");
-	if (data.Height < 0)
+	if (data.Height <= 0)
 		throw runtime_error("Invalid data");
-	if (data.Units < 0)
+	if (data.Units <= 0)
 		throw runtime_error("Invalid data");
 
-	if (memory.Width < 0)
+	if (memory.Width <= 0)
 		throw runtime_error("Invalid memory");
-	if (memory.Height < 0)
+	if (memory.Height <= 0)
 		throw runtime_error("Invalid memory");
-	if (memory.Units < 0)
+	if (memory.Units <= 0)
 		throw runtime_error("Invalid memory");
 	if (memory.UnitOffset < 0)
 		throw runtime_error("Invalid memory");

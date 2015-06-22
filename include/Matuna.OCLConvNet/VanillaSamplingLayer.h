@@ -13,6 +13,7 @@
 #include "Matuna.OCLHelper/OCLContext.h"
 #include "LayerKernel.h"
 
+#include <unordered_map>
 #include <vector>
 #include <memory>
 
@@ -30,6 +31,8 @@ namespace Matuna
 
 		private:
 			VanillaSamplingLayerConfig config;
+
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndVanillaSamplingKernels;
 
 		public:
 			VanillaSamplingLayer(shared_ptr<OCLContext> context,
@@ -64,6 +67,11 @@ namespace Matuna
 			virtual vector<size_t> GetMultipleParameterCount() override;
 
 			virtual size_t GetParameterCount() override;
+
+		private:
+			void InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const VanillaSamplingLayerConfig* config);
+			void InitializePrograms();
+			void InitializeVanillaSamplingKernel(OCLDevice* device, OCLProgram* program);
 		};
 
 	} /* namespace MachineLearning */

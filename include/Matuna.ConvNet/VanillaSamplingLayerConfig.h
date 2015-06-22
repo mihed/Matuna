@@ -19,14 +19,16 @@ class VanillaSamplingLayerConfig: public ForwardBackPropLayerConfig
 {
 
 private:
-	int samplingSize;
+	int samplingSizeWidth;
+	int samplingSizeHeight;
 
 public:
-	VanillaSamplingLayerConfig(int samplingSize);
+	VanillaSamplingLayerConfig(int samplingSizeWidth, int samplingSizeHeight);
 	~VanillaSamplingLayerConfig();
 
 
-	int SamplingSize();
+	int SamplingSizeWidth() const;
+	int SamplingSizeHeight() const;
 	virtual void Accept(ILayerConfigVisitor* visitor) override;
 };
 
