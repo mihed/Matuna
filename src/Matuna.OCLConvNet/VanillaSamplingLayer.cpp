@@ -126,6 +126,7 @@ namespace Matuna
 
 				program->AddIncludePath(OCLProgram::DefaultSourceLocation);
 
+				program->SetUseRelaxedMath(config.UseRelaxedMath());
 				if (is_same<cl_double, T>::value) 
 					program->AddDefine("DOUBLE_PRECISION");
 

@@ -9,6 +9,7 @@
 #include "Matuna.ConvNet/StandardOutputLayerConfig.h"
 #include "Matuna.ConvNet/ConvolutionLayerConfig.h"
 #include "Matuna.ConvNet/VanillaSamplingLayerConfig.h"
+#include "Matuna.ConvNet/MaxPoolingLayerConfig.h"
 #include "Matuna.ConvNet/ConvNetConfig.h"
 #include "Matuna.ConvNet/ConvNet.h"
 #include "Matuna.ConvNet/InterlockHelper.h"
@@ -63,6 +64,15 @@ void ConvNetFactoryVisitorTest::Visit(
 
 void ConvNetFactoryVisitorTest::Visit(
 	const VanillaSamplingLayerConfig* const config)
+{
+	unique_ptr<ForwardBackPropLayer> layer(
+		new ForthBackPropLayerTest(inputDataDescriptions, backPropActivation, config));
+
+	this->InterlockAndAddLayer(config, move(layer));
+}
+
+void ConvNetFactoryVisitorTest::Visit(
+	const MaxPoolingLayerConfig* const config)
 {
 	unique_ptr<ForwardBackPropLayer> layer(
 		new ForthBackPropLayerTest(inputDataDescriptions, backPropActivation, config));
