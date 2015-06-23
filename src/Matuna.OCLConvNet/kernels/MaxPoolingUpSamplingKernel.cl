@@ -3,6 +3,8 @@
 #include "ActivationFunction.h"
 
 //<!@
+#define INPUT_DELTA_UNIT_WIDTH -1
+#define INPUT_DELTA_UNIT_ELEMENTS -1
 #define SAMPLING_SIZE_WIDTH -1
 #define SAMPLING_SIZE_HEIGHT -1
 #define INPUT_DELTA_UNIT_MEMORY_WIDTH_OFFSET -1
@@ -62,8 +64,11 @@ __global const int* yMaxIndices
 	const int xBucketIndex = (int)floor(xIndex / (float)SAMPLING_SIZE_WIDTH);
 	const int yBucketIndex = (int)floor(yIndex / (float)SAMPLING_SIZE_HEIGHT);
 
-	const int xMaxIndex = xMaxIndices[xBucketIndex];
-	const int yMaxIndex = yMaxIndices[yBucketIndex];
+	const int tempIndex = xBucketIndex + INPUT_DELTA_UNIT_WIDTH * yBucketIndex + zIndex * INPUT_DELTA_UNIT_ELEMENTS; // Simply the index of the succeeding layer
+	const int xMaxIndex = xMaxIndices[tempIndex];
+	const int yMaxIndex = yMaxIndices[tempIndex];
+
+	printf("bucket(%i, %i), index(%i, %i), max(%i, %i) \n", xBucketIndex, yBucketIndex, xIndex, yIndex, xMaxIndex, yMaxIndex);
 
 	const int outputIndex = OUTPUT_UNIT_MEMORY_WIDTH_OFFSET + xIndex + OUTPUT_UNIT_MEMORY_WIDTH * 
 	(OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET + yIndex) + OUTPUT_UNIT_MEMORY_ELEMENTS * (OUTPUT_UNIT_OFFSET + zIndex);

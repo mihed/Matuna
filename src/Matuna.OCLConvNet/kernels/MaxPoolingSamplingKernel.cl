@@ -34,10 +34,6 @@ __global int* yMaxIndices
 	const int yIndex = get_global_id(1);
 	const int zIndex = get_global_id(2);
 
-	real_t maxValue = FLT_MIN;
-	int maxXIndex;
-	int maxYIndex;
-
 	const int xStart = xIndex * SAMPLING_SIZE_WIDTH + INPUT_UNIT_MEMORY_WIDTH_OFFSET;
 	const int xStop = xStart + SAMPLING_SIZE_WIDTH;
 
@@ -45,9 +41,13 @@ __global int* yMaxIndices
 	const int yStop = yStart + SAMPLING_SIZE_HEIGHT;
 
 
-	int tempIndex1 = INPUT_UNIT_MEMORY_ELEMENTS * (INPUT_UNIT_OFFSET + zIndex);
+	const int tempIndex1 = INPUT_UNIT_MEMORY_ELEMENTS * (INPUT_UNIT_OFFSET + zIndex);
+
 	int tempIndex2;
 	real_t tempValue;
+	real_t maxValue = FLT_MIN;
+	int maxXIndex;
+	int maxYIndex;
 
 	
 	for (int y = yStart; y < yStop; y++)
@@ -70,7 +70,10 @@ __global int* yMaxIndices
 		OUTPUT_UNIT_MEMORY_ELEMENTS * (OUTPUT_UNIT_OFFSET + zIndex);
 
 	output[outputIndex] = maxValue;
-	xMaxIndices[xIndex] = maxXIndex;
-	yMaxIndices[yIndex] = maxYIndex;
 
+	const int tempIndex = xIndex + get_global_size(0) * yIndex + get_global_size(0) * get_global_size(1) * zIndex;
+	xMaxIndices[tempIndex] = maxXIndex;
+	yMaxIndices[tempIndex] = maxYIndex;
+
+	printf("Index: %i,  Index(%i, %i), MaxIndex(%i, %i) \n", tempIndex, xIndex, yIndex, maxXIndex, maxYIndex);
 }

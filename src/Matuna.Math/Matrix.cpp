@@ -451,13 +451,11 @@ namespace Matuna
 
 		template<class T>
 		Matrix<T> Matrix<T>::MaxUpSample(int widthSamplingSize, int heightSamplingSize, int resultRows,
-			int resultColumns, const vector<int>& rowIndexVector, const vector<int>& columnIndexVector) const
+			int resultColumns, const vector<tuple<int, int>>& indexVector) const
 		{
 
-			if (rows != rowIndexVector.size())
-				throw invalid_argument("The index matrix row dimension does not match");
-			if (columns != columnIndexVector.size())
-				throw invalid_argument("The index matrix column dimension does not match");
+			if (static_cast<size_t>(elementCount) != indexVector.size())
+				throw invalid_argument("The index matrix dimension does not match");
 
 			Matrix<T> result = Matrix<T>::Zeros(resultRows, resultColumns);
 
@@ -466,9 +464,12 @@ namespace Matuna
 			for (int i = 0; i < rows; i++)
 			{
 				temp1 = i * columns;
-				temp2 = rowIndexVector[i] * resultColumns;
 				for (int j = 0; j < columns; j++)
-					result.Data[temp2 + columnIndexVector[j]] = Data[temp1 + j];
+				{
+					temp2 = temp1 + j;
+					auto& rowColumnIndex = indexVector[temp2];
+					result.Data[resultColumns * get<0>(rowColumnIndex) + get<1>(rowColumnIndex)] = Data[temp2];
+				}
 			}
 
 			return result;
@@ -527,6 +528,77 @@ namespace Matuna
 					result.Data[tempIndex2 + j] = maxValue;
 				}
 			}
+
+			return result;
+		}
+
+		template<class T>
+		Matrix<T> Matrix<T>::MaxDownSample(int widthSamplingSize, int heightSamplingSize, vector<tuple<int, int>>& indexVector) const
+		{
+			indexVector.clear();
+
+			int resultRows = static_cast<int>(floor(double(rows) / heightSamplingSize));
+			int resultColumns  = static_cast<int>(floor(double(columns) / widthSamplingSize));
+
+			if (resultRows == 0)
+			{
+				heightSamplingSize = rows % heightSamplingSize;
+				resultRows = 1;
+			}
+
+			if (resultColumns == 0)
+			{
+				widthSamplingSize = columns % widthSamplingSize;
+				resultColumns = 1;
+			}
+
+			Matrix<T> result(resultRows, resultColumns);
+
+			T maxValue;
+			T currentValue;
+			int startRowIndex;
+			int endRowIndex;
+			int startColumnIndex;
+			int endColumnIndex;
+			int tempIndex;
+			int tempIndex2;
+
+			int maxRowIndex = -1;
+			int maxColumnIndex = -1;
+
+			for (int i = 0; i < resultRows; i++)
+			{
+				tempIndex2 = i * resultColumns;
+				startRowIndex = i * heightSamplingSize;
+				endRowIndex = startRowIndex + heightSamplingSize; 
+				for (int j = 0; j < resultColumns; j++)
+				{
+					maxValue = numeric_limits<float>::min();
+					startColumnIndex = j * widthSamplingSize;
+					endColumnIndex = startColumnIndex + widthSamplingSize;
+
+					for (int k = startRowIndex; k < endRowIndex; k++)
+					{
+						tempIndex = k * columns;
+						for (int l = startColumnIndex; l < endColumnIndex; l++)
+						{
+							currentValue = Data[tempIndex + l];
+							if (currentValue > maxValue)
+							{
+								maxValue = currentValue;
+								maxColumnIndex = l;
+								maxRowIndex = k;
+							}
+						}
+					}
+
+					result.Data[tempIndex2 + j] = maxValue;
+					indexVector.push_back(make_tuple(maxRowIndex, maxColumnIndex));
+				}
+			}
+
+			if (indexVector.size() != static_cast<size_t>(result.ElementCount()))
+				throw runtime_error("The index vector is invalid");
 
 			return result;
 		}

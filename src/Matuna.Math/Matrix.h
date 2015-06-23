@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <tuple>
 #include <functional>
 
 using namespace std;
@@ -67,7 +68,8 @@ public:
 	Matrix<T> VanillaDownSample(int widthSamplingSize, int heightSamplingSize) const;
 	Matrix<T> VanillaUpSample(int widthSamplingSize, int heightSamplingSize, int resultRows, int resultColumns) const;
 	Matrix<T> MaxDownSample(int widthSamplingSize, int heightSamplingSize) const;
-	Matrix<T> MaxUpSample(int widthSamplingSize, int heightSamplingSize, int resultRows, int resultColumns, const vector<int>& rowIndexVector,const vector<int>& columnIndexVector) const;
+	Matrix<T> MaxDownSample(int widthSamplingSize, int heightSamplingSize, vector<tuple<int, int>>& indexVector) const;
+	Matrix<T> MaxUpSample(int widthSamplingSize, int heightSamplingSize, int resultRows, int resultColumns, const vector<tuple<int, int>>& indexVector) const;
 	void Transform(function<T(T)> function);
 	void SetSubMatrix(int startRow, int startColumn, const Matrix<T>& subMatrix);
 	T Norm2() const;

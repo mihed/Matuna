@@ -1,9 +1,9 @@
-This is XeTeX, Version 3.1415926-2.5-0.9999.3 (MiKTeX 2.9 64-bit) (preloaded format=xelatex 2015.5.30)  7 JUN 2015 17:36
+This is XeTeX, Version 3.1415926-2.5-0.9999.3 (MiKTeX 2.9 64-bit) (preloaded format=xelatex 2015.5.30)  23 JUN 2015 22:58
 entering extended mode
 **GuidelinesAndConventions.tex
 
-(D:\Mikael\Documents\GitHub\Matuna\Matuna\docs\Notes\ConvNet\Implementation\Gui
-delinesAndConventions.tex
+(D:\Mikael\Documents\GitHub\Matuna\docs\Notes\ConvNet\Implementation\Guidelines
+AndConventions.tex
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
 abic, armenian, assamese, basque, bengali, bokmal, bulgarian, catalan, coptic, 
@@ -913,8 +913,8 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 )
 \@float@every@table=\toks33
 
-(D:\Mikael\Documents\GitHub\Matuna\Matuna\docs\Notes\ConvNet\Implementation\Gui
-delinesAndConventions.aux)
+(D:\Mikael\Documents\GitHub\Matuna\docs\Notes\ConvNet\Implementation\Guidelines
+AndConventions.aux)
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 19.
 LaTeX Font Info:    ... okay on input line 19.
 LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 19.
@@ -1112,11 +1112,11 @@ Overfull \hbox (7.0131pt too wide) in paragraph at lines 110--110
  []
 
 [3] [4]
-(D:\Mikael\Documents\GitHub\Matuna\Matuna\docs\Notes\ConvNet\Implementation\Gui
-delinesAndConventions.aux) ) 
+(D:\Mikael\Documents\GitHub\Matuna\docs\Notes\ConvNet\Implementation\Guidelines
+AndConventions.aux) ) 
 Here is how much of TeX's memory you used:
  16212 strings out of 429025
- 315362 string characters out of 3167800
+ 315341 string characters out of 3167800
  363426 words of memory out of 3000000
  19319 multiletter control sequences out of 15000+200000
  15994 words of font info for 73 fonts, out of 3000000 for 9000

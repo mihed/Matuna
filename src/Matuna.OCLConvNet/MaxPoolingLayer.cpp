@@ -250,14 +250,14 @@ namespace Matuna
 				maximumConstantBufferSize -= byteSize;
 			}
 
-			byteSize = outDataDesc.Width * sizeof(cl_int);
+			byteSize = outDataDesc.TotalUnits() * sizeof(cl_int);
 			if (maximumConstantBufferSize > byteSize)
 			{
 				kernel->AddDefine(maxPoolingSamplingKernelPath, "CONSTANT_X_MAX_INDICES");
 				maximumConstantBufferSize -= byteSize;
 			}
 
-			byteSize = outDataDesc.Height * sizeof(cl_int);
+			byteSize = outDataDesc.TotalUnits() * sizeof(cl_int);
 			if (maximumConstantBufferSize > byteSize)
 			{
 				kernel->AddDefine(maxPoolingSamplingKernelPath, "CONSTANT_Y_MAX_INDICES");
@@ -268,6 +268,8 @@ namespace Matuna
 			kernel->AddGlobalSize(inDataDesc.Height);
 			kernel->AddGlobalSize(inDataDesc.Units);
 
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_WIDTH", outDataDesc.Width);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_ELEMENTS", outDataDesc.Width * outDataDesc.Height);
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "SAMPLING_SIZE_WIDTH", config.SamplingSizeWidth());
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "SAMPLING_SIZE_HEIGHT", config.SamplingSizeHeight());
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_MEMORY_WIDTH_OFFSET", inBackMemoryDesc.WidthOffset);
