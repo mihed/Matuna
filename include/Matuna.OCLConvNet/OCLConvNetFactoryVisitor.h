@@ -40,6 +40,8 @@ namespace Matuna
 				override;
 			virtual void Visit(const VanillaSamplingLayerConfig* const vanillaConfig)
 				override;
+			virtual void Visit(const MaxPoolingLayerConfig* const maxPoolingConfig)
+				override;
 		};
 
 	} /* namespace MachineLearning */

@@ -19,6 +19,7 @@ class PerceptronLayerConfig;
 class ConvolutionLayerConfig;
 class StandardOutputLayerConfig;
 class VanillaSamplingLayerConfig;
+class MaxPoolingLayerConfig;
 
 class ILayerConfigVisitor
 {
@@ -35,6 +36,7 @@ public:
 	virtual void Visit(const ConvolutionLayerConfig* const convolutionConfig) = 0;
 	virtual void Visit(const StandardOutputLayerConfig* const convolutionConfig) = 0;
 	virtual void Visit(const VanillaSamplingLayerConfig* const vanillaConfig) = 0;
+	virtual void Visit(const MaxPoolingLayerConfig* const maxPoolingConfig) = 0;
 };
 
 } /* Matuna */

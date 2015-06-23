@@ -48,6 +48,7 @@ protected:
 	void InterlockAndAddLayer(const ConvolutionLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer);
 	void InterlockAndAddLayer(const StandardOutputLayerConfig* const config, unique_ptr<OutputLayer> layer);
 	void InterlockAndAddLayer(const VanillaSamplingLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer);
+	void InterlockAndAddLayer(const MaxPoolingLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer);
 	void InitializeInterlock(const ConvNetConfig* const config);
 
 public:

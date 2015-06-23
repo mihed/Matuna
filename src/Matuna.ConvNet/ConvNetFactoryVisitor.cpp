@@ -175,6 +175,16 @@ namespace Matuna
 			layers.push_back(move(layer));
 		}
 
+		void ConvNetFactoryVisitor::InterlockAndAddLayer(const MaxPoolingLayerConfig* const, unique_ptr<ForwardBackPropLayer> layer)
+		{
+			if (outputIsCalled)
+				throw invalid_argument("The output layer has already been created. We cannot proceed");
+
+			backPropActivation = MatunaLinearActivation;
+			InterlockLayer(layer.get());
+			layers.push_back(move(layer));
+		}
+
 		void ConvNetFactoryVisitor::InterlockAndAddLayer(const ConvolutionLayerConfig* const config, unique_ptr<ForwardBackPropLayer> layer)
 		{
 			if (outputIsCalled)

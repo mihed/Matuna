@@ -10,12 +10,14 @@
 #include "ConvolutionLayer.h"
 #include "StandardOutputLayer.h"
 #include "VanillaSamplingLayer.h"
+#include "MaxPoolingLayer.h"
 
 #include "Matuna.ConvNet/ConvNet.h"
 #include "Matuna.ConvNet/PerceptronLayerConfig.h"
 #include "Matuna.ConvNet/StandardOutputLayerConfig.h"
 #include "Matuna.ConvNet/ConvolutionLayerConfig.h"
 #include "Matuna.ConvNet/VanillaSamplingLayerConfig.h"
+#include "Matuna.ConvNet/MaxPoolingLayerConfig.h"
 #include "Matuna.ConvNet/ConvNetConfig.h"
 #include "Matuna.ConvNet/InterlockHelper.h"
 
@@ -100,6 +102,16 @@ namespace Matuna {
 				backPropActivation, vanillaConfig));
 
 			this->InterlockAndAddLayer(vanillaConfig, move(layer));
+		}
+
+		template<class T>
+		void OCLConvNetFactoryVisitor<T>::Visit(const MaxPoolingLayerConfig* const maxPoolingConfig)
+		{
+			unique_ptr<ForwardBackPropLayer> layer(
+				new MaxPoolingLayer<T>(context, inputDataDescriptions,
+				backPropActivation, maxPoolingConfig));
+
+			this->InterlockAndAddLayer(maxPoolingConfig, move(layer));
 		}
 
 		template class OCLConvNetFactoryVisitor < cl_float > ;
