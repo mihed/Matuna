@@ -450,6 +450,31 @@ namespace Matuna
 		}
 
 		template<class T>
+		Matrix<T> Matrix<T>::MaxUpSample(int widthSamplingSize, int heightSamplingSize, int resultRows,
+			int resultColumns, const vector<int>& rowIndexVector, const vector<int>& columnIndexVector) const
+		{
+
+			if (rows != rowIndexVector.size())
+				throw invalid_argument("The index matrix row dimension does not match");
+			if (columns != columnIndexVector.size())
+				throw invalid_argument("The index matrix column dimension does not match");
+
+			Matrix<T> result = Matrix<T>::Zeros(resultRows, resultColumns);
+
+			int temp1;
+			int temp2;
+			for (int i = 0; i < rows; i++)
+			{
+				temp1 = i * columns;
+				temp2 = rowIndexVector[i] * resultColumns;
+				for (int j = 0; j < columns; j++)
+					result.Data[temp2 + columnIndexVector[j]] = Data[temp1 + j];
+			}
+
+			return result;
+		}
+
+		template<class T>
 		Matrix<T> Matrix<T>::MaxDownSample(int widthSamplingSize, int heightSamplingSize) const
 		{
 			int resultRows = static_cast<int>(floor(double(rows) / heightSamplingSize));

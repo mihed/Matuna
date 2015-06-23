@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <functional>
 
 using namespace std;
@@ -66,6 +67,7 @@ public:
 	Matrix<T> VanillaDownSample(int widthSamplingSize, int heightSamplingSize) const;
 	Matrix<T> VanillaUpSample(int widthSamplingSize, int heightSamplingSize, int resultRows, int resultColumns) const;
 	Matrix<T> MaxDownSample(int widthSamplingSize, int heightSamplingSize) const;
+	Matrix<T> MaxUpSample(int widthSamplingSize, int heightSamplingSize, int resultRows, int resultColumns, const vector<int>& rowIndexVector,const vector<int>& columnIndexVector) const;
 	void Transform(function<T(T)> function);
 	void SetSubMatrix(int startRow, int startColumn, const Matrix<T>& subMatrix);
 	T Norm2() const;
