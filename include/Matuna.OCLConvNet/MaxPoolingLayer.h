@@ -29,6 +29,11 @@ namespace Matuna
 		private:
 			MaxPoolingLayerConfig config;
 
+
+			unique_ptr<OCLMemory> xMaxIndices;
+			unique_ptr<OCLMemory> yMaxIndices;
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndMaxPoolingSamplingKernels;
+
 		public:
 			MaxPoolingLayer(shared_ptr<OCLContext> context,
 				const vector<LayerDataDescription>& inputLayerDescriptions,
@@ -62,6 +67,11 @@ namespace Matuna
 			virtual vector<size_t> GetMultipleParameterCount() override;
 
 			virtual size_t GetParameterCount() override;
+
+		private:
+			void InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const MaxPoolingLayerConfig* config);
+			void InitializePrograms();
+			void InitializeMaxPoolingSamplingKernel(OCLDevice* device, OCLProgram* program);
 		};
 
 	} /* namespace MachineLearning */

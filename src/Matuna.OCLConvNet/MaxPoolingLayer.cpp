@@ -202,14 +202,15 @@ namespace Matuna
 			//Determine whether or not we have to use a remainder
 			int widthRemainder = inForwardDataDesc.Width % config.SamplingSizeWidth();
 			int heightRemainder = inForwardDataDesc.Height % config.SamplingSizeHeight();
+
+			//TODO: All the defines should not be mandatory and should be reflected in the defines
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "REMAINDER_SIZE_WIDTH", widthRemainder);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "REMAINDER_SIZE_HEIGHT", heightRemainder);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "X_MAX_INDEX", outputDataDesc.Width);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "Y_MAX_INDEX", outputDataDesc.Height);
+
 			if (widthRemainder != 0 || heightRemainder != 0)
-			{
 				kernel->AddDefine(maxPoolingSamplingKernelPath, "USE_REMAINDER");
-				kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "REMAINDER_SIZE_WIDTH", widthRemainder);
-				kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "REMAINDER_SIZE_HEIGHT", heightRemainder);
-				kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "X_MAX_INDEX", outputDataDesc.Width);
-				kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "Y_MAX_INDEX", outputDataDesc.Height);
-			}
 
 			deviceAndMaxPoolingSamplingKernels.insert(make_pair(device, kernel.get()));
 			program->AttachKernel(move(kernel));
