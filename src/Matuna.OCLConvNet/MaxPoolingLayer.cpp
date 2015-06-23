@@ -27,11 +27,32 @@ namespace Matuna
 		OCLForwardBackPropLayer<T>(context, inputLayerDescriptions,
 			backPropActivation, config), config(*config)
 		{
+			if (inputLayerDescriptions.size() == 0)
+				throw invalid_argument(
+				"There's no input data descriptions for the convolution layer.");
 
+			if (inputLayerDescriptions.size() != 1)
+				throw runtime_error("Not implemented exception");
+
+			//Make sure the type we want to execute is supported on the device.
+			static_assert(is_same<cl_double, T>::value || is_same<cl_float, T>::value, "The type is not yet supported");
+			for (auto device : context->GetDevices()) 
+			{
+				auto deviceInfo = device->DeviceInfo();
+				CheckPrecision<is_same<cl_double, T>::value>::Check(deviceInfo);
+			}
+
+			InitializeMemoryDescriptions(inputLayerDescriptions, config);
 		}
 
 		template<class T>
 		MaxPoolingLayer<T>::~MaxPoolingLayer()
+		{
+
+		}
+
+		template<class T>
+		void MaxPoolingLayer<T>::InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const MaxPoolingLayerConfig* config)
 		{
 
 		}
@@ -44,6 +65,12 @@ namespace Matuna
 
 		template<class T>
 		void MaxPoolingLayer<T>::InterlockFinalized()
+		{
+
+		}
+
+		template<class T>
+		void MaxPoolingLayer<T>::InitializePrograms()
 		{
 
 		}

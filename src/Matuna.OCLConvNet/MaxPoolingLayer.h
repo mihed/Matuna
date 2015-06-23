@@ -62,6 +62,10 @@ namespace Matuna
 			virtual vector<size_t> GetMultipleParameterCount() override;
 
 			virtual size_t GetParameterCount() override;
+
+		private:
+			void InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const MaxPoolingLayerConfig* config);
+			void InitializePrograms();
 		};
 
 	} /* namespace MachineLearning */
