@@ -186,8 +186,21 @@ namespace Matuna
 			kernel->AddGlobalSize(outputDataDesc.Height);
 			kernel->AddGlobalSize(outputDataDesc.Units);
 
-			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "SAMPLING_SIZE_WIDTH", config.SamplingSizeWidth());
-			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "SAMPLING_SIZE_HEIGHT", config.SamplingSizeHeight());
+			//Determine whether or not we have to use a remainder
+			int widthRemainder = inForwardDataDesc.Width % config.SamplingSizeWidth();
+			int heightRemainder = inForwardDataDesc.Height % config.SamplingSizeHeight();
+
+			int samplingSizeWidth = config.SamplingSizeWidth();
+			int samplingSizeHeight = config.SamplingSizeHeight();
+
+			if (inForwardDataDesc.Width < samplingSizeWidth)
+				samplingSizeWidth = widthRemainder;
+
+			if (inForwardDataDesc.Height < samplingSizeHeight)
+				samplingSizeHeight = heightRemainder;
+
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "SAMPLING_SIZE_WIDTH", samplingSizeWidth);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "SAMPLING_SIZE_HEIGHT", samplingSizeHeight);
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_UNIT_MEMORY_WIDTH_OFFSET", inForwardMemoryDesc.WidthOffset);
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_UNIT_MEMORY_HEIGHT_OFFSET", inForwardMemoryDesc.HeightOffset);
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "OUTPUT_UNIT_MEMORY_WIDTH_OFFSET", outForwardMemoryDesc.WidthOffset);
@@ -198,19 +211,6 @@ namespace Matuna
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_UNIT_MEMORY_WIDTH", inForwardMemoryDesc.Width);
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "OUTPUT_UNIT_MEMORY_ELEMENTS", outForwardMemoryDesc.Width * outForwardMemoryDesc.Height);
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_UNIT_MEMORY_ELEMENTS", inForwardMemoryDesc.Width * inForwardMemoryDesc.Height);
-
-			//Determine whether or not we have to use a remainder
-			int widthRemainder = inForwardDataDesc.Width % config.SamplingSizeWidth();
-			int heightRemainder = inForwardDataDesc.Height % config.SamplingSizeHeight();
-
-			//TODO: All the defines should not be mandatory and should be reflected in the defines
-			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "REMAINDER_SIZE_WIDTH", widthRemainder);
-			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "REMAINDER_SIZE_HEIGHT", heightRemainder);
-			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "X_MAX_INDEX", outputDataDesc.Width);
-			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "Y_MAX_INDEX", outputDataDesc.Height);
-
-			if (widthRemainder != 0 || heightRemainder != 0)
-				kernel->AddDefine(maxPoolingSamplingKernelPath, "USE_REMAINDER");
 
 			deviceAndMaxPoolingSamplingKernels.insert(make_pair(device, kernel.get()));
 			program->AttachKernel(move(kernel));

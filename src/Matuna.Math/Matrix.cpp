@@ -455,52 +455,51 @@ namespace Matuna
 			int resultRows = static_cast<int>(floor(double(rows) / heightSamplingSize));
 			int resultColumns  = static_cast<int>(floor(double(columns) / widthSamplingSize));
 
-			resultRows = resultRows == 0 ? 1 : resultRows;
-			resultColumns = resultColumns == 0 ? 1 : resultColumns;
+			if (resultRows == 0)
+			{
+				heightSamplingSize = rows % heightSamplingSize;
+				resultRows = 1;
+			}
+
+			if (resultColumns == 0)
+			{
+				widthSamplingSize = columns % widthSamplingSize;
+				resultColumns = 1;
+			}
 
 			Matrix<T> result(resultRows, resultColumns);
 
-			int widthRemainder = columns % widthSamplingSize;
-			int heightRemainder = rows % heightSamplingSize;
+			T maxValue;
+			T currentValue;
+			int startRowIndex;
+			int endRowIndex;
+			int startColumnIndex;
+			int endColumnIndex;
+			int tempIndex;
+			int tempIndex2;
 
-			if (widthRemainder != 0 || heightRemainder || 0)
+			for (int i = 0; i < resultRows; i++)
 			{
-				throw invalid_argument("Not implemented at the moment");
-			}
-			else
-			{
-				T maxValue;
-				T currentValue;
-				int startRowIndex;
-				int endRowIndex;
-				int startColumnIndex;
-				int endColumnIndex;
-				int tempIndex;
-				int tempIndex2;
-
-				for (int i = 0; i < resultRows; i++)
+				tempIndex2 = i * resultColumns;
+				startRowIndex = i * heightSamplingSize;
+				endRowIndex = startRowIndex + heightSamplingSize; 
+				for (int j = 0; j < resultColumns; j++)
 				{
-					tempIndex2 = i * resultColumns;
-					startRowIndex = i * heightSamplingSize;
-					endRowIndex = startRowIndex + heightSamplingSize; 
-					for (int j = 0; j < resultColumns; j++)
+					maxValue = numeric_limits<float>::min();
+					startColumnIndex = j * widthSamplingSize;
+					endColumnIndex = startColumnIndex + widthSamplingSize;
+					for (int k = startRowIndex; k < endRowIndex; k++)
 					{
-						maxValue = numeric_limits<float>::min();
-						startColumnIndex = j * widthSamplingSize;
-						endColumnIndex = startColumnIndex + widthSamplingSize;
-						for (int k = startRowIndex; k < endRowIndex; k++)
+						tempIndex = k * columns;
+						for (int l = startColumnIndex; l < endColumnIndex; l++)
 						{
-							tempIndex = k * columns;
-							for (int l = startColumnIndex; l < endColumnIndex; l++)
-							{
-								currentValue = Data[tempIndex + l];
-								if (currentValue > maxValue)
-									maxValue = currentValue;
-							}
+							currentValue = Data[tempIndex + l];
+							if (currentValue > maxValue)
+								maxValue = currentValue;
 						}
-
-						result.Data[tempIndex2 + j] = maxValue;
 					}
+
+					result.Data[tempIndex2 + j] = maxValue;
 				}
 			}
 

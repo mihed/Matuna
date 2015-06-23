@@ -15,12 +15,7 @@
 #define INPUT_UNIT_MEMORY_WIDTH -1
 #define OUTPUT_UNIT_MEMORY_ELEMENTS -1
 #define INPUT_UNIT_MEMORY_ELEMENTS -1
-#define REMAINDER_SIZE_WIDTH -1
-#define REMAINDER_SIZE_HEIGHT -1
-#define X_MAX_INDEX -1
-#define Y_MAX_INDEX -1
 //#define CONSTANT_INPUT
-//#define USE_REMAINDER
 //!@>
 
 
@@ -54,82 +49,22 @@ __global int* yMaxIndices
 	int tempIndex2;
 	real_t tempValue;
 
-	#ifdef USE_REMAINDER
 	
-	if (xIndex == X_MAX_INDEX && yIndex == Y_MAX_INDEX)
+	for (int y = yStart; y < yStop; y++)
 	{
-		const int xMaxInputIndex = xStart + REMAINDER_SIZE_WIDTH;
-		const int yMaxInputIndex = yStart + REMAINDER_SIZE_HEIGHT;
-
-		for (int y = yStart; y < xMaxInputIndex; y++)
+		tempIndex2 = tempIndex1 + INPUT_UNIT_MEMORY_WIDTH * y;
+		for (int x = xStart; x < xStop; x++)
 		{
-			tempIndex2 = tempIndex1 + INPUT_UNIT_MEMORY_WIDTH * y;
-			for (int x = xStart; x < yMaxInputIndex; x++)
+			tempValue = input[x + tempIndex2];
+			if (tempValue > maxValue)
 			{
-				tempValue = input[x + tempIndex2];
-				if (tempValue > maxValue)
-				{
-					maxXIndex = x - INPUT_UNIT_MEMORY_WIDTH_OFFSET; //This needs to be memory neutral for back-prop
-					maxYIndex = y - INPUT_UNIT_MEMORY_HEIGHT_OFFSET; //This needs to be memory neutral for back-prop
-					maxValue = tempValue;
-				}
+				maxXIndex = x - INPUT_UNIT_MEMORY_WIDTH_OFFSET;	//This needs to be memory neutral for back-prop
+				maxYIndex = y - INPUT_UNIT_MEMORY_HEIGHT_OFFSET; //This needs to be memory neutral for back-prop
+				maxValue = tempValue;
 			}
 		}
 	}
-	else if (xIndex == X_MAX_INDEX)
-	{
-		const int xMaxInputIndex = xStart + REMAINDER_SIZE_WIDTH;
-		for (int y = yStart; y < yStop; y++)
-		{
-			tempIndex2 = tempIndex1 + INPUT_UNIT_MEMORY_WIDTH * y;
-			for (int x = xStart; x < xMaxInputIndex; x++)
-			{
-				tempValue = input[x + tempIndex2];
-				if (tempValue > maxValue)
-				{
-					maxXIndex = x - INPUT_UNIT_MEMORY_WIDTH_OFFSET;	//This needs to be memory neutral for back-prop
-					maxYIndex = y - INPUT_UNIT_MEMORY_HEIGHT_OFFSET; //This needs to be memory neutral for back-prop
-					maxValue = tempValue;
-				}
-			}
-		}
-	}
-	else if (yIndex == Y_MAX_INDEX)
-	{
-		const int yMaxInputIndex = yStart + REMAINDER_SIZE_HEIGHT;
-		for (int y = yStart; y < yMaxInputIndex; y++)
-		{
-			tempIndex2 = tempIndex1 + INPUT_UNIT_MEMORY_WIDTH * y;
-			for (int x = xStart; x < xStop; x++)
-			{
-				tempValue = input[x + tempIndex2];
-				if (tempValue > maxValue)
-				{
-					maxXIndex = x - INPUT_UNIT_MEMORY_WIDTH_OFFSET;	//This needs to be memory neutral for back-prop
-					maxYIndex = y - INPUT_UNIT_MEMORY_HEIGHT_OFFSET; //This needs to be memory neutral for back-prop
-					maxValue = tempValue;
-				}
-			}
-		}
-	}
-	else
-	#endif
-	{
-		for (int y = yStart; y < yStop; y++)
-		{
-			tempIndex2 = tempIndex1 + INPUT_UNIT_MEMORY_WIDTH * y;
-			for (int x = xStart; x < xStop; x++)
-			{
-				tempValue = input[x + tempIndex2];
-				if (tempValue > maxValue)
-				{
-					maxXIndex = x - INPUT_UNIT_MEMORY_WIDTH_OFFSET;	//This needs to be memory neutral for back-prop
-					maxYIndex = y - INPUT_UNIT_MEMORY_HEIGHT_OFFSET; //This needs to be memory neutral for back-prop
-					maxValue = tempValue;
-				}
-			}
-		}
-	}
+	
 
 	const int outputIndex = xIndex + OUTPUT_UNIT_MEMORY_WIDTH_OFFSET + OUTPUT_UNIT_MEMORY_WIDTH * (yIndex + OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET) + 
 		OUTPUT_UNIT_MEMORY_ELEMENTS * (OUTPUT_UNIT_OFFSET + zIndex);
