@@ -33,7 +33,7 @@ namespace Matuna
 			unique_ptr<OCLMemory> xMaxIndices;
 			unique_ptr<OCLMemory> yMaxIndices;
 			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndMaxPoolingSamplingKernels;
-
+			unordered_map<OCLDevice*, LayerKernel<T>*> deviceAndMaxPoolingUpSamplingKernels;
 		public:
 			MaxPoolingLayer(shared_ptr<OCLContext> context,
 				const vector<LayerDataDescription>& inputLayerDescriptions,
@@ -72,6 +72,7 @@ namespace Matuna
 			void InitializeMemoryDescriptions(const vector<LayerDataDescription>& inputLayerDescriptions, const MaxPoolingLayerConfig* config);
 			void InitializePrograms();
 			void InitializeMaxPoolingSamplingKernel(OCLDevice* device, OCLProgram* program);
+			void InitializeMaxPoolingUpSamplingKernel(OCLDevice* device, OCLProgram* program);
 		};
 
 	} /* namespace MachineLearning */

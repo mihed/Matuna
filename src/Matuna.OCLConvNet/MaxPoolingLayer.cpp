@@ -143,6 +143,7 @@ namespace Matuna
 				program->SetName("MaxPoolingSamplingProgram" + Converter::ConvertToString(program->InstanceCount()));
 
 				InitializeMaxPoolingSamplingKernel(device, program.get());
+				InitializeMaxPoolingUpSamplingKernel(device, program.get());
 
 				vector<OCLDevice*> oneDeviceVector;
 				oneDeviceVector.push_back(device);
@@ -217,6 +218,79 @@ namespace Matuna
 		}
 
 		template<class T>
+		void MaxPoolingLayer<T>::InitializeMaxPoolingUpSamplingKernel(OCLDevice* device, OCLProgram* program)
+		{
+			string maxPoolingSamplingKernelPath = Path::Combine(OCLProgram::DefaultSourceLocation, "MaxPoolingUpSamplingKernel.cl");
+
+			LayerDataDescription inDataDesc = this->InForwardPropDataDescriptions()[0];
+			LayerDataDescription outDataDesc = this->OutForwardPropDataDescriptions()[0];
+			LayerMemoryDescription inBackMemoryDesc = this->InBackPropMemoryDescriptions()[0];
+			LayerMemoryDescription inForwardMemoryDesc = this->InForwardPropMemoryDescriptions()[0];
+			LayerMemoryDescription outBackMemoryDesc = this->OutBackPropMemoryDescriptions()[0];
+
+			auto deviceInfo = device->DeviceInfo();
+			auto maximumConstantBufferSize = deviceInfo.MaxConstantBufferSize();
+
+			unique_ptr<LayerKernel<T>> kernel(new LayerKernel<T>());
+			kernel->AddSourcePath(maxPoolingSamplingKernelPath);
+			kernel->AddIncludePath(OCLProgram::DefaultSourceLocation);
+			kernel->SetKernelName("MaxPoolingUpSamplingKernel");
+
+			auto byteSize = inBackMemoryDesc.TotalMemory() * sizeof(T);
+			if (maximumConstantBufferSize > byteSize)
+			{
+				kernel->AddDefine(maxPoolingSamplingKernelPath, "CONSTANT_INPUT_DELTA");
+				maximumConstantBufferSize -= byteSize;
+			}
+
+			byteSize = inForwardMemoryDesc.TotalMemory() * sizeof(T);
+			if (maximumConstantBufferSize > byteSize)
+			{
+				kernel->AddDefine(maxPoolingSamplingKernelPath, "CONSTANT_INPUT");
+				maximumConstantBufferSize -= byteSize;
+			}
+
+			byteSize = outDataDesc.Width * sizeof(cl_int);
+			if (maximumConstantBufferSize > byteSize)
+			{
+				kernel->AddDefine(maxPoolingSamplingKernelPath, "CONSTANT_X_MAX_INDICES");
+				maximumConstantBufferSize -= byteSize;
+			}
+
+			byteSize = outDataDesc.Height * sizeof(cl_int);
+			if (maximumConstantBufferSize > byteSize)
+			{
+				kernel->AddDefine(maxPoolingSamplingKernelPath, "CONSTANT_Y_MAX_INDICES");
+				maximumConstantBufferSize -= byteSize;
+			}
+
+			kernel->AddGlobalSize(inDataDesc.Width);
+			kernel->AddGlobalSize(inDataDesc.Height);
+			kernel->AddGlobalSize(inDataDesc.Units);
+
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "SAMPLING_SIZE_WIDTH", config.SamplingSizeWidth());
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "SAMPLING_SIZE_HEIGHT", config.SamplingSizeHeight());
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_MEMORY_WIDTH_OFFSET", inBackMemoryDesc.WidthOffset);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_MEMORY_HEIGHT_OFFSET", inBackMemoryDesc.HeightOffset);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "OUTPUT_UNIT_MEMORY_WIDTH_OFFSET", outBackMemoryDesc.WidthOffset);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET", outBackMemoryDesc.HeightOffset);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_UNIT_MEMORY_WIDTH_OFFSET", inForwardMemoryDesc.WidthOffset);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_UNIT_MEMORY_HEIGHT_OFFSET", inForwardMemoryDesc.HeightOffset);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "OUTPUT_UNIT_OFFSET", outBackMemoryDesc.UnitOffset);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_OFFSET", inBackMemoryDesc.UnitOffset);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_UNIT_OFFSET", inForwardMemoryDesc.UnitOffset);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "OUTPUT_UNIT_MEMORY_WIDTH", outBackMemoryDesc.Width);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_MEMORY_WIDTH", inBackMemoryDesc.Width);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_UNIT_MEMORY_WIDTH", inForwardMemoryDesc.Width);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "OUTPUT_UNIT_MEMORY_ELEMENTS", outBackMemoryDesc.Width * outBackMemoryDesc.Height);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_MEMORY_ELEMENTS", inBackMemoryDesc.Width * inBackMemoryDesc.Height);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_UNIT_MEMORY_ELEMENTS", inForwardMemoryDesc.Width * inForwardMemoryDesc.Height);
+
+			deviceAndMaxPoolingUpSamplingKernels.insert(make_pair(device, kernel.get()));
+			program->AttachKernel(move(kernel));
+		}
+
+		template<class T>
 		void MaxPoolingLayer<T>::EnqueueForwardPropagation(OCLDevice* device, int queueIndex,
 			OCLMemory* previousInput, OCLMemory* output, bool blocking)
 		{
@@ -234,7 +308,13 @@ namespace Matuna
 			OCLMemory* previousInput, OCLMemory* delta,
 			OCLMemory* deltaOutput, bool blocking) 
 		{
-
+			auto kernel = deviceAndMaxPoolingUpSamplingKernels[device];
+			kernel->SetMemoryArg(previousInput, 0);
+			kernel->SetMemoryArg(delta, 1);
+			kernel->SetMemoryArg(deltaOutput, 2);
+			kernel->SetMemoryArg(xMaxIndices.get(), 3);
+			kernel->SetMemoryArg(yMaxIndices.get(), 4);
+			device->ExecuteKernel(kernel, queueIndex, blocking);
 		}
 
 		template<class T>
