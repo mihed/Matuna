@@ -45,7 +45,13 @@ __global int* yMaxIndices
 
 	int tempIndex2;
 	real_t tempValue;
-	real_t maxValue = FLT_MIN;
+
+	#ifdef DOUBLE_PRECISION
+	real_t maxValue = -FLT_MAX;
+	#else
+	real_t maxValue = -DBL_MAX;
+	#endif
+
 	int maxXIndex;
 	int maxYIndex;
 
@@ -74,6 +80,4 @@ __global int* yMaxIndices
 	const int tempIndex = xIndex + get_global_size(0) * yIndex + get_global_size(0) * get_global_size(1) * zIndex;
 	xMaxIndices[tempIndex] = maxXIndex;
 	yMaxIndices[tempIndex] = maxYIndex;
-
-	printf("Index: %i,  Index(%i, %i), MaxIndex(%i, %i) \n", tempIndex, xIndex, yIndex, maxXIndex, maxYIndex);
 }

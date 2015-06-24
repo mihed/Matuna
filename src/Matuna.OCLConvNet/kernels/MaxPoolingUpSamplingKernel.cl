@@ -3,6 +3,8 @@
 #include "ActivationFunction.h"
 
 //<!@
+#define MAX_INPUT_DELTA_X_INDEX -1
+#define MAX_INPUT_DELTA_Y_INDEX -1
 #define INPUT_DELTA_UNIT_WIDTH -1
 #define INPUT_DELTA_UNIT_ELEMENTS -1
 #define SAMPLING_SIZE_WIDTH -1
@@ -61,27 +63,34 @@ __global const int* yMaxIndices
 	const int zIndex = get_global_id(2);
 
 	//Determine the index of the bucket we are in
-	const int xBucketIndex = (int)floor(xIndex / (float)SAMPLING_SIZE_WIDTH);
-	const int yBucketIndex = (int)floor(yIndex / (float)SAMPLING_SIZE_HEIGHT);
+	int xBucketIndex = (int)floor(xIndex / (float)SAMPLING_SIZE_WIDTH);
+	int yBucketIndex = (int)floor(yIndex / (float)SAMPLING_SIZE_HEIGHT);
+
+	//These to checks are neccessarliy since we can support non-divisable sampling layers
+	if (MAX_INPUT_DELTA_X_INDEX <  xBucketIndex)
+	{
+		xBucketIndex = MAX_INPUT_DELTA_X_INDEX;
+	}
+
+	if (MAX_INPUT_DELTA_Y_INDEX <  yBucketIndex)
+	{
+		yBucketIndex = MAX_INPUT_DELTA_Y_INDEX; 
+	}
 
 	const int tempIndex = xBucketIndex + INPUT_DELTA_UNIT_WIDTH * yBucketIndex + zIndex * INPUT_DELTA_UNIT_ELEMENTS; // Simply the index of the succeeding layer
+
 	const int xMaxIndex = xMaxIndices[tempIndex];
 	const int yMaxIndex = yMaxIndices[tempIndex];
-
-	printf("bucket(%i, %i), index(%i, %i), max(%i, %i) \n", xBucketIndex, yBucketIndex, xIndex, yIndex, xMaxIndex, yMaxIndex);
 
 	const int outputIndex = OUTPUT_UNIT_MEMORY_WIDTH_OFFSET + xIndex + OUTPUT_UNIT_MEMORY_WIDTH * 
 	(OUTPUT_UNIT_MEMORY_HEIGHT_OFFSET + yIndex) + OUTPUT_UNIT_MEMORY_ELEMENTS * (OUTPUT_UNIT_OFFSET + zIndex);
 
+
 	if (xIndex == xMaxIndex && yIndex == yMaxIndex)
 	{
-		
-		const int xInputIndex = xIndex / SAMPLING_SIZE_WIDTH;
-		const int yInputIndex = yIndex / SAMPLING_SIZE_HEIGHT;
-		
-		const int inputDeltaIndex = INPUT_DELTA_UNIT_MEMORY_WIDTH_OFFSET + xInputIndex + INPUT_DELTA_UNIT_MEMORY_WIDTH * 
-			(INPUT_DELTA_UNIT_MEMORY_HEIGHT_OFFSET + yInputIndex) + INPUT_DELTA_UNIT_MEMORY_ELEMENTS * (INPUT_DELTA_UNIT_OFFSET + zIndex);
-			
+		const int inputDeltaIndex = INPUT_DELTA_UNIT_MEMORY_WIDTH_OFFSET + xBucketIndex + INPUT_DELTA_UNIT_MEMORY_WIDTH * 
+			(INPUT_DELTA_UNIT_MEMORY_HEIGHT_OFFSET + yBucketIndex) + INPUT_DELTA_UNIT_MEMORY_ELEMENTS * (INPUT_DELTA_UNIT_OFFSET + zIndex);
+
 		const int inputIndex = INPUT_UNIT_MEMORY_WIDTH_OFFSET + xIndex + INPUT_UNIT_MEMORY_WIDTH * 
 			(INPUT_UNIT_MEMORY_HEIGHT_OFFSET + yIndex) + INPUT_UNIT_MEMORY_ELEMENTS * (INPUT_UNIT_OFFSET + zIndex);
 

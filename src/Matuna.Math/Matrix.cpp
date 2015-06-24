@@ -12,6 +12,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <random>
+#include <algorithm>
+#include <limits>
 
 namespace Matuna
 {
@@ -511,7 +513,7 @@ namespace Matuna
 				endRowIndex = startRowIndex + heightSamplingSize; 
 				for (int j = 0; j < resultColumns; j++)
 				{
-					maxValue = numeric_limits<float>::min();
+					maxValue = numeric_limits<T>::lowest();
 					startColumnIndex = j * widthSamplingSize;
 					endColumnIndex = startColumnIndex + widthSamplingSize;
 					for (int k = startRowIndex; k < endRowIndex; k++)
@@ -573,7 +575,7 @@ namespace Matuna
 				endRowIndex = startRowIndex + heightSamplingSize; 
 				for (int j = 0; j < resultColumns; j++)
 				{
-					maxValue = numeric_limits<float>::min();
+					maxValue = numeric_limits<T>::lowest();
 					startColumnIndex = j * widthSamplingSize;
 					endColumnIndex = startColumnIndex + widthSamplingSize;
 
@@ -675,7 +677,7 @@ namespace Matuna
 		}
 
 		template<class T>
-		string Matrix<T>::GetString()
+		string Matrix<T>::GetString() const
 		{
 			stringstream stream;
 			for (int i = 0; i < rows; i++)

@@ -79,7 +79,7 @@ public:
 	T& At(int row, int column);
 
 
-	string GetString();
+	string GetString() const;
 
 	Matrix<T>& operator=(const Matrix<T>& other);
 	Matrix<T>& operator=(Matrix<T>&& other);

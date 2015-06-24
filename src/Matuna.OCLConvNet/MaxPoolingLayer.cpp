@@ -121,6 +121,14 @@ namespace Matuna
 		template<class T>
 		void MaxPoolingLayer<T>::InitializePrograms()
 		{
+
+			//TODO: At the moment we cache the indices even though it's necessarily back propped
+			LayerDataDescription outputDataDesc = this->OutForwardPropDataDescriptions()[0];
+			xMaxIndices = this->context->CreateMemory(CL_MEM_READ_WRITE,
+				sizeof(cl_int) * outputDataDesc.TotalUnits());
+			yMaxIndices = this->context->CreateMemory(CL_MEM_READ_WRITE,
+				sizeof(cl_int) * outputDataDesc.TotalUnits());
+
 			vector<OCLDevice*> devices = this->context->GetDevices();
 			for (auto device : devices)
 			{
@@ -149,13 +157,6 @@ namespace Matuna
 				oneDeviceVector.push_back(device);
 				this->context->AttachProgram(move(program), oneDeviceVector);
 			}
-
-			//TODO: At the moment we cache the indices even though it's necessarily back propped
-			LayerDataDescription outputDataDesc = this->OutForwardPropDataDescriptions()[0];
-			xMaxIndices = this->context->CreateMemory(CL_MEM_READ_WRITE,
-				sizeof(cl_int) * outputDataDesc.Width);
-			yMaxIndices = this->context->CreateMemory(CL_MEM_READ_WRITE,
-				sizeof(cl_int) * outputDataDesc.Height);
 		}
 
 		template<class T>
@@ -267,6 +268,9 @@ namespace Matuna
 			kernel->AddGlobalSize(inDataDesc.Width);
 			kernel->AddGlobalSize(inDataDesc.Height);
 			kernel->AddGlobalSize(inDataDesc.Units);
+
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "MAX_INPUT_DELTA_X_INDEX", outDataDesc.Width - 1);
+			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "MAX_INPUT_DELTA_Y_INDEX", outDataDesc.Height - 1);
 
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_WIDTH", outDataDesc.Width);
 			kernel->AddDefineSubsitute(maxPoolingSamplingKernelPath, "INPUT_DELTA_UNIT_ELEMENTS", outDataDesc.Width * outDataDesc.Height);

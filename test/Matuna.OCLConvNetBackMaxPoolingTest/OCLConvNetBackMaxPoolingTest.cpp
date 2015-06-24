@@ -29,11 +29,11 @@ using namespace Matuna::Math;
 
 
 unique_ptr<ConvNetConfig> CreateRandomConvNetMaxPoolingConfig(mt19937& mt,
-														   uniform_int_distribution<int>& layerGenerator,
-														   uniform_int_distribution<int>& dimensionGenerator,
-														   uniform_int_distribution<int>& unitGenerator,
-														   uniform_int_distribution<int>& samplingSizeGenerator,
-														   bool useDivisableLayers)
+															  uniform_int_distribution<int>& layerGenerator,
+															  uniform_int_distribution<int>& dimensionGenerator,
+															  uniform_int_distribution<int>& unitGenerator,
+															  uniform_int_distribution<int>& samplingSizeGenerator,
+															  bool useDivisableLayers)
 {
 
 	cout << "\n\n-------------------Network-------------------" << endl;
@@ -96,10 +96,10 @@ SCENARIO("Creating a max sampling network")
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
-	uniform_int_distribution<int> dimensionGenerator(8, 8);
-	uniform_int_distribution<int> samplingSizeGenerator(2, 2);
-	uniform_int_distribution<int> unitGenerator(1, 1);
-	uniform_int_distribution<int> layerGenerator(2, 2);
+	uniform_int_distribution<int> dimensionGenerator(1, 1000);
+	uniform_int_distribution<int> samplingSizeGenerator(1, 5);
+	uniform_int_distribution<int> unitGenerator(1, 15);
+	uniform_int_distribution<int> layerGenerator(1, 5);
 
 	for (int dummy = 0; dummy < 50; dummy++)
 	{
@@ -110,6 +110,7 @@ SCENARIO("Creating a max sampling network")
 
 		for (auto& deviceInfo : deviceInfos)
 		{
+
 			unique_ptr<ConvNetConfig> config;
 			if (dummy > 24)
 				config = CreateRandomConvNetMaxPoolingConfig(mt, layerGenerator, dimensionGenerator, unitGenerator, samplingSizeGenerator, true);
@@ -129,6 +130,8 @@ SCENARIO("Creating a max sampling network")
 
 			LayerDataDescription inForwardDesc = network.InputForwardDataDescriptions()[0];
 			LayerDataDescription outForwardDesc = network.OutputForwardDataDescriptions()[0];
+
+			printf("Out width: %i, Out height: %i, Out units: %i \n", outForwardDesc.Width, outForwardDesc.Height, outForwardDesc.Units);
 
 			vector<Matrixf> inputMatrices;
 			for (int i = 0; i < inForwardDesc.Units; i++)
@@ -153,6 +156,11 @@ SCENARIO("Creating a max sampling network")
 				{
 					vector<tuple<int, int>> indicesForUnit;
 					resultMatrices.push_back(inputMatrices[j].MaxDownSample(get<0>(samplingSize), get<1>(samplingSize), indicesForUnit));
+
+					//if (i == 1)
+					//	for (auto tempTest : indicesForUnit)
+					//		printf("(%i, %i) \n", get<0>(tempTest), get<1>(tempTest));
+
 					downSampleIndicesForLayer.push_back(indicesForUnit);
 				}
 
@@ -200,7 +208,7 @@ SCENARIO("Creating a max sampling network")
 				for (size_t j = 0; j < backMatrices.size(); j++)
 					resultMatrices.push_back(backMatrices[j].MaxUpSample(get<0>(samplingSize), get<1>(samplingSize), get<0>(heigthWidth), get<1>(heigthWidth), downSampleIndices[i][j]));
 
-				cout << resultMatrices[0].GetString() << endl;
+				//cout << resultMatrices[0].GetString() << endl;
 
 				backMatrices = resultMatrices;
 			}
@@ -210,10 +218,11 @@ SCENARIO("Creating a max sampling network")
 				auto backMatrix = backMatrices[i];
 				Matrixf networkMatrix(backMatrix.RowCount(), backMatrix.ColumnCount(), backNetworkResult.get() + i * backMatrix.RowCount() * backMatrix.ColumnCount());
 
-				cout << "Network matrix: " << endl << networkMatrix.GetString() << endl;
-				cout << "Back matrix: " << endl << backMatrix.GetString() << endl;
+				//cout << "Network matrix: " << endl << networkMatrix.GetString() << endl;
+				//cout << "Back matrix: " << endl << backMatrix.GetString() << endl;
 				auto difference = (backMatrix- networkMatrix).Norm2Square() / backMatrix.ElementCount();
 				cout << "Back Difference: " << difference << endl;
+				//cout << "Difference matrix: " << (backMatrix- networkMatrix).GetString() << endl;
 				CHECK(difference < 1E-13f);
 			}
 		}
