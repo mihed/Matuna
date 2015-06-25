@@ -173,7 +173,7 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetMaxConfig(mt19937& mt,
 	for (int i = 0; i < convolutionLayerCount; i++)
 	{
 		cout << "------Convolution layer " << i << " -------" << endl;
-		auto activation = 2;//activationGenerator(mt);
+		auto activation = activationGenerator(mt);
 		switch (activation)
 		{
 		case 1:
@@ -192,8 +192,8 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetMaxConfig(mt19937& mt,
 			throw runtime_error("The activation is not implemented yet");
 		}
 
-		int filterWidth = 3;//filterDimensionGenerator(mt);
-		int filterHeight = 1;//filterDimensionGenerator(mt);
+		int filterWidth = filterDimensionGenerator(mt);
+		int filterHeight = filterDimensionGenerator(mt);
 		int filterCount = dimensionGenerator(mt);
 
 		cout << "Filter width: " << filterWidth << " Filter height: " << filterHeight << " Filter count: " << filterCount << endl;
@@ -282,133 +282,17 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetMaxConfig(mt19937& mt,
 	return move(config);
 }
 
-/*
-SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perceptron and vanilla sampling layers")
-{
-auto platformInfos = OCLHelper::GetPlatformInfos();
-random_device device;
-mt19937 mt(device());
-uniform_int_distribution<int> dimensionGenerator(1, 5);
-uniform_int_distribution<int> imageDimensionGenerator(100, 200);
-uniform_int_distribution<int> perceptronLayerGenerator(1, 2);
-uniform_int_distribution<int> convolutionLayerGenerator(1, 2);
-uniform_int_distribution<int> vanillaSamplingSizeGenerator(1, 3);
-uniform_int_distribution<int> filterGenerator(1, 10);
-
-for (int dummy = 0; dummy < 5; dummy++)
-{
-vector<vector<OCLDeviceInfo>> deviceInfos;
-for (auto platformInfo : platformInfos)
-{
-auto temp = OCLHelper::GetDeviceInfos(platformInfo);
-vector<OCLDeviceInfo> capabaleDevices;
-for (auto& deviceInfo : temp)
-if (deviceInfo.PreferredDoubleVectorWidth() != 0)
-capabaleDevices.push_back(deviceInfo);
-
-deviceInfos.push_back(capabaleDevices);
-}
-
-for (auto& deviceInfo : deviceInfos)
-{
-
-unique_ptr<ConvNetConfig> config;
-
-if (dummy < 4)
-config = CreateRandomConvNetVanillaConfig(mt, perceptronLayerGenerator,
-convolutionLayerGenerator, imageDimensionGenerator,
-filterGenerator, dimensionGenerator, vanillaSamplingSizeGenerator, false, true);
-else
-config = CreateRandomConvNetVanillaConfig(mt, perceptronLayerGenerator,
-convolutionLayerGenerator, imageDimensionGenerator,
-filterGenerator, dimensionGenerator, vanillaSamplingSizeGenerator, false, false);
-
-OCLConvNet<double> network(deviceInfo, move(config));
-
-LayerDataDescription inputDataDesc =
-network.InputForwardDataDescriptions()[0];
-LayerDataDescription outputDataDesc =
-network.OutputForwardDataDescriptions()[0];
-
-int inputUnits = inputDataDesc.Units;
-int inputHeight = inputDataDesc.Height;
-int inputWidth = inputDataDesc.Width;
-
-vector<Matrixd> inputs;
-unique_ptr<double[]> rawInputs(
-new double[inputDataDesc.TotalUnits()]);
-for (int i = 0; i < inputUnits; i++)
-{
-inputs.push_back(
-Matrixd::RandomNormal(inputHeight, inputWidth));
-memcpy(rawInputs.get() + i * inputHeight * inputWidth,
-inputs[i].Data,
-sizeof(double) * inputHeight * inputWidth);
-}
-
-auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1,
-0, 4);
-
-int parameterCount = static_cast<int>(network.GetParameterCount());
-
-unique_ptr<double[]> gradient = network.CalculateGradientUnaligned(
-rawInputs.get(), 0, target.Data);
-Matrix<double> gradientMatrix(parameterCount, 1, gradient.get());
-gradient.reset();
-
-//Let us now compare the calculated gradient to the finite difference gradient
-auto parameters = network.GetParameters();
-Matrix<double> parameterMatrix(parameterCount, 1, parameters.get());
-parameters.reset();
-double h = 1E-5;
-
-Matrix<double> finiteDifferenceGradient(parameterCount, 1);
-
-for (int i = 0; i < parameterCount; i++)
-{
-Matrix<double> param1 = parameterMatrix;
-param1.At(i, 0) = param1.At(i, 0) - h;
-network.SetParameters(param1.Data);
-
-auto minusValue = network.CalculateErrorUnaligned(
-rawInputs.get(), 0, target.Data);
-
-Matrix<double> param2 = parameterMatrix;
-param2.At(i, 0) = param2.At(i, 0) + h;
-network.SetParameters(param2.Data);
-
-auto plusValue = network.CalculateErrorUnaligned(
-rawInputs.get(), 0, target.Data);
-
-finiteDifferenceGradient.At(i, 0) = (plusValue - minusValue)
-/ (2 * h);
-}
-//for (int i = 0; i < parameterCount; i++)
-//{
-//	cout << "Gradient: " << gradientMatrix.At(i, 0) << endl;
-//	cout << "Finite difference: " << finiteDifferenceGradient.At(i, 0) << endl;
-//}
-
-auto difference =
-(gradientMatrix - finiteDifferenceGradient).Norm2Square()
-/ parameterCount;
-cout << "Difference: " << difference << endl;
-CHECK(difference < 1E-11);
-}
-}
-}
-*/
 SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perceptron and max sampling layers")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
 	mt19937 mt(device());
-	uniform_int_distribution<int> dimensionGenerator(1, 1);
-	uniform_int_distribution<int> imageDimensionGenerator(40, 40);
-	uniform_int_distribution<int> perceptronLayerGenerator(1, 1);
-	uniform_int_distribution<int> convolutionLayerGenerator(1, 1);
-	uniform_int_distribution<int> maxSamplingSizeGenerator(2, 2);
-	uniform_int_distribution<int> filterGenerator(1, 1);
+	uniform_int_distribution<int> dimensionGenerator(1, 5);
+	uniform_int_distribution<int> imageDimensionGenerator(100, 150);
+	uniform_int_distribution<int> perceptronLayerGenerator(1, 2);
+	uniform_int_distribution<int> convolutionLayerGenerator(1, 2);
+	uniform_int_distribution<int> maxSamplingSizeGenerator(1, 3);
+	uniform_int_distribution<int> filterGenerator(1, 10);
 
 	for (int dummy = 0; dummy < 20; dummy++)
 	{
@@ -427,16 +311,137 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perce
 		for (auto& deviceInfo : deviceInfos)
 		{
 
+			if (deviceInfo[0].PlatformInfo().GetString().find("CUDA") != string::npos)
+				continue;
+
 			unique_ptr<ConvNetConfig> config;
 
-			//if (dummy < 10)
 			config = CreateRandomConvNetMaxConfig(mt, perceptronLayerGenerator,
 				convolutionLayerGenerator, imageDimensionGenerator,
 				filterGenerator, dimensionGenerator, maxSamplingSizeGenerator, false, true);
-			//else
-			//	config = CreateRandomConvNetMaxConfig(mt, perceptronLayerGenerator,
-			//	convolutionLayerGenerator, imageDimensionGenerator,
-			//	filterGenerator, dimensionGenerator, maxSamplingSizeGenerator, false, false);
+
+			OCLConvNet<double> network(deviceInfo, move(config));
+
+			LayerDataDescription inputDataDesc =
+				network.InputForwardDataDescriptions()[0];
+			LayerDataDescription outputDataDesc =
+				network.OutputForwardDataDescriptions()[0];
+
+			int inputUnits = inputDataDesc.Units;
+			int inputHeight = inputDataDesc.Height;
+			int inputWidth = inputDataDesc.Width;
+
+			vector<Matrixd> inputs;
+			unique_ptr<double[]> rawInputs(
+				new double[inputDataDesc.TotalUnits()]);
+			for (int i = 0; i < inputUnits; i++)
+			{
+				inputs.push_back(
+					Matrixd::RandomNormal(inputHeight, inputWidth));
+				memcpy(rawInputs.get() + i * inputHeight * inputWidth,
+					inputs[i].Data,
+					sizeof(double) * inputHeight * inputWidth);
+			}
+
+			auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1,
+				0, 4);
+
+			int parameterCount = static_cast<int>(network.GetParameterCount());
+
+			unique_ptr<double[]> gradient = network.CalculateGradientUnaligned(
+				rawInputs.get(), 0, target.Data);
+			Matrix<double> gradientMatrix(parameterCount, 1, gradient.get());
+			gradient.reset();
+
+			//Let us now compare the calculated gradient to the finite difference gradient
+			auto parameters = network.GetParameters();
+			Matrix<double> parameterMatrix(parameterCount, 1, parameters.get());
+			parameters.reset();
+			double h = 1E-8;
+
+			Matrix<double> finiteDifferenceGradient(parameterCount, 1);
+
+			for (int i = 0; i < parameterCount; i++)
+			{
+				Matrix<double> param1 = parameterMatrix;
+				param1.At(i, 0) = param1.At(i, 0) - h;
+				network.SetParameters(param1.Data);
+
+				auto minusValue = network.CalculateErrorUnaligned(
+					rawInputs.get(), 0, target.Data);
+
+				Matrix<double> param2 = parameterMatrix;
+				param2.At(i, 0) = param2.At(i, 0) + h;
+				network.SetParameters(param2.Data);
+
+				auto plusValue = network.CalculateErrorUnaligned(
+					rawInputs.get(), 0, target.Data);
+
+				finiteDifferenceGradient.At(i, 0) = (plusValue - minusValue)
+					/ (2 * h);
+			}
+
+			auto difference =
+				(gradientMatrix - finiteDifferenceGradient).Norm2Square()
+				/ parameterCount;
+
+
+			auto differenceTest = (gradientMatrix - finiteDifferenceGradient);
+
+			//cout << differenceTest.GetString() << endl << endl;
+
+			if (difference > 1E-8)
+			{
+				for (int i = 0; i < parameterCount; i++)
+					if (abs(differenceTest.Data[i]) > 1E-4)
+						printf("Problematic index %i out of %i\n", i, differenceTest.ElementCount());
+			}
+
+			cout << "Difference: " << difference << endl;
+			CHECK(difference < 1E-8);
+		}
+	}
+}
+
+SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perceptron and vanilla sampling layers")
+{
+	auto platformInfos = OCLHelper::GetPlatformInfos();
+	random_device device;
+	mt19937 mt(device());
+	uniform_int_distribution<int> dimensionGenerator(1, 5);
+	uniform_int_distribution<int> imageDimensionGenerator(100, 150);
+	uniform_int_distribution<int> perceptronLayerGenerator(1, 2);
+	uniform_int_distribution<int> convolutionLayerGenerator(1, 2);
+	uniform_int_distribution<int> vanillaSamplingSizeGenerator(1, 3);
+	uniform_int_distribution<int> filterGenerator(1, 10);
+
+	for (int dummy = 0; dummy < 5; dummy++)
+	{
+		vector<vector<OCLDeviceInfo>> deviceInfos;
+		for (auto platformInfo : platformInfos)
+		{
+			auto temp = OCLHelper::GetDeviceInfos(platformInfo);
+			vector<OCLDeviceInfo> capabaleDevices;
+			for (auto& deviceInfo : temp)
+				if (deviceInfo.PreferredDoubleVectorWidth() != 0)
+					capabaleDevices.push_back(deviceInfo);
+
+			deviceInfos.push_back(capabaleDevices);
+		}
+
+		for (auto& deviceInfo : deviceInfos)
+		{
+
+			unique_ptr<ConvNetConfig> config;
+
+			if (dummy < 4)
+				config = CreateRandomConvNetVanillaConfig(mt, perceptronLayerGenerator,
+				convolutionLayerGenerator, imageDimensionGenerator,
+				filterGenerator, dimensionGenerator, vanillaSamplingSizeGenerator, false, true);
+			else
+				config = CreateRandomConvNetVanillaConfig(mt, perceptronLayerGenerator,
+				convolutionLayerGenerator, imageDimensionGenerator,
+				filterGenerator, dimensionGenerator, vanillaSamplingSizeGenerator, false, false);
 
 			OCLConvNet<double> network(deviceInfo, move(config));
 
@@ -498,22 +503,20 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perce
 				finiteDifferenceGradient.At(i, 0) = (plusValue - minusValue)
 					/ (2 * h);
 			}
+			//for (int i = 0; i < parameterCount; i++)
+			//{
+			//	cout << "Gradient: " << gradientMatrix.At(i, 0) << endl;
+			//	cout << "Finite difference: " << finiteDifferenceGradient.At(i, 0) << endl;
+			//}
 
 			auto difference =
 				(gradientMatrix - finiteDifferenceGradient).Norm2Square()
 				/ parameterCount;
-
-			if (difference > 1E-11)
-			{
-				auto differenceTest = (gradientMatrix - finiteDifferenceGradient);
-				for (int i = 0; i < parameterCount; i++)
-					if (abs(differenceTest.Data[i]) > 1E-5)
-						printf("Problematic index %i out of %i\n", i, differenceTest.ElementCount());
-			}
-
 			cout << "Difference: " << difference << endl;
 			CHECK(difference < 1E-11);
 		}
 	}
 }
+
+
 
