@@ -32,14 +32,18 @@ private:
 	vector<unique_ptr<ForwardBackPropLayerConfig>> forwardBackConfigs;
 	unique_ptr<OutputLayerConfig> outputConfig;
 
+	bool lowMemoryUsage;
+
 public:
-	ConvNetConfig(const vector<LayerDataDescription>& inputDataDescriptions);
+	ConvNetConfig(const vector<LayerDataDescription>& inputDataDescriptions, bool lowMemoryUsage = true);
 
 	~ConvNetConfig();
 
 	size_t LayerCount() const;
 
 	bool HasOutputLayer() const;
+	bool HasLowMemoryUsage() const;
+
 	void SetOutputConfig(unique_ptr<OutputLayerConfig> config);
 	void RemoveOutputConfig();
 	void AddToBack(unique_ptr<ForwardBackPropLayerConfig> config);

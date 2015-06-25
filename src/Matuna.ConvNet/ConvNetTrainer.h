@@ -28,6 +28,7 @@ namespace Matuna
 			vector<LayerMemoryDescription> inputMemoryDescriptions;
 			vector<LayerMemoryDescription> targetMemoryDescriptions;
 
+			//TODO: Replace all this unncessary inputs in the contructor by using ConvNet instead!
 		public:
 			ConvNetTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
 				const vector<LayerDataDescription>& targetDataDescriptions,
