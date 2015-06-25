@@ -7,8 +7,8 @@
  * NOTE: Most of the comments here are directly taken from the OCL Specification.
  */
 
-#ifndef MATUNA_OCLHELPER_OCLDEVICEINFO_H_
-#define MATUNA_OCLHELPER_OCLDEVICEINFO_H_
+#ifndef MATUNA_MATUNA_OCLHELPER_OCLDEVICEINFO_H_
+#define MATUNA_MATUNA_OCLHELPER_OCLDEVICEINFO_H_
 
 #include <vector>
 #include <string>
@@ -698,4 +698,4 @@ namespace Matuna {
 	} /* namespace Helper */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLHELPER_OCLDEVICEINFO_H_ */
+#endif /* MATUNA_MATUNA_OCLHELPER_OCLDEVICEINFO_H_ */

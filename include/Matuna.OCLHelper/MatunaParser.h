@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef MATUNA_OCLHELPER_MATUNAPARSER_H_
-#define MATUNA_OCLHELPER_MATUNAPARSER_H_
+#ifndef MATUNA_MATUNA_OCLHELPER_MATUNAPARSER_H_
+#define MATUNA_MATUNA_OCLHELPER_MATUNAPARSER_H_
 
 #include "IMatunaParsable.h"
 #include <string>
@@ -40,4 +40,4 @@ public:
 } /* namespace Helper */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLHELPER_MATUNAPARSER_H_ */
+#endif /* MATUNA_MATUNA_OCLHELPER_MATUNAPARSER_H_ */

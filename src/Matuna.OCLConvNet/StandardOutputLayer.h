@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_OCLConvNet_STANDARDOUTPUTLAYER_H_
-#define MATUNA_OCLConvNet_STANDARDOUTPUTLAYER_H_
+#ifndef MATUNA_MATUNA_OCLCONVNET_STANDARDOUTPUTLAYER_H_
+#define MATUNA_MATUNA_OCLCONVNET_STANDARDOUTPUTLAYER_H_
 
 #include "Matuna.ConvNet/OutputLayer.h"
 #include "Matuna.ConvNet/StandardOutputLayerConfig.h"
@@ -64,4 +64,4 @@ namespace Matuna
 	/* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* OCLConvNet_STANDARDOUTPUTLAYER_H_ */
+#endif /* MATUNA_MATUNA_OCLCONVNET_STANDARDOUTPUTLAYER_H_ */

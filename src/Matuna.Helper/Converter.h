@@ -5,8 +5,8 @@
  *      Author: mikael
  */
 
-#ifndef MATUNA_HELPER_CONVERTER_H_
-#define MATUNA_HELPER_CONVERTER_H_
+#ifndef MATUNA_MATUNA_HELPER_CONVERTER_H_
+#define MATUNA_MATUNA_HELPER_CONVERTER_H_
 
 #include <string>
 
@@ -29,4 +29,4 @@ public:
 } /* namespace Helper */
 } /* namespace Matuna */
 
-#endif /* MATUNA_HELPER_CONVERTER_H_ */
+#endif /* MATUNA_MATUNA_HELPER_CONVERTER_H_ */

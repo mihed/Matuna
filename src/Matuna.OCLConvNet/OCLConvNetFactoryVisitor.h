@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_OCLCONVNET_OCLCONVNETFACTORYVISITOR_H_
-#define MATUNA_OCLCONVNET_OCLCONVNETFACTORYVISITOR_H_
+#ifndef MATUNA_MATUNA_OCLCONVNET_OCLCONVNETFACTORYVISITOR_H_
+#define MATUNA_MATUNA_OCLCONVNET_OCLCONVNETFACTORYVISITOR_H_
 
 #include "Matuna.ConvNet/ConvNetFactoryVisitor.h"
 #include "Matuna.OCLHelper/OCLContext.h"
@@ -47,4 +47,4 @@ namespace Matuna
 	} /* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLOCLCONVNET_OCLCONVNETFACTORYVISITOR_H_ */
+#endif /* MATUNA_MATUNA_OCLOCLCONVNET_OCLCONVNETFACTORYVISITOR_H_ */

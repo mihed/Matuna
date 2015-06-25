@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef MATUNA_OCLHELPER_OCLDEVICECONFIG_H_
-#define MATUNA_OCLHELPER_OCLDEVICECONFIG_H_
+#ifndef MATUNA_MATUNA_OCLHELPER_OCLDEVICECONFIG_H_
+#define MATUNA_MATUNA_OCLHELPER_OCLDEVICECONFIG_H_
 
 #include "OCLInclude.h"
 #include <vector>
@@ -60,4 +60,4 @@ public:
 } /* namespace Helper */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLHELPER_OCLDEVICECONFIG_H_ */
+#endif /* MATUNA_MATUNA_OCLHELPER_OCLDEVICECONFIG_H_ */

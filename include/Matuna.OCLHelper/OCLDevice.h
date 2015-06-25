@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef MATUNA_OCLHELPER_OCLDEVICE_H_
-#define MATUNA_OCLHELPER_OCLDEVICE_H_
+#ifndef MATUNA_MATUNA_OCLHELPER_OCLDEVICE_H_
+#define MATUNA_MATUNA_OCLHELPER_OCLDEVICE_H_
 
 #include "OCLInclude.h"
 #include <unordered_map>
@@ -123,4 +123,4 @@ final
 	/* namespace Helper */
 	} /* namespace Matuna */
 
-#endif /* MATUNA_OCLHELPER_OCLDEVICE_H_ */
+#endif /* MATUNA_MATUNA_OCLHELPER_OCLDEVICE_H_ */

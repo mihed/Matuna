@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_CONVNET_IConvNetTRAINER_H_
-#define MATUNA_CONVNET_IConvNetTRAINER_H_
+#ifndef MATUNA_MATUNA_CONVNET_ICONVNETTRAINER_H_
+#define MATUNA_MATUNA_CONVNET_ICONVNETTRAINER_H_
 
 #include "LayerDescriptions.h"
 #include <vector>
@@ -57,4 +57,4 @@ namespace Matuna
 	} /* Matuna */
 } /* MachineLearning */
 
-#endif /* MATUNA_CONVNET_IConvNetTRAINER_H_ */
+#endif /* MATUNA_MATUNA_CONVNET_ICONVNETTRAINER_H_ */

@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_OCLConvNet_OCLFORWARDBACKPROPLAYER_H_
-#define MATUNA_OCLConvNet_OCLFORWARDBACKPROPLAYER_H_
+#ifndef MATUNA_MATUNA_OCLCONVNET_OCLFORWARDBACKPROPLAYER_H_
+#define MATUNA_MATUNA_OCLCONVNET_OCLFORWARDBACKPROPLAYER_H_
 
 #include "Matuna.ConvNet/ForwardBackPropLayer.h"
 #include "Matuna.OCLHelper/OCLContext.h"
@@ -63,4 +63,4 @@ namespace Matuna
 	} /* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLConvNet_OCLFORWARDBACKPROPLAYER_H_ */
+#endif /* MATUNA_MATUNA_OCLCONVNET_OCLFORWARDBACKPROPLAYER_H_ */

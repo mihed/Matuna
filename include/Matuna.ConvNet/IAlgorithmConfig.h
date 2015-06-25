@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef MATUNA_CONVNET_IALGORITHMCONFIG_H_
-#define MATUNA_CONVNET_IALGORITHMCONFIG_H_
+#ifndef MATUNA_MATUNA_CONVNET_IALGORITHMCONFIG_H_
+#define MATUNA_MATUNA_CONVNET_IALGORITHMCONFIG_H_
 
 namespace Matuna
 {
@@ -26,4 +26,4 @@ public:
 } /* Matuna */
 } /* MachineLearning */
 
-#endif /* MATUNA_CONVNET_IALGORITHMCONFIG_H_ */
+#endif /* MATUNA_MATUNA_CONVNET_IALGORITHMCONFIG_H_ */

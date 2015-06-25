@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_OCLCONVNET_CONVOLUTIONLAYER_H_
-#define MATUNA_OCLCONVNET_CONVOLUTIONLAYER_H_
+#ifndef MATUNA_MATUNA_OCLCONVNET_CONVOLUTIONLAYER_H_
+#define MATUNA_MATUNA_OCLCONVNET_CONVOLUTIONLAYER_H_
 
 #include "OCLForwardBackPropLayer.h"
 #include "Matuna.ConvNet/ConvolutionLayerConfig.h"
@@ -99,4 +99,4 @@ namespace Matuna
 	} /* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLCONVNET_CONVOLUTIONLAYER_H_ */
+#endif /* MATUNA_MATUNA_OCLCONVNET_CONVOLUTIONLAYER_H_ */

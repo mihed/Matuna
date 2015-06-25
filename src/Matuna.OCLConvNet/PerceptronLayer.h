@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_OCLCONVNET_PERCEPTRONLAYER_H_
-#define MATUNA_OCLCONVNET_PERCEPTRONLAYER_H_
+#ifndef MATUNA_MATUNA_OCLCONVNET_PERCEPTRONLAYER_H_
+#define MATUNA_MATUNA_OCLCONVNET_PERCEPTRONLAYER_H_
 
 #include "LayerKernel.h"
 #include "Matuna.ConvNet/PerceptronLayerConfig.h"
@@ -97,4 +97,4 @@ namespace Matuna
 	/* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLCONVNET_PERCEPTRONLAYER_H_ */
+#endif /* MATUNA_MATUNA_OCLCONVNET_PERCEPTRONLAYER_H_ */

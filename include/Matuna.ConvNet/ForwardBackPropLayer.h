@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef MATUNA_CONVNET_FORTHBACKPROPLAYER_H_
-#define MATUNA_CONVNET_FORTHBACKPROPLAYER_H_
+#ifndef MATUNA_MATUNA_CONVNET_FORTHBACKPROPLAYER_H_
+#define MATUNA_MATUNA_CONVNET_FORTHBACKPROPLAYER_H_
 
 #include "BackPropLayer.h"
 #include "ForwardBackPropLayerConfig.h"
@@ -47,4 +47,4 @@ public:
 } /* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_CONVNET_FORTHBACKPROPLAYER_H_ */
+#endif /* MATUNA_MATUNA_CONVNET_FORTHBACKPROPLAYER_H_ */

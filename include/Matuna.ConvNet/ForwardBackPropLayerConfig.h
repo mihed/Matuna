@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef MATUNA_CONVNET_FORWARDBACKPROPLAYERCONFIG_H_
-#define MATUNA_CONVNET_FORWARDBACKPROPLAYERCONFIG_H_
+#ifndef MATUNA_MATUNA_CONVNET_FORWARDBACKPROPLAYERCONFIG_H_
+#define MATUNA_MATUNA_CONVNET_FORWARDBACKPROPLAYERCONFIG_H_
 
 #include "ILayerConfig.h"
 #include "MatunaComputationPrecision.h"
@@ -34,4 +34,4 @@ public:
 } /* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_CONVNET_FORWARDBACKPROPLAYERCONFIG_H_ */
+#endif /* MATUNA_MATUNA_CONVNET_FORWARDBACKPROPLAYERCONFIG_H_ */

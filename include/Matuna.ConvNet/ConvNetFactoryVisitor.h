@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef MATUNA_CONVNET_CONVNETFACTORYVISITOR_H_
-#define MATUNA_CONVNET_CONVNETFACTORYVISITOR_H_
+#ifndef MATUNA_MATUNA_CONVNET_CONVNETFACTORYVISITOR_H_
+#define MATUNA_MATUNA_CONVNET_CONVNETFACTORYVISITOR_H_
 
 #include "ILayerConfigVisitor.h"
 #include "ForwardBackPropLayer.h"
@@ -62,4 +62,4 @@ public:
 } /* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_CONVNET_CONVNETFACTORYVISITOR_H_ */
+#endif /* MATUNA_MATUNA_CONVNET_CONVNETFACTORYVISITOR_H_ */

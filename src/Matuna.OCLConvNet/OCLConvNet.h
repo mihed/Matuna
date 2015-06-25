@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef MATUNA_OCLConvNet_OCLConvNet_H_
-#define MATUNA_OCLConvNet_OCLConvNet_H_
+#ifndef MATUNA_MATUNA_OCLCONVNET_OCLCONVNET_H_
+#define MATUNA_MATUNA_OCLCONVNET_OCLCONVNET_H_
 
 #include "Matuna.ConvNet/ConvNetConfig.h"
 #include "Matuna.ConvNet/ConvNet.h"
@@ -76,4 +76,4 @@ private:
 } /* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLConvNet_OCLConvNet_H_ */
+#endif /* MATUNA_MATUNA_OCLCONVNET_OCLCONVNET_H_ */

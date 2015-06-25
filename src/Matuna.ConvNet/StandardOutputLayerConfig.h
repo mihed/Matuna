@@ -5,8 +5,8 @@
  *      Author: Mikael
  */
 
-#ifndef MATUNA_CONVNET_STANDARDOUTPUTLAYERCONFIG_H_
-#define MATUNA_CONVNET_STANDARDOUTPUTLAYERCONFIG_H_
+#ifndef MATUNA_MATUNA_CONVNET_STANDARDOUTPUTLAYERCONFIG_H_
+#define MATUNA_MATUNA_CONVNET_STANDARDOUTPUTLAYERCONFIG_H_
 
 #include "OutputLayerConfig.h"
 #include "MatunaErrorFunctionEnum.h"
@@ -35,4 +35,4 @@ public:
 } /* namespace MachineLearning */
 } /* namespace Matuna */
 
-#endif /* MATUNA_CONVNET_STANDARDOUTPUTLAYERCONFIG_H_ */
+#endif /* MATUNA_MATUNA_CONVNET_STANDARDOUTPUTLAYERCONFIG_H_ */

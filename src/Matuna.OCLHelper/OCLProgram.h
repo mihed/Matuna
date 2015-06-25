@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_OCLHELPER_OCLPROGRAM_H_
-#define MATUNA_OCLHELPER_OCLPROGRAM_H_
+#ifndef MATUNA_MATUNA_OCLHELPER_OCLPROGRAM_H_
+#define MATUNA_MATUNA_OCLHELPER_OCLPROGRAM_H_
 
 #include "OCLKernel.h"
 #include "OCLInclude.h"
@@ -109,4 +109,4 @@ namespace Matuna {
 	} /* namespace Helper */
 } /* namespace Matuna */
 
-#endif /* MATUNA_OCLHELPER_OCLPROGRAM_H_ */
+#endif /* MATUNA_MATUNA_OCLHELPER_OCLPROGRAM_H_ */
