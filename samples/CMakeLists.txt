@@ -53,3 +53,4 @@ ENDMACRO()
 
 SetStandardSample(Matuna.MNISTSample1)
 SetStandardSample(Matuna.MNISTSample2)
+SetStandardSample(Matuna.MNISTSample3)

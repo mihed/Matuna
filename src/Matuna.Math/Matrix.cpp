@@ -452,8 +452,7 @@ namespace Matuna
 		}
 
 		template<class T>
-		Matrix<T> Matrix<T>::MaxUpSample(int widthSamplingSize, int heightSamplingSize, int resultRows,
-			int resultColumns, const vector<tuple<int, int>>& indexVector) const
+		Matrix<T> Matrix<T>::MaxUpSample(int resultRows, int resultColumns, const vector<tuple<int, int>>& indexVector) const
 		{
 
 			if (static_cast<size_t>(elementCount) != indexVector.size())

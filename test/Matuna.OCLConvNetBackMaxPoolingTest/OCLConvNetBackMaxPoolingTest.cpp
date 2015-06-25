@@ -202,11 +202,10 @@ SCENARIO("Creating a max sampling network")
 
 			for (int i = static_cast<int>(layersCount) - 1; i > 0; i--)
 			{
-				auto& samplingSize = samplingSizes[i];
 				auto& heigthWidth = heightWidths[i - 1];
 				vector<Matrixf> resultMatrices;
 				for (size_t j = 0; j < backMatrices.size(); j++)
-					resultMatrices.push_back(backMatrices[j].MaxUpSample(get<0>(samplingSize), get<1>(samplingSize), get<0>(heigthWidth), get<1>(heigthWidth), downSampleIndices[i][j]));
+					resultMatrices.push_back(backMatrices[j].MaxUpSample(get<0>(heigthWidth), get<1>(heigthWidth), downSampleIndices[i][j]));
 
 				//cout << resultMatrices[0].GetString() << endl;
 

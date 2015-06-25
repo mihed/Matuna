@@ -13,6 +13,8 @@
 #include "Matuna.Helper/FileHelper.h"
 #include "Matuna.Helper/Converter.h"
 
+#include <cmath>
+
 namespace Matuna
 {
 	namespace MachineLearning
