@@ -222,8 +222,10 @@ int main(int, char**)
 			return 0.001f;
 		else if (epoch < 10)
 			return 0.0001f;
-		else
+		else if (epoch < 20)
 			return 0.000001f;
+		else
+			return 0.00000001f;
 	};
 
 	trainingConfig->SetStepSizeCallback(callBack);
