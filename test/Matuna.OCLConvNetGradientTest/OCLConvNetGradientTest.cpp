@@ -331,25 +331,36 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perce
 			int inputHeight = inputDataDesc.Height;
 			int inputWidth = inputDataDesc.Width;
 
-			vector<Matrixd> inputs;
-			unique_ptr<double[]> rawInputs(
-				new double[inputDataDesc.TotalUnits()]);
+			unique_ptr<double[]> rawInputs(new double[inputDataDesc.TotalUnits()]);
 			for (int i = 0; i < inputUnits; i++)
 			{
-				inputs.push_back(
-					Matrixd::RandomNormal(inputHeight, inputWidth));
-				memcpy(rawInputs.get() + i * inputHeight * inputWidth,
-					inputs[i].Data,
-					sizeof(double) * inputHeight * inputWidth);
+				auto tempInput = Matrixd::RandomNormal(inputHeight, inputWidth);
+				memcpy(rawInputs.get() + i * inputHeight * inputWidth, tempInput.Data, sizeof(double) * inputHeight * inputWidth);
 			}
 
-			auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1,
-				0, 4);
+			auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1, 0, 4);
+			unique_ptr<OCLMemory> inputMemory;
+			unique_ptr<OCLMemory> targetMemory;
+
+			if(network.RequireForwardInputAlignment(0))
+			{
+				auto tempInput = network.AlignToForwardInput(rawInputs.get(), 0);
+				inputMemory = network.CreateInputMemory(tempInput.get(), 0, 0);
+			}
+			else
+				inputMemory = network.CreateInputMemory(rawInputs.get(), 0, 0);
+
+			if (network.RequireForwardOutputAlignment(0))
+			{
+				auto tempTarget = network.AlignToForwardOutput(target.Data, 0);
+				targetMemory = network.CreateTargetMemory(tempTarget.get(), 0, 0);
+			}
+			else
+				targetMemory = network.CreateTargetMemory(target.Data, 0, 0);
 
 			int parameterCount = static_cast<int>(network.GetParameterCount());
 
-			unique_ptr<double[]> gradient = network.CalculateGradientUnaligned(
-				rawInputs.get(), 0, target.Data);
+			unique_ptr<double[]> gradient = network.CalculateGradientAligned(inputMemory.get(), 0, targetMemory.get());
 			Matrix<double> gradientMatrix(parameterCount, 1, gradient.get());
 			gradient.reset();
 
@@ -367,15 +378,13 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perce
 				param1.At(i, 0) = param1.At(i, 0) - h;
 				network.SetParameters(param1.Data);
 
-				auto minusValue = network.CalculateErrorUnaligned(
-					rawInputs.get(), 0, target.Data);
+				auto minusValue = network.CalculateErrorAligned(inputMemory.get(), 0, targetMemory.get());
 
 				Matrix<double> param2 = parameterMatrix;
 				param2.At(i, 0) = param2.At(i, 0) + h;
 				network.SetParameters(param2.Data);
 
-				auto plusValue = network.CalculateErrorUnaligned(
-					rawInputs.get(), 0, target.Data);
+				auto plusValue = network.CalculateErrorAligned(inputMemory.get(), 0, targetMemory.get());
 
 				finiteDifferenceGradient.At(i, 0) = (plusValue - minusValue)
 					/ (2 * h);
@@ -461,9 +470,7 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perce
 			{
 				inputs.push_back(
 					Matrixd::RandomNormal(inputHeight, inputWidth));
-				memcpy(rawInputs.get() + i * inputHeight * inputWidth,
-					inputs[i].Data,
-					sizeof(double) * inputHeight * inputWidth);
+				memcpy(rawInputs.get() + i * inputHeight * inputWidth, inputs[i].Data, sizeof(double) * inputHeight * inputWidth);
 			}
 
 			auto target = Matrix<double>::RandomNormal(outputDataDesc.Units, 1,

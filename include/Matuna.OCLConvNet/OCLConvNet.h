@@ -49,10 +49,10 @@ namespace Matuna
 			virtual ~OCLConvNet();
 
 			//TODO: the context index is bloody ugly and should be changed later. This is just a remainder that it needs to be fixed
-			unique_ptr<OCLMemory> CreateInputMemory(T* input, int formatIndex, int contextIndex);
+			unique_ptr<OCLMemory> CreateInputMemory(T* input, int formatIndex, int contextIndex) const;
 
 			//TODO: the context index is bloody ugly and should be changed later. This is just a remainder that it needs to be fixed
-			unique_ptr<OCLMemory> CreateTargetMemory(T* target, int formatIndex, int contextIndex);
+			unique_ptr<OCLMemory> CreateTargetMemory(T* target, int formatIndex, int contextIndex) const;
 
 
 			unique_ptr<T[]> FeedForwardAligned(OCLMemory* input, int formatIndex);
@@ -68,7 +68,7 @@ namespace Matuna
 			unique_ptr<T[]> BackPropAligned(OCLMemory* input, int formatIndex, OCLMemory* target);
 			virtual unique_ptr<T[]> BackPropAligned(T* input, int formatIndex, T* target) override;
 
-			//unique_ptr<T[]> CalculateGradientAligned(OCLMemory* input, int formatIndex, OCLMemory* target)
+			unique_ptr<T[]> CalculateGradientAligned(OCLMemory* input, int formatIndex, OCLMemory* target);
 			virtual unique_ptr<T[]> CalculateGradientAligned(T* input, int formatIndex, T* target) override;
 
 			virtual unique_ptr<T[]> GetParameters() override;
@@ -93,6 +93,8 @@ namespace Matuna
 
 			unique_ptr<T[]> BackPropLowMemory(OCLMemory* input, int formatIndex, OCLMemory* target);
 			unique_ptr<T[]> BackPropHighMemory(OCLMemory* input, int formatIndex, OCLMemory* target);
+
+			unique_ptr<T[]> CalculateGradientLowMemory(OCLMemory* input, int formatIndex, OCLMemory* target);
 
 			T CalculateError(OCLMemory* lastOutput, int formatIndex, OCLMemory* target);
 		};

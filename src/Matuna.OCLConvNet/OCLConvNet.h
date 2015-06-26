@@ -49,10 +49,10 @@ namespace Matuna
 			virtual ~OCLConvNet();
 
 			//TODO: the context index is bloody ugly and should be changed later. This is just a remainder that it needs to be fixed
-			unique_ptr<OCLMemory> CreateInputMemory(T* input, int formatIndex, int contextIndex);
+			unique_ptr<OCLMemory> CreateInputMemory(T* input, int formatIndex, int contextIndex) const;
 
 			//TODO: the context index is bloody ugly and should be changed later. This is just a remainder that it needs to be fixed
-			unique_ptr<OCLMemory> CreateTargetMemory(T* target, int formatIndex, int contextIndex);
+			unique_ptr<OCLMemory> CreateTargetMemory(T* target, int formatIndex, int contextIndex) const;
 
 
 			unique_ptr<T[]> FeedForwardAligned(OCLMemory* input, int formatIndex);

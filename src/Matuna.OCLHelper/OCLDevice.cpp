@@ -35,8 +35,7 @@ namespace Matuna
 				"Could not release the command queue");
 		}
 
-		void OCLDevice::ExecuteTask(const OCLKernel* kernel, int queueIndex,
-			bool blocking)
+		void OCLDevice::ExecuteTask(const OCLKernel* kernel, int queueIndex, bool blocking)
 		{
 			if (!kernel->GetProgram()->ContextSet())
 				throw invalid_argument(
@@ -58,8 +57,7 @@ namespace Matuna
 				clFinish(queue);
 		}
 
-		void OCLDevice::ExecuteKernel(const OCLKernel* kernel, int queueIndex,
-			bool blocking)
+		void OCLDevice::ExecuteKernel(const OCLKernel* kernel, int queueIndex, bool blocking)
 		{
 
 			if (!kernel->GetProgram()->ContextSet())

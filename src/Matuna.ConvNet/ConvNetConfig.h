@@ -44,6 +44,8 @@ public:
 	bool HasOutputLayer() const;
 	bool HasLowMemoryUsage() const;
 
+	void SetLowMemoryUsage(bool value);
+
 	void SetOutputConfig(unique_ptr<OutputLayerConfig> config);
 	void RemoveOutputConfig();
 	void AddToBack(unique_ptr<ForwardBackPropLayerConfig> config);

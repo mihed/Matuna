@@ -42,6 +42,11 @@ namespace Matuna
 				return false;
 		}
 
+		void ConvNetConfig::SetLowMemoryUsage(bool value)
+		{
+			this->lowMemoryUsage = value;
+		}
+
 		void ConvNetConfig::SetOutputConfig(unique_ptr<OutputLayerConfig> config)
 		{
 			outputConfig = move(config);

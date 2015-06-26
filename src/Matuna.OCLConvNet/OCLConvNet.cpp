@@ -69,7 +69,7 @@ namespace Matuna {
 
 		//TODO: the context index is bloody ugly and should be changed later
 		template<class T>
-		unique_ptr<OCLMemory> OCLConvNet<T>::CreateInputMemory(T* input, int formatIndex, int contextIndex)
+		unique_ptr<OCLMemory> OCLConvNet<T>::CreateInputMemory(T* input, int formatIndex, int contextIndex) const
 		{
 			//TODO: At the moment we only support one context and one device
 
@@ -86,7 +86,7 @@ namespace Matuna {
 
 		//TODO: the context index is bloody ugly and should be changed later
 		template<class T>
-		unique_ptr<OCLMemory> OCLConvNet<T>::CreateTargetMemory(T* target, int formatIndex, int contextIndex)
+		unique_ptr<OCLMemory> OCLConvNet<T>::CreateTargetMemory(T* target, int formatIndex, int contextIndex) const
 		{
 			//TODO: At the moment we only support one context and one device
 
@@ -197,6 +197,9 @@ namespace Matuna {
 				inputMemoryDescription = layer->OutForwardPropMemoryDescriptions()[formatIndex];
 				outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inputMemoryDescription.TotalMemory());
 				layer->EnqueueForwardPropagation(device, 0, inputMemory.get(), outputMemory.get(), true);
+
+				//Input to previous enqueue call can be cleaned here safely and still have a full device queue
+
 				inputMemory.reset();
 				inputMemory = move(outputMemory);
 			}
@@ -356,12 +359,14 @@ namespace Matuna {
 
 			//TODO: Clear the input memories that we don't use
 			outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], target, backPropOutputMemory.get(), true);
+			inputMemoriesHolder[inputMemoriesHolder.size() - 1].reset();
 
 			for (int i = static_cast<int>(layers.size()) - 1; i >= 1; i--) 
 			{
 				inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
 				unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
 				layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i], backPropOutputMemory.get(), outputMemory.get(), true);
+				inputMemoriesHolder[i - 1].reset();
 				backPropOutputMemory.reset();
 				backPropOutputMemory = move(outputMemory);
 			}
