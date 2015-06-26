@@ -354,6 +354,7 @@ namespace Matuna {
 			LayerMemoryDescription inBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
 			unique_ptr<OCLMemory> backPropOutputMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
 
+			//TODO: Clear the input memories that we don't use
 			outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], target, backPropOutputMemory.get(), true);
 
 			for (int i = static_cast<int>(layers.size()) - 1; i >= 1; i--) 
@@ -432,106 +433,61 @@ namespace Matuna {
 		}
 
 		template<class T>
-		unique_ptr<T[]> OCLConvNet<T>::CalculateGradientAligned(T* input,
-			int formatIndex, T* target) 
+		unique_ptr<T[]> OCLConvNet<T>::CalculateGradientLowMemory(OCLMemory* input, int formatIndex, OCLMemory* target)
 		{
-			//TODO: At the moment we only support one context and one device
 			auto devices = contexts[0]->GetDevices();
 			auto device = devices[0];
+			vector<unique_ptr<OCLMemory>> inputMemoriesHolder;
+			FeedForwardHighMemory(input, formatIndex, inputMemoriesHolder);
+			vector<OCLMemory*> inputMemories;
+			inputMemories.push_back(input);
+			for (auto& holder : inputMemoriesHolder)
+				inputMemories.push_back(holder.get());
 
-			vector<unique_ptr<OCLMemory>> inputMemories;
-			//First the forward propagation phase, we need to save all the memory.
-			LayerMemoryDescription inputMemoryDescription =
-				this->InputForwardMemoryDescriptions()[formatIndex];
+			LayerMemoryDescription inBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
+			unique_ptr<OCLMemory> backPropOutputMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
 
-			unique_ptr<OCLMemory> inputMemory = contexts[0]->CreateMemory(
-				CL_MEM_READ_ONLY, sizeof(T) * inputMemoryDescription.TotalMemory());
-			device->WriteMemory(inputMemory.get(), inputMemory->ByteSize(), input, 0,
-				false);
-
-			inputMemories.push_back(move(inputMemory));
-			for (auto& layer : layers) {
-				inputMemoryDescription =
-					layer->OutForwardPropMemoryDescriptions()[formatIndex];
-				unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(
-					CL_MEM_READ_WRITE,
-					sizeof(T) * inputMemoryDescription.TotalMemory());
-				inputMemories.push_back(move(outputMemory));
-			}
-
+			//TODO: Clear the input memories that we don't use
+			outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], target, backPropOutputMemory.get(), false);
 			auto count = layers.size();
 
-			for (size_t i = 0; i < count; i++)
-				layers[i]->EnqueueForwardPropagation(device, 0, inputMemories[i].get(),
-				inputMemories[i + 1].get(), false);
-
-			device->WaitForDeviceQueue(0);
-
-			//Allocate the necessary memory for the gradient
 			unique_ptr<T[]> gradient(new T[GetParameterCount()]);
-
-			LayerMemoryDescription inBackPropMemoryDescription =
-				this->OutputForwardMemoryDescriptions()[formatIndex];
-
-			unique_ptr<OCLMemory> targetMemory = contexts[0]->CreateMemory(
-				CL_MEM_READ_ONLY,
-				sizeof(T) * inBackPropMemoryDescription.TotalMemory());
-			device->WriteMemory(targetMemory.get(), targetMemory->ByteSize(), target, 0,
-				true);
-
-			inBackPropMemoryDescription =
-				outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
-			unique_ptr<OCLMemory> backPropOutputMemory = contexts[0]->CreateMemory(
-				CL_MEM_READ_ONLY,
-				sizeof(T) * inBackPropMemoryDescription.TotalMemory());
-
-			outputLayer->EnqueueBackPropagation(device, 0,
-				inputMemories[inputMemories.size() - 1].get(), targetMemory.get(),
-				backPropOutputMemory.get(), true);
-			targetMemory.reset();
-
 			size_t gradientMemoryPosition = 0;
 			if (layers.size() != 0) 
 			{
 				//Allocate memory for the gradient
 				auto parametersCount = layers[count - 1]->GetMultipleParameterCount();
-
 				vector<unique_ptr<OCLMemory>> gradientMemories;
 				vector<OCLMemory*> gradientsPointers;
 				for (auto parameterCount : parametersCount)
 				{
-					unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(
-						CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+					unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
 					gradientsPointers.push_back(gradientMemory.get());
 					gradientMemories.push_back(move(gradientMemory));
 				}
-
-				layers[count - 1]->EnqueueCalculateGradient(device, 0,
-					inputMemories[inputMemories.size() - 2].get(),
-					backPropOutputMemory.get(), gradientsPointers, true);
+				layers[count - 1]->EnqueueCalculateGradient(device, 0, inputMemories[inputMemories.size() - 2], backPropOutputMemory.get(), gradientsPointers, false);
 
 				//Write gradient memory to the host buffer
 				auto rawGradient = gradient.get();
 				rawGradient += gradientMemoryPosition;
 				for (size_t k = 0; k < parametersCount.size(); k++)
 				{
-					device->ReadMemory(gradientsPointers[k], gradientsPointers[k]->ByteSize(),
-						rawGradient, 0, true);
+					device->ReadMemory(gradientsPointers[k], gradientsPointers[k]->ByteSize(), rawGradient, 0, false);
 					gradientMemoryPosition += parametersCount[k];
 					rawGradient = gradient.get() + gradientMemoryPosition;
 				}
 			}
 
+			device->WaitForDeviceQueue(0);
+			inputMemoriesHolder[inputMemoriesHolder.size() - 1].reset();
+
 			for (int i = static_cast<int>(count) - 1; i >= 1; i--) 
 			{
-				inBackPropMemoryDescription =
-					layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
+				inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
 
-				unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(
-					CL_MEM_READ_WRITE,
-					sizeof(T) * inBackPropMemoryDescription.TotalMemory());
-				layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i].get(),
-					backPropOutputMemory.get(), outputMemory.get(), true);
+				unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
+				layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i], backPropOutputMemory.get(), outputMemory.get(), true);
+				inputMemoriesHolder[i - 1].reset();
 				backPropOutputMemory.reset();
 				backPropOutputMemory = move(outputMemory);
 
@@ -541,31 +497,41 @@ namespace Matuna {
 				vector<OCLMemory*> gradientsPointers;
 				for (auto parameterCount : parametersCount)
 				{
-					unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(
-						CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+					unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
 					gradientsPointers.push_back(gradientMemory.get());
 					gradientMemories.push_back(move(gradientMemory));
 				}
 
-				layers[i - 1]->EnqueueCalculateGradient(device, 0,
-					inputMemories[i - 1].get(), backPropOutputMemory.get(),
-					gradientsPointers, true);
+				layers[i - 1]->EnqueueCalculateGradient(device, 0, inputMemories[i - 1], backPropOutputMemory.get(), gradientsPointers, false);
 
 				//Write gradient memory to the host buffer
 				auto rawGradient = gradient.get();
 				rawGradient += gradientMemoryPosition;
 				for (size_t k = 0; k < parametersCount.size(); k++)
 				{
-					device->ReadMemory(gradientsPointers[k], gradientsPointers[k]->ByteSize(),
-						rawGradient, 0, true);
+					device->ReadMemory(gradientsPointers[k], gradientsPointers[k]->ByteSize(), rawGradient, 0, false);
 					gradientMemoryPosition += parametersCount[k];
 					rawGradient = gradient.get() + gradientMemoryPosition;
 				}
+
+				device->WaitForDeviceQueue(0);
 			}
 
-			device->WaitForDeviceQueue(0);
-
 			return move(gradient);
+		}
+
+		template<class T>
+		unique_ptr<T[]> OCLConvNet<T>::CalculateGradientAligned(OCLMemory* input, int formatIndex, OCLMemory* target)
+		{
+			return move(CalculateGradientLowMemory(input, formatIndex, target));
+		}
+
+		template<class T>
+		unique_ptr<T[]> OCLConvNet<T>::CalculateGradientAligned(T* input, int formatIndex, T* target) 
+		{
+			auto targetMemory = CreateTargetMemory(target, formatIndex, 0);
+			auto inputMemory = CreateInputMemory(input, formatIndex, 0);
+			return move(CalculateGradientLowMemory(inputMemory.get(), formatIndex, targetMemory.get()));
 		}
 
 		template<class T>

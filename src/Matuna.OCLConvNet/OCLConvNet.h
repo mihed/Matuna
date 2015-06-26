@@ -68,7 +68,7 @@ namespace Matuna
 			unique_ptr<T[]> BackPropAligned(OCLMemory* input, int formatIndex, OCLMemory* target);
 			virtual unique_ptr<T[]> BackPropAligned(T* input, int formatIndex, T* target) override;
 
-			//unique_ptr<T[]> CalculateGradientAligned(OCLMemory* input, int formatIndex, OCLMemory* target)
+			unique_ptr<T[]> CalculateGradientAligned(OCLMemory* input, int formatIndex, OCLMemory* target);
 			virtual unique_ptr<T[]> CalculateGradientAligned(T* input, int formatIndex, T* target) override;
 
 			virtual unique_ptr<T[]> GetParameters() override;
@@ -93,6 +93,8 @@ namespace Matuna
 
 			unique_ptr<T[]> BackPropLowMemory(OCLMemory* input, int formatIndex, OCLMemory* target);
 			unique_ptr<T[]> BackPropHighMemory(OCLMemory* input, int formatIndex, OCLMemory* target);
+
+			unique_ptr<T[]> CalculateGradientLowMemory(OCLMemory* input, int formatIndex, OCLMemory* target);
 
 			T CalculateError(OCLMemory* lastOutput, int formatIndex, OCLMemory* target);
 		};
