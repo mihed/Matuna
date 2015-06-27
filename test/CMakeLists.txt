@@ -41,6 +41,7 @@ ENDMACRO()
 
 #Set targets
 
+SetStandardTest(Matuna.OCLConvNetLowHighMemoryTest)
 SetStandardTest(Matuna.OCLConvNetBackMaxPoolingTest)
 SetStandardTest(Matuna.OCLConvNetForwardMaxPoolingTest)
 SetStandardTest(Matuna.OCLDeviceHandlerTest)

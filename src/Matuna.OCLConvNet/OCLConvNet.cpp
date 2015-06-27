@@ -392,26 +392,34 @@ namespace Matuna {
 			for (auto& holder : inputMemoriesHolder)
 				inputMemories.push_back(holder.get());
 
-			LayerMemoryDescription inBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
+			vector<unique_ptr<OCLMemory>> outputMemoryHolder;
+			OCLMemory* outputMemory1;
+			OCLMemory* outputMemory2;
 
-			vector<unique_ptr<OCLMemory>> backPropMemoryHolder;
+			LayerMemoryDescription inBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
 			unique_ptr<OCLMemory> backPropOutputMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
-			OCLMemory* backPropMemory = backPropOutputMemory.get();
-			backPropMemoryHolder.push_back(move(backPropOutputMemory));
-			outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], target, backPropMemory, false);
+
+			outputMemory1 =	backPropOutputMemory.get();
+			outputMemoryHolder.push_back(move(backPropOutputMemory));
+
+			//TODO: Clear the input memories that we don't use
+			outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], target, outputMemory1, false);
 
 			for (int i = static_cast<int>(layers.size()) - 1; i >= 1; i--) 
 			{
 				inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
 				unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
-				layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i], backPropMemory, outputMemory.get(), false);
-				backPropMemory = outputMemory.get();
-				backPropMemoryHolder.push_back(move(outputMemory));
+				outputMemory2 = outputMemory.get();
+				outputMemoryHolder.push_back(move(outputMemory));
+				layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i], outputMemory1, outputMemory2, false);
+				outputMemory1 = outputMemory2;
 			}
 
 			LayerMemoryDescription outBackPropMemoryDescription = this->OutputBackMemoryDescriptions()[formatIndex];
+
 			unique_ptr<T[]> output(new T[outBackPropMemoryDescription.TotalMemory()]);
-			device->ReadMemory(backPropMemory, backPropMemory->ByteSize(), output.get(), 0, true);
+			device->ReadMemory(outputMemory1, outputMemory1->ByteSize(), output.get(), 0, true);
+
 			return move(output);
 		}
 
@@ -435,6 +443,105 @@ namespace Matuna {
 				return move(BackPropLowMemory(inputMemory.get(), formatIndex, targetMemory.get()));
 			else
 				return move(BackPropHighMemory(inputMemory.get(), formatIndex, targetMemory.get()));
+		}
+
+		template<class T>
+		unique_ptr<T[]> OCLConvNet<T>::CalculateGradientHighMemory(OCLMemory* input, int formatIndex, OCLMemory* target)
+		{
+			auto devices = contexts[0]->GetDevices();
+			auto device = devices[0];
+			vector<unique_ptr<OCLMemory>> inputMemoriesHolder;
+			FeedForwardHighMemory(input, formatIndex, inputMemoriesHolder);
+			vector<OCLMemory*> inputMemories;
+			inputMemories.push_back(input);
+			for (auto& holder : inputMemoriesHolder)
+				inputMemories.push_back(holder.get());
+
+			LayerMemoryDescription inBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
+
+			vector<unique_ptr<OCLMemory>> backPropMemoryHolder;
+			unique_ptr<OCLMemory> backPropOutputMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
+			OCLMemory* backPropMemory = backPropOutputMemory.get();
+			backPropMemoryHolder.push_back(move(backPropOutputMemory));
+			outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], target, backPropMemory, false);
+
+			vector<vector<unique_ptr<OCLMemory>>> gradientMemoryHolders;
+			vector<vector<OCLMemory*>> gradientMemories;
+			vector<vector<size_t>> allParameterCounts;
+
+			if (layers.size() != 0)
+			{
+				auto parameterCounts = layers[layers.size() - 1]->GetMultipleParameterCount();
+				allParameterCounts.push_back(parameterCounts);
+				gradientMemoryHolders.push_back(vector<unique_ptr<OCLMemory>>());
+				gradientMemories.push_back(vector<OCLMemory*>());
+				auto& gradientMemoryVector = gradientMemories[gradientMemories.size() -1];
+				auto& gradientMemoryHolder = gradientMemoryHolders[gradientMemoryHolders.size() -1];
+				for (auto parameterCount : parameterCounts)
+				{
+					unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+					gradientMemoryVector.push_back(gradientMemory.get());
+					gradientMemoryHolder.push_back(move(gradientMemory));
+				}
+
+				layers[layers.size() - 1]->EnqueueCalculateGradient(device, 0, inputMemories[inputMemories.size() - 2], backPropMemory, gradientMemoryVector, false);
+			}
+
+			for (int i = static_cast<int>(layers.size()) - 1; i >= 1; i--) 
+			{
+				inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
+				unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
+				layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i], backPropMemory, outputMemory.get(), false);
+				backPropMemory = outputMemory.get();
+				backPropMemoryHolder.push_back(move(outputMemory));
+
+
+				auto parameterCounts = layers[i - 1]->GetMultipleParameterCount();
+				allParameterCounts.push_back(parameterCounts);
+				gradientMemoryHolders.push_back(vector<unique_ptr<OCLMemory>>());
+				gradientMemories.push_back(vector<OCLMemory*>());
+				auto& gradientMemoryVector = gradientMemories[gradientMemories.size() -1];
+				auto& gradientMemoryHolder = gradientMemoryHolders[gradientMemoryHolders.size() -1];
+				for (auto parameterCount : parameterCounts)
+				{
+					unique_ptr<OCLMemory> gradientMemory = contexts[0]->CreateMemory(CL_MEM_WRITE_ONLY, sizeof(T) * parameterCount);
+					gradientMemoryVector.push_back(gradientMemory.get());
+					gradientMemoryHolder.push_back(move(gradientMemory));
+				}
+
+				layers[i - 1]->EnqueueCalculateGradient(device, 0, inputMemories[i - 1], backPropMemory, gradientMemoryVector, false);
+			}
+
+			unique_ptr<T[]> gradient(new T[GetParameterCount()]);
+			size_t gradientMemoryPosition = 0;
+
+
+			if (gradientMemories.size() != gradientMemoryHolders.size())
+				throw runtime_error("Invalid implementation");
+
+			if (gradientMemories.size() != allParameterCounts.size())
+				throw runtime_error("Invalid implementation");
+
+			for(size_t i = 0; i < gradientMemories.size(); i++)
+			{
+				if (gradientMemories[i].size() != allParameterCounts[i].size())
+					throw runtime_error("Invalid implementation");
+
+				auto& gradientMemoryVector = gradientMemories[i];
+				auto& parameterCount = allParameterCounts[i];
+				auto rawGradient = gradient.get();
+				rawGradient += gradientMemoryPosition;
+				for (size_t k = 0; k < parameterCount.size(); k++)
+				{
+					device->ReadMemory(gradientMemoryVector[k], gradientMemoryVector[k]->ByteSize(), rawGradient, 0, false);
+					gradientMemoryPosition += parameterCount[k];
+					rawGradient = gradient.get() + gradientMemoryPosition;
+				}
+			}
+
+			device->WaitForDeviceQueue(0);
+
+			return move(gradient);
 		}
 
 		template<class T>
@@ -528,7 +635,10 @@ namespace Matuna {
 		template<class T>
 		unique_ptr<T[]> OCLConvNet<T>::CalculateGradientAligned(OCLMemory* input, int formatIndex, OCLMemory* target)
 		{
-			return move(CalculateGradientLowMemory(input, formatIndex, target));
+			if (lowMemoryUsage)
+				return move(CalculateGradientLowMemory(input, formatIndex, target));
+			else
+				return move(CalculateGradientHighMemory(input, formatIndex, target));
 		}
 
 		template<class T>
@@ -536,7 +646,10 @@ namespace Matuna {
 		{
 			auto targetMemory = CreateTargetMemory(target, formatIndex, 0);
 			auto inputMemory = CreateInputMemory(input, formatIndex, 0);
-			return move(CalculateGradientLowMemory(inputMemory.get(), formatIndex, targetMemory.get()));
+			if (lowMemoryUsage)
+				return move(CalculateGradientLowMemory(inputMemory.get(), formatIndex, targetMemory.get()));
+			else
+				return move(CalculateGradientHighMemory(inputMemory.get(), formatIndex, targetMemory.get()));
 		}
 
 		template<class T>

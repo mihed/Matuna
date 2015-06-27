@@ -121,6 +121,7 @@ SCENARIO("Calculating the gradient of a ConvNet using convolution layers")
 		for (auto& deviceInfo : deviceInfos)
 		{
 			unique_ptr<ConvNetConfig> config = CreateRandomConvNetConvolutionConfig(mt, layerGenerator, dimensionGenerator, unitGenerator, filterGenerator);
+			config->SetLowMemoryUsage(false);
 			OCLConvNet<double> network(deviceInfo, move(config));
 
 			LayerDataDescription inputDescription = network.InputForwardDataDescriptions()[0];

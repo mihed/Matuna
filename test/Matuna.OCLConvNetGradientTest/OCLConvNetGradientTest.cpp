@@ -282,7 +282,7 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetMaxConfig(mt19937& mt,
 	return move(config);
 }
 
-SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perceptron and max sampling layers")
+SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perceptron and max sampling layers. Using high memory")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device device;
@@ -311,14 +311,13 @@ SCENARIO("Calcultating the gradient of a ConvNet using random convolution, perce
 		for (auto& deviceInfo : deviceInfos)
 		{
 
-			if (deviceInfo[0].PlatformInfo().GetString().find("CUDA") != string::npos)
-				continue;
-
 			unique_ptr<ConvNetConfig> config;
 
 			config = CreateRandomConvNetMaxConfig(mt, perceptronLayerGenerator,
 				convolutionLayerGenerator, imageDimensionGenerator,
 				filterGenerator, dimensionGenerator, maxSamplingSizeGenerator, false, true);
+
+			config->SetLowMemoryUsage(false);
 
 			OCLConvNet<double> network(deviceInfo, move(config));
 

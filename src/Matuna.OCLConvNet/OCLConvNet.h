@@ -95,6 +95,7 @@ namespace Matuna
 			unique_ptr<T[]> BackPropHighMemory(OCLMemory* input, int formatIndex, OCLMemory* target);
 
 			unique_ptr<T[]> CalculateGradientLowMemory(OCLMemory* input, int formatIndex, OCLMemory* target);
+			unique_ptr<T[]> CalculateGradientHighMemory(OCLMemory* input, int formatIndex, OCLMemory* target);
 
 			T CalculateError(OCLMemory* lastOutput, int formatIndex, OCLMemory* target);
 		};
