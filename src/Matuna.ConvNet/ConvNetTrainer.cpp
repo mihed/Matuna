@@ -17,16 +17,12 @@ namespace Matuna
 	namespace MachineLearning
 	{
 		template<class T>
-		ConvNetTrainer<T>::ConvNetTrainer(const vector<LayerDataDescription>& inputDataDescriptions,
-			const vector<LayerDataDescription>& targetDataDescriptions,
-			const vector<LayerMemoryDescription>& inputMemoryDescriptions,
-			const vector<LayerMemoryDescription>& targetMemoryDescriptions) :
-		inputDataDescriptions(inputDataDescriptions),
-			targetDataDescriptions(targetDataDescriptions),
-			inputMemoryDescriptions(inputMemoryDescriptions),
-			targetMemoryDescriptions(targetMemoryDescriptions)
+		ConvNetTrainer<T>::ConvNetTrainer(TrainableConvNet<T>* convNet)
 		{
+			bufferSize = 1;
+			enableError = false;
 			stopped = false;
+			this->convNet = convNet;
 		}
 
 		template<class T>
@@ -36,7 +32,31 @@ namespace Matuna
 		}
 
 		template<class T>
-		bool ConvNetTrainer<T>::Stopping()
+		void ConvNetTrainer<T>::SetBufferSize(int size)
+		{
+			this->bufferSize = size;
+		}
+
+		template<class T>
+		int ConvNetTrainer<T>::GetBufferSize() const
+		{
+			return bufferSize;
+		}
+
+		template<class T>
+		void ConvNetTrainer<T>::SetEnableError(bool value)
+		{
+			this->enableError = value;
+		}
+
+		template<class T>
+		bool ConvNetTrainer<T>::GetEnableError() const
+		{
+			return enableError;
+		}
+
+		template<class T>
+		bool ConvNetTrainer<T>::Stopping() const
 		{
 			return stopped;
 		}
@@ -45,30 +65,6 @@ namespace Matuna
 		void ConvNetTrainer<T>::Stop()
 		{
 			stopped = true;
-		}
-
-		template<class T>
-		vector<LayerDataDescription> ConvNetTrainer<T>::InputDataDescriptions() const
-		{
-			return inputDataDescriptions;
-		}
-
-		template<class T>
-		vector<LayerDataDescription> ConvNetTrainer<T>::TargetDataDescriptions() const
-		{
-			return targetDataDescriptions;
-		}
-
-		template<class T>
-		vector<LayerMemoryDescription> ConvNetTrainer<T>::InputMemoryDescriptions() const
-		{
-			return inputMemoryDescriptions;
-		}
-
-		template<class T>
-		vector<LayerMemoryDescription> ConvNetTrainer<T>::TargetMemoryDescriptions() const
-		{
-			return targetMemoryDescriptions;
 		}
 
 		//Just add a type if the network is suppose to support more types.

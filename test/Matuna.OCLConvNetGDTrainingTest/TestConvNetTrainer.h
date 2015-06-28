@@ -25,22 +25,20 @@ namespace Matuna
 		class TestConvNetTrainer: public ConvNetTrainer<T>
 		{
 		private:
-			OCLConvNet<T>* network;
 			T* input;
 			T* target;
 		public:
-			TestConvNetTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
-				const vector<LayerDataDescription>& targetDataDescriptions,
-				const vector<LayerMemoryDescription>& inputMemoryDescriptions,
-				const vector<LayerMemoryDescription>& targetMemoryDescriptions, OCLConvNet<T>* network);
+			TestConvNetTrainer(OCLConvNet<T>* network);
 			~TestConvNetTrainer();
 
-			virtual void MapInputAndTarget(T*& input, T*& target,int& formatIndex) override;
-			virtual void UnmapInputAndTarget(T* input, T* target,int formatIndex) override;
+			virtual void MapInputAndTarget(int dataID, T*& input, T*& target,int& formatIndex) override;
+			virtual void UnmapInputAndTarget(int dataID, T* input, T* target,int formatIndex) override;
 			virtual void BatchFinished(T error) override;
 			virtual void EpochFinished() override;
 			virtual void EpochStarted() override;
 			virtual void BatchStarted() override;
+
+			virtual int DataIDRequest() override;
 
 			void SetInput(T* input);
 			void SetTarget(T* target);

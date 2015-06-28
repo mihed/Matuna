@@ -5,8 +5,8 @@
 *      Author: Mikael
 */
 
-#ifndef MATUNA_MATUNA_CONVNET_ICONVNETTRAINER_H_
-#define MATUNA_MATUNA_CONVNET_ICONVNETTRAINER_H_
+#ifndef MATUNA_MATUNA_CONVNET_CONVNETTRAINER_H_
+#define MATUNA_MATUNA_CONVNET_CONVNETTRAINER_H_
 
 #include "LayerDescriptions.h"
 #include <vector>
@@ -19,38 +19,41 @@ namespace Matuna
 	{
 
 		template<class T>
+		class TrainableConvNet;
+
+		template<class T>
 		class ConvNetTrainer
 		{
 		private:
 			bool stopped;
-			vector<LayerDataDescription> inputDataDescriptions;
-			vector<LayerDataDescription> targetDataDescriptions;
-			vector<LayerMemoryDescription> inputMemoryDescriptions;
-			vector<LayerMemoryDescription> targetMemoryDescriptions;
+			bool enableError;
+			int bufferSize;
 
-			//TODO: Replace all this unncessary inputs in the contructor by using ConvNet instead!
+		protected:
+			TrainableConvNet<T>* convNet;
+
 		public:
-			ConvNetTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
-				const vector<LayerDataDescription>& targetDataDescriptions,
-				const vector<LayerMemoryDescription>& inputMemoryDescriptions,
-				const vector<LayerMemoryDescription>& targetMemoryDescriptions);
+			ConvNetTrainer(TrainableConvNet<T>* convNet);
 			virtual ~ConvNetTrainer();
 
-			//Assuming that the memory is aligned at the moment
-			virtual void MapInputAndTarget(T*& input, T*& target,int& formatIndex) = 0;
-			virtual void UnmapInputAndTarget(T* input, T* target,int formatIndex) = 0;
+			virtual void MapInputAndTarget(int dataID, T*& input, T*& target,int& formatIndex) = 0;
+			virtual void UnmapInputAndTarget(int dataID, T* input, T* target, int formatIndex) = 0;
 			virtual void BatchFinished(T error) = 0;
 			virtual void EpochFinished() = 0;
 			virtual void EpochStarted() = 0;
 			virtual void BatchStarted() = 0;
 
+			//This function is called when the device wants to fill its buffer with the data corresponding to the ID
+			//If the ID is already in the device buffer, then the map / unmap functions will be skipped yielding optimization .
+			virtual int DataIDRequest() = 0;
 
-			vector<LayerDataDescription> InputDataDescriptions() const;
-			vector<LayerDataDescription> TargetDataDescriptions() const;
-			vector<LayerMemoryDescription> InputMemoryDescriptions() const;
-			vector<LayerMemoryDescription> TargetMemoryDescriptions() const;
+			void SetBufferSize(int size);
+			int GetBufferSize() const;
 
-			bool Stopping();
+			void SetEnableError(bool value);
+			bool GetEnableError() const;
+
+			bool Stopping() const;
 			void Stop();
 
 		};
@@ -58,4 +61,4 @@ namespace Matuna
 	} /* Matuna */
 } /* MachineLearning */
 
-#endif /* MATUNA_MATUNA_CONVNET_ICONVNETTRAINER_H_ */
+#endif /* MATUNA_MATUNA_CONVNET_CONVNETTRAINER_H_ */

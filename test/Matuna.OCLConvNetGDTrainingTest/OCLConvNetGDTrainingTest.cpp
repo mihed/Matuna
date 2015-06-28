@@ -44,7 +44,7 @@ unique_ptr<ConvNetConfig> CreateRandomConvNetConfig(mt19937& mt,
 
 	int inputHeight = imageDimensionGenerator(mt);
 	int inputWidth = imageDimensionGenerator(mt);
-	int inputUnits = imageDimensionGenerator(mt);
+	int inputUnits = dimensionGenerator(mt);
 
 	cout << "Input height: " << inputHeight << endl;
 	cout << "Input width: " << inputWidth << endl;
@@ -230,8 +230,7 @@ SCENARIO("Testing the gradient descent training algorithm")
 
 			OCLConvNet<double> network(deviceInfo, move(config));
 
-			auto trainer = new TestConvNetTrainer<double>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
-				network.InputForwardMemoryDescriptions(), network.OutputForwardMemoryDescriptions(), &network);
+			auto trainer = new TestConvNetTrainer<double>(&network);
 
 			auto algorithmConfig = new GradientDescentConfig<double>();
 			algorithmConfig->SetBatchSize(5);
@@ -292,7 +291,8 @@ SCENARIO("Testing the gradient descent training algorithm")
 			cout << "Error before iteration: " << errorBefore << endl;
 			trainer->SetInput(inputs.get());
 			trainer->SetTarget(target.get());
-			network.TrainNetwork(unique_ptr<TestConvNetTrainer<double>>(trainer), unique_ptr<GradientDescentConfig<double>>(algorithmConfig));
+			trainer->SetBufferSize(1);
+			network.TrainNetwork2(unique_ptr<TestConvNetTrainer<double>>(trainer), unique_ptr<GradientDescentConfig<double>>(algorithmConfig));
 			double errorAfter = network.CalculateErrorUnaligned(inputs.get(), 0, target.get());
 			cout << "Error after iteration: " << errorAfter << endl;
 

@@ -16,12 +16,8 @@ namespace Matuna
 	{
 
 		template<class T> 
-		TestConvNetTrainer<T>::TestConvNetTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
-			const vector<LayerDataDescription>& targetDataDescriptions,
-			const vector<LayerMemoryDescription>& inputMemoryDescriptions,
-			const vector<LayerMemoryDescription>& targetMemoryDescriptions, OCLConvNet<T>* network) :
-		ConvNetTrainer<T>(inputDataDescriptions, targetDataDescriptions, inputMemoryDescriptions, targetMemoryDescriptions),
-			network(network)
+		TestConvNetTrainer<T>::TestConvNetTrainer(OCLConvNet<T>* network) :
+			ConvNetTrainer<T>(network)
 		{
 
 		}
@@ -33,7 +29,7 @@ namespace Matuna
 		}
 
 		template<class T> 
-		void TestConvNetTrainer<T>::MapInputAndTarget(T*& input, T*& target,int& formatIndex)
+		void TestConvNetTrainer<T>::MapInputAndTarget(int dataID, T*& input, T*& target,int& formatIndex)
 		{
 			target = this->target;
 			input = this->input;
@@ -43,7 +39,13 @@ namespace Matuna
 		}
 
 		template<class T> 
-		void TestConvNetTrainer<T>::UnmapInputAndTarget(T*, T*, int)
+		int TestConvNetTrainer<T>::DataIDRequest()
+		{
+			return 0; //We only have one data in this sample
+		}
+
+		template<class T> 
+		void TestConvNetTrainer<T>::UnmapInputAndTarget(int dataID, T*, T*, int)
 		{
 			//cout << "Unmaped" << endl;
 		}
