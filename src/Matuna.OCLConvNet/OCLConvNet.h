@@ -73,9 +73,9 @@ namespace Matuna
 			{
 				this->formatIndex = original.formatIndex;
 				this->inputHandledMemory = move(original.inputHandledMemory);
-				this->inputMemoryPointer = this->inputHandledMemory.get();
+				this->inputMemoryPointer = original.inputMemoryPointer;
 				this->targetHandledMemory = move(original.targetHandledMemory);
-				this->targetMemoryPointer = this->targetHandledMemory.get();
+				this->targetMemoryPointer = original.targetMemoryPointer;
 			}
 
 			OCLMemory* GetInput() const { return inputMemoryPointer; };

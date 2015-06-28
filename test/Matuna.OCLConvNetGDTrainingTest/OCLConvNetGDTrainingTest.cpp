@@ -291,7 +291,7 @@ SCENARIO("Testing the gradient descent training algorithm")
 			cout << "Error before iteration: " << errorBefore << endl;
 			trainer->SetInput(inputs.get());
 			trainer->SetTarget(target.get());
-			trainer->SetBufferSize(1);
+			trainer->SetBufferSize(2);
 			network.TrainNetwork2(unique_ptr<TestConvNetTrainer<double>>(trainer), unique_ptr<GradientDescentConfig<double>>(algorithmConfig));
 			double errorAfter = network.CalculateErrorUnaligned(inputs.get(), 0, target.get());
 			cout << "Error after iteration: " << errorAfter << endl;
