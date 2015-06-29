@@ -46,37 +46,17 @@ namespace Matuna
 		class InputDataWrapper
 		{
 		private:
-			unique_ptr<OCLMemory> inputHandledMemory;
 			OCLMemory* inputMemoryPointer;
-			unique_ptr<OCLMemory> targetHandledMemory;
 			OCLMemory* targetMemoryPointer;
 			int formatIndex;
 
 		public:
-			InputDataWrapper(unique_ptr<OCLMemory> inputHandledMemory, unique_ptr<OCLMemory> targetHandledMemory, int formatIndex)
-			{
-				this->formatIndex = formatIndex;
-				this->inputHandledMemory = move(inputHandledMemory);
-				this->inputMemoryPointer = this->inputHandledMemory.get();
-				this->targetHandledMemory = move(targetHandledMemory);
-				this->targetMemoryPointer = this->targetHandledMemory.get();
-			};
-
 			InputDataWrapper(OCLMemory* inputMemoryPointer, OCLMemory* targetMemoryPointer, int formatIndex)
 			{
 				this->formatIndex = formatIndex;
 				this->inputMemoryPointer = inputMemoryPointer;
 				this->targetMemoryPointer = targetMemoryPointer;
 			};
-
-			InputDataWrapper(InputDataWrapper&& original)
-			{
-				this->formatIndex = original.formatIndex;
-				this->inputHandledMemory = move(original.inputHandledMemory);
-				this->inputMemoryPointer = original.inputMemoryPointer;
-				this->targetHandledMemory = move(original.targetHandledMemory);
-				this->targetMemoryPointer = original.targetMemoryPointer;
-			}
 
 			OCLMemory* GetInput() const { return inputMemoryPointer; };
 
@@ -89,93 +69,116 @@ namespace Matuna
 		class InputDataBufferQueue
 		{
 		private:
-			queue<int> dataIDQueue;
-			//First id, second tuple: reference, formatindex, input, target
-			unordered_map<int, tuple<int, int, unique_ptr<OCLMemory>, unique_ptr<OCLMemory>>> idAndInputData;
-			size_t maxBufferSize;
 
 			condition_variable notFull;
 			condition_variable notEmpty;
 
+			unordered_map<int, unique_ptr<OCLMemory>> idAndInputMemory;
+			unordered_map<int, unique_ptr<OCLMemory>> idAndTargetMemory;
+			unordered_map<int, int> idAndFormats;
+			unordered_map<int, int> idAndReferences;
+
+			vector<int> dataIDBuffer;
+			bool acquiredCalled;
+			int bufferSize;
+			int readPosition;
+			int writePosition;
+			int count;
 			mutex mut;
 
 		public:
-			InputDataBufferQueue(size_t maxBufferSize)
+			InputDataBufferQueue(int maxBufferSize)
 			{
 				if (maxBufferSize == 0)
 					throw invalid_argument("The buffer size has to be at least of size 1");
 
-				this->maxBufferSize = maxBufferSize;
+				this->bufferSize = maxBufferSize;
+				readPosition = 0;
+				writePosition = 0;
+				count = 0;
+				acquiredCalled = false;
 			};
 
-			InputDataWrapper Pop()
+			InputDataWrapper LockAndAcquire()
 			{
+				acquiredCalled = true;
 				unique_lock<mutex> lock(mut);
 
 				//Wait for not empty event
-				notEmpty.wait(lock, [this](){ return dataIDQueue.size() != 0;});
+				notEmpty.wait(lock, [this](){ return count != 0;});
 
-				if (dataIDQueue.size() == 0)
-					throw runtime_error("You cannot pop from an empty queue");
+				int dataID = dataIDBuffer[readPosition];
 
-				if (dataIDQueue.size() > maxBufferSize)
-					throw runtime_error("The internal queue is exceeding the buffer size");
+				if (idAndReferences.find(dataID) == idAndReferences.end())
+					throw runtime_error("We must have a ID in the buffer we are acquiring from");
 
-				if (idAndInputData.size() > dataIDQueue.size())
-					throw runtime_error("The resource holder contains more elements than the amount of ids in the queue");
+				InputDataWrapper result(idAndInputMemory[dataID].get(), idAndTargetMemory[dataID].get(), idAndFormats[dataID]);
 
-				int dataID = dataIDQueue.front();
-				dataIDQueue.pop();
+				//We still own the lock here, but in this case we'll release the unique_lock so that it may be unlocked manually bu the unlock function
+				lock.release();
 
-				if (idAndInputData.find(dataID) == idAndInputData.end())
-					throw runtime_error("We cannot have ID in the queue that is not located in the hash map");
+				return result;
+			}
 
-				auto& referenceDataTuple = idAndInputData[dataID];
+			void UnlockAcquire()
+			{
+				if (!acquiredCalled)
+					throw runtime_error("You cannot unlock and acquire if you have not acquired");
 
-				if (get<0>(referenceDataTuple) == 1)
-				{
-					InputDataWrapper result(move(get<2>(referenceDataTuple)), move(get<3>(referenceDataTuple)), get<1>(referenceDataTuple));
-					idAndInputData.erase(dataID);
-					notFull.notify_one();
-					return move(result);
-				}
-				else if(get<0>(referenceDataTuple) > 1)
-				{
-					InputDataWrapper result(get<2>(referenceDataTuple).get(), get<3>(referenceDataTuple).get(), get<1>(referenceDataTuple));
-					get<0>(referenceDataTuple) = get<0>(referenceDataTuple) - 1;
-					notFull.notify_one();
-					return move(result);
-				}
-				else
-					throw runtime_error("The memory references inside the the id hash map is invalid");
-			};
+				acquiredCalled = false;
+				readPosition = (readPosition + 1) % bufferSize;
+				count--;
+				mut.unlock();
+				notFull.notify_one();
+			}
 
-			//This functions pushes an ID to the queue. This is to happen if we already have a reference on the data
-			//If the return value is false, this means that it has failed. This can occur if Pop() was called previously, erasing the data
-			bool Push(int dataID)
+			void Push(int dataID)
 			{
 				unique_lock<mutex> lock(mut);
 
 				//Wait until the buffer is not full
-				notFull.wait(lock, [this](){ return dataIDQueue.size() != maxBufferSize;});
+				notFull.wait(lock, [this](){ return count != bufferSize;});
 
-				if (dataIDQueue.size() > maxBufferSize)
-					throw runtime_error("The internal queue is exceeding the buffer size");
+				if (idAndReferences.find(dataID) == idAndReferences.end())
+					throw invalid_argument("We must have a reference count to the memory");
 
-				if (idAndInputData.size() > dataIDQueue.size())
-					throw runtime_error("The resource holder contains more elements than the amount of ids in the queue");
+				//If the buffer is being filled for the first time, there's nothing to overwrite
+				if (static_cast<int>(dataIDBuffer.size()) <= writePosition)
+					dataIDBuffer.push_back(dataID);
+				else
+				{
+					auto overwriteID = dataIDBuffer[writePosition];
+					//If the reference count is 1, we may delete the OCL memory
+					auto idAndReference = idAndReferences.find(overwriteID);
 
+					if (idAndReference == idAndReferences.end())
+						throw runtime_error("We must have a reference count of the IDs in the data buffer");
 
-				if (idAndInputData.find(dataID) == idAndInputData.end())
-					return false;
+					if(idAndReference->second < 1)
+						throw runtime_error("We cannot have undeleted references that have 0 reference count");
 
-				dataIDQueue.push(dataID);
-				auto& referenceDataTuple = idAndInputData[dataID];
-				get<0>(referenceDataTuple) = get<0>(referenceDataTuple) + 1;
+					if (idAndReference->second == 1)
+					{
+						idAndReferences.erase(overwriteID);
+						idAndFormats.erase(overwriteID);
+						idAndInputMemory.erase(overwriteID);
+						idAndTargetMemory.erase(overwriteID);
+					}
+					else
+						idAndReferences[overwriteID]--;
 
+					dataIDBuffer[writePosition] = dataID;
+				}
+
+				idAndReferences[dataID]++;
+
+				writePosition = (writePosition + 1) % bufferSize;
+				count++;
+
+				// Manual unlocking is done before notifying, to avoid waking up
+				// the waiting thread only to block again
+				lock.unlock();
 				notEmpty.notify_one();
-
-				return true;
 			}
 
 			//This function should only be called if we don't have a reference of the dataID inside the buffer
@@ -185,29 +188,59 @@ namespace Matuna
 				unique_lock<mutex> lock(mut);
 
 				//Wait until the buffer is not full
-				notFull.wait(lock, [this](){ return dataIDQueue.size() != maxBufferSize;});
+				notFull.wait(lock, [this](){ return count != bufferSize;});
 
-				if (dataIDQueue.size() > maxBufferSize)
-					throw runtime_error("The internal queue is exceeding the buffer size");
+				//Assume here that the dataID has not been added before
+				if (idAndReferences.find(dataID) != idAndReferences.end())
+					throw invalid_argument("This function is not used correctly since you should not push data that already exist");
 
-				if (idAndInputData.size() > dataIDQueue.size())
-					throw runtime_error("The resource holder contains more elements than the amount of ids in the queue");
+				//If the buffer is being filled for the first time, there's nothing to overwrite
+				if (static_cast<int>(dataIDBuffer.size()) <= writePosition)
+					dataIDBuffer.push_back(dataID);
+				else
+				{
+					auto overwriteID = dataIDBuffer[writePosition];
+					//If the reference count is 1, we may delete the OCL memory
+					auto idAndReference = idAndReferences.find(overwriteID);
 
-				if (idAndInputData.find(dataID) != idAndInputData.end())
-					throw runtime_error("The data has already been added to the buffer");
+					if (idAndReference == idAndReferences.end())
+						throw runtime_error("We must have a reference count of the IDs in the data buffer");
 
-				idAndInputData.insert(make_pair(dataID, make_tuple(1, formatIndex, move(inputMemory), move(targetMemory))));
-				dataIDQueue.push(dataID);
+					if (idAndReference->second == 1)
+					{
+						idAndReferences.erase(overwriteID);
+						idAndFormats.erase(overwriteID);
+						idAndInputMemory.erase(overwriteID);
+						idAndTargetMemory.erase(overwriteID);
+					}
+					else
+						idAndReferences[overwriteID]--;
 
+					dataIDBuffer[writePosition] = dataID;
+				}
+
+				idAndReferences.insert(make_pair(dataID, 1));
+				idAndTargetMemory.insert(make_pair(dataID, move(targetMemory)));
+				idAndFormats.insert(make_pair(dataID, formatIndex));
+				idAndInputMemory.insert(make_pair(dataID, move(inputMemory)));
+
+				writePosition = (writePosition + 1) % bufferSize;
+				count++;
+
+				// Manual unlocking is done before notifying, to avoid waking up
+				// the waiting thread only to block again
+				lock.unlock();
 				notEmpty.notify_one();
 			}
 
-			void Clear()
+			void MoveReader()
 			{
 				unique_lock<mutex> lock(mut);
-				idAndInputData.clear();
-				queue<int> empty;
-				swap(dataIDQueue, empty);
+				readPosition = (readPosition + 1) % bufferSize;
+				count--;
+				// Manual unlocking is done before notifying, to avoid waking up
+				// the waiting thread only to block again
+				lock.unlock();
 				notFull.notify_one();
 			};
 
@@ -215,10 +248,10 @@ namespace Matuna
 			int ReferenceCount(int dataID)
 			{
 				unique_lock<mutex> lock(mut);
-				if (idAndInputData.find(dataID) == idAndInputData.end())
+				if (idAndReferences.find(dataID) == idAndReferences.end())
 					return 0;
 				else
-					return get<0>(idAndInputData[dataID]);
+					return idAndReferences[dataID];
 			};
 		};
 

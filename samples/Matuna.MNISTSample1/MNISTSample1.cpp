@@ -35,16 +35,12 @@ private:
 	vector<Matrix<T>> targets;
 	vector<Matrix<T>> tests;
 	vector<Matrix<T>> testTargets;
-	size_t counter;
+	int counter;
 
 public:
-	TestConvNetTrainer( const vector<LayerDataDescription>& inputDataDescriptions,
-		const vector<LayerDataDescription>& targetDataDescriptions,
-		const vector<LayerMemoryDescription>& inputMemoryDescriptions,
-		const vector<LayerMemoryDescription>& targetMemoryDescriptions, 
-		OCLConvNet<T>* network) : ConvNetTrainer<T>(inputDataDescriptions, targetDataDescriptions, inputMemoryDescriptions, targetMemoryDescriptions)
+	TestConvNetTrainer(OCLConvNet<T>* network) : ConvNetTrainer<T>(network)
 	{
-		counter = 0;
+		counter = -1;
 		this->network = network;
 	}
 
@@ -53,30 +49,54 @@ public:
 
 	}
 
-	virtual void MapInputAndTarget(T*& input, T*& target,int& formatIndex) override
+	//This function is called just before data is supposed to be read.
+	//Depending on the buffer size, Map and unmap functions does not need to be called.
+	virtual int DataIDRequest() override
 	{
-
-		input = inputs[counter].Data;
-		target = targets[counter].Data;
-		formatIndex = 0;
+		if (counter >= static_cast<int>(inputs.size()))
+			counter = -1;
 
 		counter++;
-		if (counter >= inputs.size())
+
+		if (counter >= static_cast<int>(inputs.size()))
 			counter = 0;
+
+		//cout << "Data ID: " << counter << endl;
+
+		return counter;
 	}
 
-	virtual void UnmapInputAndTarget(T*, T*, int) override
+	virtual void MapInputAndTarget(int dataID, T*& input, T*& target,int& formatIndex) override
 	{
 
+		if (dataID != counter)
+			throw invalid_argument("This should not be possible since we are not using instances");
+
+		if(dataID >= static_cast<int>(inputs.size()))
+			throw invalid_argument("This should not be possible since we are not using instances");
+
+		input = inputs[dataID].Data;
+		target = targets[dataID].Data;
+		formatIndex = 0;
+	}
+
+	virtual void UnmapInputAndTarget(int dataID, T*, T*, int) override
+	{
+
+		if (dataID != counter)
+			throw invalid_argument("This should not be possible since we are not using instances");
 	}
 
 	virtual void BatchFinished(T) override
 	{
-		//cout << "Counter: " << counter << endl;
+		//cout << "Batch finished: " << counter << endl;
 	}
 
 	virtual void EpochFinished() override
 	{
+
+		cout << "Epoch finished" << endl;
+
 		size_t correctClassifications = 0;
 		size_t totalClassifications = tests.size();
 		for (size_t i = 0; i < tests.size(); i++)
@@ -109,7 +129,7 @@ public:
 
 	virtual void BatchStarted() override
 	{
-		//cout << "Batch started" << endl;
+		//cout << "Batch started: " << counter << endl;
 	}
 
 	void SetTests(vector<Matrix<T>> tests)
@@ -137,10 +157,10 @@ public:
 int main(int, char**)
 {
 
-	auto trainingImages = MNISTAssetLoader<float>::ReadTrainingImages();
-	auto testImages = MNISTAssetLoader<float>::ReadTestImages(1000);
-	auto testTargets = MNISTAssetLoader<float>::ReadTestTargets(1000);
-	auto trainingTargets = MNISTAssetLoader<float>::ReadTrainingTargets();
+	auto trainingImages = MNISTAssetLoader<float>::ReadTrainingImages(1000);
+	auto testImages = MNISTAssetLoader<float>::ReadTestImages(500);
+	auto testTargets = MNISTAssetLoader<float>::ReadTestTargets(500);
+	auto trainingTargets = MNISTAssetLoader<float>::ReadTrainingTargets(1000);
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 
 	if (platformInfos.size() == 0)
@@ -182,9 +202,7 @@ int main(int, char**)
 	config->SetOutputConfig(move(outputLayerConfig));
 	OCLConvNet<float> network(deviceInfos, move(config));
 
-	auto tempTrainer = new TestConvNetTrainer<float>(network.InputForwardDataDescriptions(), network.OutputForwardDataDescriptions(),
-		network.InputForwardMemoryDescriptions(),
-		network.OutputForwardMemoryDescriptions(), &network);
+	auto tempTrainer = new TestConvNetTrainer<float>(&network);
 	tempTrainer->SetInputs(trainingImages);
 	tempTrainer->SetTargets(trainingTargets);
 	tempTrainer->SetTests(testImages);
@@ -193,17 +211,17 @@ int main(int, char**)
 	unique_ptr<ConvNetTrainer<float>> trainer(tempTrainer);
 
 	unique_ptr<GradientDescentConfig<float>> trainingConfig(new GradientDescentConfig<float>());
-	trainingConfig->SetBatchSize(60);
-	trainingConfig->SetEpochs(10);
+	trainingConfig->SetBatchSize(50);
+	trainingConfig->SetEpochs(1);
 	auto callBack = [] (int) 
 	{ 
 		return 0.001f;
 	};
 
 	trainingConfig->SetStepSizeCallback(callBack);
-	trainingConfig->SetSamplesPerEpoch(60000);
+	trainingConfig->SetSamplesPerEpoch(1000);
 
-	network.TrainNetwork(move(trainer), move(trainingConfig));
+	network.TrainNetwork2(move(trainer), move(trainingConfig));
 
 	return 0;
 }

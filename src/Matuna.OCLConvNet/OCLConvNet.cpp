@@ -735,11 +735,11 @@ namespace Matuna
 				//If we don't have a reference, we are 100% sure that we need to read the data
 				if (referencesForID == 0)
 				{
-					//printf("Writing data to device memory! \n");
-
 					trainer->MapInputAndTarget(dataID, input, target, formatIndex);
 					if (formatIndex != 0)
 						throw runtime_error("Other format indices than 0 is not supported at the moment");
+
+					//printf("Writing data to device memory, ID: %i \n", dataID);
 
 					//Here we will read the memory using the second device queue to maximize the througput of the device
 					unique_ptr<OCLMemory> inputMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, inputMemoryDescription.TotalMemory() * sizeof(T));
@@ -751,26 +751,7 @@ namespace Matuna
 					inputDataBufferQueue->Push(dataID, formatIndex, move(inputMemory), move(targetMemory));
 				}
 				else
-				{
-					//If we don't succeed to push the data, it means that the dataID has been removed since we checked for references
-					if(!inputDataBufferQueue->Push(dataID))
-					{
-						//printf("Buffer miss, if this occurs often, increase the size! \n");
-
-						trainer->MapInputAndTarget(dataID, input, target, formatIndex);
-						if (formatIndex != 0)
-							throw runtime_error("Other format indices than 0 is not supported at the moment");
-
-						//Here we will read the memory using the second device queue to maximize the througput of the device
-						unique_ptr<OCLMemory> inputMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, inputMemoryDescription.TotalMemory() * sizeof(T));
-						unique_ptr<OCLMemory> targetMemory = contexts[0]->CreateMemory(CL_MEM_READ_ONLY, inBackPropMemoryDescription.TotalMemory() * sizeof(T));
-						device->WriteMemory(inputMemory.get(), inputMemory->ByteSize(), input, 1, false);
-						device->WriteMemory(targetMemory.get(), targetMemory->ByteSize(), target, 1, false);
-						device->WaitForDeviceQueue(1);
-						trainer->UnmapInputAndTarget(dataID, input, target, formatIndex);
-						inputDataBufferQueue->Push(dataID, formatIndex, move(inputMemory), move(targetMemory));
-					}
-				}
+					inputDataBufferQueue->Push(dataID);
 			}
 		}
 
@@ -870,25 +851,36 @@ namespace Matuna
 							}
 
 							//Observe that the input data must live as long as we need it!
-							auto inputData = inputDataBufferQueue->Pop();
 							vector<unique_ptr<OCLMemory>> inputMemoriesHolder;
-							int formatIndex = inputData.FormatIndex();
-							FeedForwardHighMemory(inputData.GetInput(), inputData.FormatIndex(), inputMemoriesHolder);
 							vector<OCLMemory*> inputMemories;
-							inputMemories.push_back(inputData.GetInput());
-							for (auto& holder : inputMemoriesHolder)
-								inputMemories.push_back(holder.get());
+							int formatIndex;
+							unique_ptr<OCLMemory> backPropOutputMemory;
+							try
+							{
+								auto inputData = inputDataBufferQueue->LockAndAcquire();
+								formatIndex = inputData.FormatIndex();
+								FeedForwardHighMemory(inputData.GetInput(), inputData.FormatIndex(), inputMemoriesHolder);
+								inputMemories.push_back(inputData.GetInput());
+								for (auto& holder : inputMemoriesHolder)
+									inputMemories.push_back(holder.get());
 
-							LayerMemoryDescription outBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
-							unique_ptr<OCLMemory> backPropOutputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * outBackPropMemoryDescription.TotalMemory());
-							outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], inputData.GetTarget(), backPropOutputMemory.get(), false);
+								LayerMemoryDescription outBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
+								backPropOutputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * outBackPropMemoryDescription.TotalMemory());
+								outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], inputData.GetTarget(), backPropOutputMemory.get(), false);
 
-							if (layerCount != 0) 
-								layers[layerCount - 1]->EnqueueCalculateGradient(device, 0, inputMemories[inputMemories.size() - 2],
-								backPropOutputMemory.get(), gradientsPointers[layerCount - 1], false);
+								if (layerCount != 0) 
+									layers[layerCount - 1]->EnqueueCalculateGradient(device, 0, inputMemories[inputMemories.size() - 2],
+									backPropOutputMemory.get(), gradientsPointers[layerCount - 1], false);
 
-							device->WaitForDeviceQueue(0);
-							inputMemoriesHolder[inputMemoriesHolder.size() - 1].reset();
+								device->WaitForDeviceQueue(0);
+								inputMemoriesHolder[inputMemoriesHolder.size() - 1].reset();
+							}
+							catch(...)
+							{
+								inputDataBufferQueue->UnlockAcquire();
+								throw;
+							}
+							inputDataBufferQueue->UnlockAcquire();
 
 							for (int i = static_cast<int>(layerCount) - 1; i >= 1; i--) 
 							{
@@ -987,8 +979,9 @@ namespace Matuna
 			catch(...)
 			{
 				trainingIsRunning = false;
-				inputDataBufferQueue->Clear(); //Observe that we can never get stuck in this thread as long as the other thread is pumping data.
+				inputDataBufferQueue->MoveReader(); //Observe that we can never get stuck in this thread as long as the other thread is pumping data.
 				inputReader.join();
+				inputDataBufferQueue.reset();
 				device->WaitForDeviceQueue(0);
 				device->WaitForDeviceQueue(1);
 				contexts[0]->DetachProgram(programPointer);
@@ -996,8 +989,9 @@ namespace Matuna
 			}
 
 			trainingIsRunning = false;
-			inputDataBufferQueue->Clear(); //Observe that we can never get stuck in this thread as long as the other thread is pumping data.
+			inputDataBufferQueue->MoveReader(); //Observe that we can never get stuck in this thread as long as the other thread is pumping data.
 			inputReader.join();
+			inputDataBufferQueue.reset();
 			device->WaitForDeviceQueue(0);
 			device->WaitForDeviceQueue(1);
 			contexts[0]->DetachProgram(programPointer);
