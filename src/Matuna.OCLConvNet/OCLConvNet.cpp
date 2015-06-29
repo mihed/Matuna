@@ -874,25 +874,26 @@ namespace Matuna
 
 								device->WaitForDeviceQueue(0);
 								inputMemoriesHolder[inputMemoriesHolder.size() - 1].reset();
+
+								for (int i = static_cast<int>(layerCount) - 1; i >= 1; i--) 
+								{
+									LayerMemoryDescription inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
+									unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
+									layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i], backPropOutputMemory.get(), outputMemory.get(), true);
+									backPropOutputMemory.reset();
+									backPropOutputMemory = move(outputMemory);
+									inputMemoriesHolder[i - 1].reset();
+									layers[i - 1]->EnqueueCalculateGradient(device, 0, inputMemories[i - 1], backPropOutputMemory.get(), gradientsPointers[i - 1], false);
+								}
+
 							}
 							catch(...)
 							{
 								inputDataBufferQueue->UnlockAcquire();
 								throw;
 							}
+
 							inputDataBufferQueue->UnlockAcquire();
-
-							for (int i = static_cast<int>(layerCount) - 1; i >= 1; i--) 
-							{
-								LayerMemoryDescription inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
-								unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
-								layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i], backPropOutputMemory.get(), outputMemory.get(), true);
-								backPropOutputMemory.reset();
-								backPropOutputMemory = move(outputMemory);
-								inputMemoriesHolder[i - 1].reset();
-								layers[i - 1]->EnqueueCalculateGradient(device, 0, inputMemories[i - 1], backPropOutputMemory.get(), gradientsPointers[i - 1], false);
-							}
-
 
 							//If this is the first sample, add the memory to the accumulator and continue
 							if (sample == 0) 

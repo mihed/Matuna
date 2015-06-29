@@ -89,7 +89,7 @@ public:
 
 	virtual void BatchFinished(T) override
 	{
-		//cout << "Batch finished: " << counter << endl;
+		cout << "Batch finished: " << counter << endl;
 	}
 
 	virtual void EpochFinished() override
@@ -129,7 +129,7 @@ public:
 
 	virtual void BatchStarted() override
 	{
-		//cout << "Batch started: " << counter << endl;
+		cout << "Batch started: " << counter << endl;
 	}
 
 	void SetTests(vector<Matrix<T>> tests)
@@ -157,10 +157,10 @@ public:
 int main(int, char**)
 {
 
-	auto trainingImages = MNISTAssetLoader<float>::ReadTrainingImages(1000);
-	auto testImages = MNISTAssetLoader<float>::ReadTestImages(500);
-	auto testTargets = MNISTAssetLoader<float>::ReadTestTargets(500);
-	auto trainingTargets = MNISTAssetLoader<float>::ReadTrainingTargets(1000);
+	auto trainingImages = MNISTAssetLoader<float>::ReadTrainingImages();
+	auto testImages = MNISTAssetLoader<float>::ReadTestImages(1000);
+	auto testTargets = MNISTAssetLoader<float>::ReadTestTargets(1000);
+	auto trainingTargets = MNISTAssetLoader<float>::ReadTrainingTargets();
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 
 	if (platformInfos.size() == 0)
@@ -207,19 +207,20 @@ int main(int, char**)
 	tempTrainer->SetTargets(trainingTargets);
 	tempTrainer->SetTests(testImages);
 	tempTrainer->SetTestTargets(testTargets);
+	tempTrainer->SetBufferSize(60000);
 
 	unique_ptr<ConvNetTrainer<float>> trainer(tempTrainer);
 
 	unique_ptr<GradientDescentConfig<float>> trainingConfig(new GradientDescentConfig<float>());
-	trainingConfig->SetBatchSize(50);
-	trainingConfig->SetEpochs(1);
+	trainingConfig->SetBatchSize(60);
+	trainingConfig->SetEpochs(2);
 	auto callBack = [] (int) 
 	{ 
 		return 0.001f;
 	};
 
 	trainingConfig->SetStepSizeCallback(callBack);
-	trainingConfig->SetSamplesPerEpoch(1000);
+	trainingConfig->SetSamplesPerEpoch(60000);
 
 	network.TrainNetwork2(move(trainer), move(trainingConfig));
 
