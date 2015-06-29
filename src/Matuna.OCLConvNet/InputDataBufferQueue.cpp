@@ -189,7 +189,7 @@ namespace Matuna
 			// the waiting thread only to block again
 			lock.unlock();
 			notFull.notify_one();
-		};
+		}
 
 		int InputDataBufferQueue::ReferenceCount(int dataID)
 		{
@@ -198,7 +198,7 @@ namespace Matuna
 				return 0;
 			else
 				return idAndReferences[dataID];
-		};
+		}
 
 	} /* namespace MachineLearning */
 } /* namespace Matuna */

@@ -12,6 +12,7 @@
 
 #include <unordered_map>
 #include <memory>
+#include <vector>
 #include <mutex>
 #include <condition_variable>
 
