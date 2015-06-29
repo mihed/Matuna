@@ -16,15 +16,81 @@
 #include "Matuna.ConvNet/StandardOutputLayerConfig.h"
 #include "Matuna.ConvNet/VanillaSamplingLayerConfig.h"
 #include "Matuna.ConvNet/MaxPoolingLayerConfig.h"
+#include "Matuna.ConvNet/ConvNetTrainer.h"
 #include "Matuna.Math/Matrix.h"
 #include <memory>
 #include <random>
 #include <type_traits>
+#include <ctime>
 
 using namespace std;
 using namespace Matuna::MachineLearning;
 using namespace Matuna::Math;
 using namespace Matuna::Helper;
+
+template<class T> 
+class TestConvNetTrainer: public ConvNetTrainer<T>
+{
+private:
+	T* input;
+	T* target;
+public:
+	TestConvNetTrainer(OCLConvNet<T>* network) : ConvNetTrainer<T>(network)
+	{
+
+	};
+	~TestConvNetTrainer()
+	{
+
+	};
+
+	virtual void MapInputAndTarget(int dataID, T*& input, T*& target,int& formatIndex) override
+	{
+		target = this->target;
+		input = this->input;
+		formatIndex = 0;
+	};
+	virtual void UnmapInputAndTarget(int dataID, T* input, T* target,int formatIndex) override
+	{
+
+	};
+
+	virtual void BatchFinished(T error) override
+	{
+
+	};
+
+	virtual void EpochFinished() override
+	{
+
+	};
+
+
+	virtual void EpochStarted() override
+	{
+
+	};
+
+	virtual void BatchStarted() override
+	{
+
+	};
+
+	virtual int DataIDRequest() override
+	{
+		return 0;
+	};
+
+	void SetInput(T* input)
+	{
+		this->input = input;
+	};
+
+	void SetTarget(T* target)
+	{
+		this->target = target;
+	};
+};
 
 void CreateConfig2(bool useLowMemory, mt19937& mt,
 				   uniform_int_distribution<int>& perceptronLayerGenerator,
@@ -197,8 +263,130 @@ unique_ptr<float[]> GetDataFromDescription(LayerDataDescription dataDescription)
 	return move(outputs);
 }
 
-
+/*
 TEST_CASE("Making sure that the low and high memory usages give the same result")
+{
+auto platformInfos = OCLHelper::GetPlatformInfos();
+random_device randomDevice;
+mt19937 mt(randomDevice());
+uniform_int_distribution<int> dimensionGenerator(1, 5);
+uniform_int_distribution<int> imageDimensionGenerator(100, 150);
+uniform_int_distribution<int> perceptronLayerGenerator(1, 2);
+uniform_int_distribution<int> convolutionLayerGenerator(1, 2);
+uniform_int_distribution<int> maxSamplingSizeGenerator(1, 3);
+uniform_int_distribution<int> filterGenerator(1, 10);
+
+
+for (int dummy = 0; dummy < 20; dummy++)
+{
+for (auto platformInfo : platformInfos)
+{
+auto deviceInfos = OCLHelper::GetDeviceInfos(platformInfo);
+for (auto& deviceInfo : deviceInfos)
+{
+
+unique_ptr<ConvNetConfig> config;
+
+vector<unique_ptr<ConvNetConfig>> configs;
+CreateConfig2(true, mt, perceptronLayerGenerator, convolutionLayerGenerator,
+imageDimensionGenerator, filterGenerator, dimensionGenerator, maxSamplingSizeGenerator, false, true, configs);
+
+auto& lowMemoryConfig = configs[0];
+auto& highMemoryConfig = configs[1];
+highMemoryConfig->SetLowMemoryUsage(false);
+
+vector<OCLDeviceInfo> oneDeviceInfo;
+oneDeviceInfo.push_back(deviceInfo);
+
+cout << deviceInfo.PlatformInfo().PlatformName() << endl << deviceInfo.DeviceName() << endl << "Type: " << deviceInfo.Type() << endl << endl;
+
+//Create the first convnet and fetch the parameters
+unique_ptr<OCLConvNet<float>> lowMemoryConvNet(new OCLConvNet<float>(oneDeviceInfo, move(lowMemoryConfig)));
+auto parameters = lowMemoryConvNet->GetParameters();
+
+auto inputMemory = GetDataFromDescription(lowMemoryConvNet->InputForwardDataDescriptions()[0]);
+auto targetMemory = GetDataFromDescription(lowMemoryConvNet->OutputForwardDataDescriptions()[0]);
+
+int forwardSize = lowMemoryConvNet->OutputForwardDataDescriptions()[0].TotalUnits();
+int backSize = lowMemoryConvNet->OutputBackDataDescriptions()[0].TotalUnits();
+size_t parametersSize = lowMemoryConvNet->GetParameterCount();
+
+auto forwardTestLow = lowMemoryConvNet->FeedForwardUnaligned(inputMemory.get(), 0);
+auto backTestLow = lowMemoryConvNet->BackPropUnaligned(inputMemory.get(), 0, targetMemory.get());
+auto gradientTestLow = lowMemoryConvNet->CalculateGradientUnaligned(inputMemory.get(), 0, targetMemory.get());
+
+auto lowTrainer = new TestConvNetTrainer<float>(lowMemoryConvNet.get());
+lowTrainer->SetInput(inputMemory.get());
+lowTrainer->SetTarget(targetMemory.get());
+
+auto algorithmConfig = new GradientDescentConfig<float>();
+algorithmConfig->SetBatchSize(5);
+algorithmConfig->SetEpochs(2);
+algorithmConfig->SetSamplesPerEpoch(5);
+algorithmConfig->SetStepSizeCallback([] (int){ return 0.00001f;});
+
+lowMemoryConvNet->TrainNetwork2(unique_ptr<ConvNetTrainer<float>>(lowTrainer), unique_ptr<IAlgorithmConfig>(algorithmConfig));
+
+auto lowTrainedParameters = lowMemoryConvNet->GetParameters();
+
+lowMemoryConvNet.reset();
+
+unique_ptr<OCLConvNet<float>> highMemoryConvNet(new OCLConvNet<float>(oneDeviceInfo, move(highMemoryConfig)));
+
+
+CHECK(forwardSize == highMemoryConvNet->OutputForwardDataDescriptions()[0].TotalUnits());
+CHECK(backSize == highMemoryConvNet->OutputBackDataDescriptions()[0].TotalUnits());
+CHECK(parametersSize == highMemoryConvNet->GetParameterCount());
+
+INFO("Setting the parameters from the low network");
+highMemoryConvNet->SetParameters(parameters.get());
+
+auto forwardTestHigh = highMemoryConvNet->FeedForwardUnaligned(inputMemory.get(), 0);
+auto backTestHigh = highMemoryConvNet->BackPropUnaligned(inputMemory.get(), 0, targetMemory.get());
+auto gradientTestHigh = highMemoryConvNet->CalculateGradientUnaligned(inputMemory.get(), 0, targetMemory.get());
+
+
+auto highTrainer = new TestConvNetTrainer<float>(highMemoryConvNet.get());
+highTrainer->SetInput(inputMemory.get());
+highTrainer->SetTarget(targetMemory.get());
+
+algorithmConfig = new GradientDescentConfig<float>();
+algorithmConfig->SetBatchSize(5);
+algorithmConfig->SetEpochs(2);
+algorithmConfig->SetSamplesPerEpoch(5);
+algorithmConfig->SetStepSizeCallback([] (int){ return 0.00001f;});
+
+highMemoryConvNet->TrainNetwork2(unique_ptr<ConvNetTrainer<float>>(highTrainer), unique_ptr<IAlgorithmConfig>(algorithmConfig));
+
+auto highTrainedParameters = highMemoryConvNet->GetParameters();
+
+INFO("Comparing high and low memory usages");
+
+for (int i = 0; i < forwardSize; i++)
+CHECK(forwardTestLow[i] == forwardTestHigh[i]);
+
+cout << "Forward checks out" << endl;
+
+for (int i = 0; i < backSize; i++)
+CHECK(backTestLow[i] == backTestHigh[i]);
+
+cout << "Back checks out " << endl;
+
+for (size_t i = 0; i < parametersSize; i++)
+CHECK(gradientTestLow[i] == gradientTestHigh[i]);
+
+cout << "Gradient check out " << endl;
+
+for (size_t i = 0; i < parametersSize; i++)
+CHECK(highTrainedParameters[i] == lowTrainedParameters[i]);
+
+cout << "Training check out " << endl;
+}
+}
+}
+}*/
+
+TEST_CASE("Benchmarking the high memory calls to the low memory calls")
 {
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 	random_device randomDevice;
@@ -210,6 +398,7 @@ TEST_CASE("Making sure that the low and high memory usages give the same result"
 	uniform_int_distribution<int> maxSamplingSizeGenerator(1, 3);
 	uniform_int_distribution<int> filterGenerator(1, 10);
 
+	int benchmarkIterations = 40;
 
 	for (int dummy = 0; dummy < 20; dummy++)
 	{
@@ -241,13 +430,70 @@ TEST_CASE("Making sure that the low and high memory usages give the same result"
 				auto inputMemory = GetDataFromDescription(lowMemoryConvNet->InputForwardDataDescriptions()[0]);
 				auto targetMemory = GetDataFromDescription(lowMemoryConvNet->OutputForwardDataDescriptions()[0]);
 
+
+
 				int forwardSize = lowMemoryConvNet->OutputForwardDataDescriptions()[0].TotalUnits();
 				int backSize = lowMemoryConvNet->OutputBackDataDescriptions()[0].TotalUnits();
 				size_t parametersSize = lowMemoryConvNet->GetParameterCount();
 
-				auto forwardTestLow = lowMemoryConvNet->FeedForwardUnaligned(inputMemory.get(), 0);
-				auto backTestLow = lowMemoryConvNet->BackPropUnaligned(inputMemory.get(), 0, targetMemory.get());
-				auto gradientTestLow = lowMemoryConvNet->CalculateGradientUnaligned(inputMemory.get(), 0, targetMemory.get());
+
+
+				clock_t start; 
+				for (int i = 0; i < benchmarkIterations; i++)
+				{
+					lowMemoryConvNet->FeedForwardUnaligned(inputMemory.get(), 0);
+					if (i == 0)
+						start = clock();
+				}
+
+				auto duration = (clock() - start) / (double) CLOCKS_PER_SEC;
+
+				cout << "Forward duration, low memory: " << duration << endl;
+
+				for (int i = 0; i < benchmarkIterations; i++)
+				{
+					lowMemoryConvNet->BackPropUnaligned(inputMemory.get(), 0, targetMemory.get());
+					if (i == 0)
+						start = clock();
+				}
+
+				duration = (clock() - start) / (double) CLOCKS_PER_SEC;
+
+				cout << "Back duration, low memory: " << duration << endl;
+
+				for (int i = 0; i < benchmarkIterations; i++)
+				{
+					lowMemoryConvNet->CalculateGradientUnaligned(inputMemory.get(), 0, targetMemory.get());
+					if (i == 0)
+						start = clock();
+				}
+
+				duration = (clock() - start) / (double) CLOCKS_PER_SEC;
+
+				cout << "Gradient duration, low memory: " << duration << endl;
+
+
+				for (int i = 0; i < benchmarkIterations; i++)
+				{
+					auto lowTrainer = new TestConvNetTrainer<float>(lowMemoryConvNet.get());
+					lowTrainer->SetInput(inputMemory.get());
+					lowTrainer->SetTarget(targetMemory.get());
+
+					auto algorithmConfig = new GradientDescentConfig<float>();
+					algorithmConfig->SetBatchSize(5);
+					algorithmConfig->SetEpochs(2);
+					algorithmConfig->SetSamplesPerEpoch(5);
+					algorithmConfig->SetStepSizeCallback([] (int){ return 0.00001f;});
+
+					lowMemoryConvNet->TrainNetwork2(unique_ptr<ConvNetTrainer<float>>(lowTrainer), unique_ptr<IAlgorithmConfig>(algorithmConfig));
+					if (i == 0)
+						start = clock();
+				}
+
+				duration = (clock() - start) / (double) CLOCKS_PER_SEC;
+				cout << "Training duration, low memory: " << duration << endl;
+
+				auto lowTrainedParameters = lowMemoryConvNet->GetParameters();
 
 				lowMemoryConvNet.reset();
 
@@ -261,26 +507,67 @@ TEST_CASE("Making sure that the low and high memory usages give the same result"
 				INFO("Setting the parameters from the low network");
 				highMemoryConvNet->SetParameters(parameters.get());
 
-				auto forwardTestHigh = highMemoryConvNet->FeedForwardUnaligned(inputMemory.get(), 0);
-				auto backTestHigh = highMemoryConvNet->BackPropUnaligned(inputMemory.get(), 0, targetMemory.get());
-				auto gradientTestHigh = highMemoryConvNet->CalculateGradientUnaligned(inputMemory.get(), 0, targetMemory.get());
+				for (int i = 0; i < benchmarkIterations; i++)
+				{
+					highMemoryConvNet->FeedForwardUnaligned(inputMemory.get(), 0);
+					if (i == 0)
+						start = clock();
+				}
 
-				INFO("Comparing high and low memory usages");
 
-				for (int i = 0; i < forwardSize; i++)
-					CHECK(forwardTestLow[i] == forwardTestHigh[i]);
+				duration = (clock() - start) / (double) CLOCKS_PER_SEC;
 
-				cout << "Forward checks out" << endl;
+				cout << "Forward duration, high memory: " << duration << endl;
 
-				for (int i = 0; i < backSize; i++)
-					CHECK(backTestLow[i] == backTestHigh[i]);
+				for (int i = 0; i < benchmarkIterations; i++)
+				{
+					highMemoryConvNet->BackPropUnaligned(inputMemory.get(), 0, targetMemory.get());
+					if (i == 0)
+						start = clock();
+				}
 
-				cout << "Back checks out " << endl;
 
-				for (size_t i = 0; i < parametersSize; i++)
-					CHECK(gradientTestLow[i] == gradientTestHigh[i]);
+				duration = (clock() - start) / (double) CLOCKS_PER_SEC;
 
-				cout << "Gradient check out " << endl;
+				cout << "Back duration, high memory: " << duration << endl;
+
+				for (int i = 0; i < benchmarkIterations; i++)
+				{
+					highMemoryConvNet->CalculateGradientUnaligned(inputMemory.get(), 0, targetMemory.get());
+					if (i == 0)
+						start = clock();
+				}
+
+
+				duration = (clock() - start) / (double) CLOCKS_PER_SEC;
+
+				cout << "Gradient duration, high memory: " << duration << endl;
+
+				for (int i = 0; i < benchmarkIterations; i++)
+				{
+
+					auto highTrainer = new TestConvNetTrainer<float>(highMemoryConvNet.get());
+					highTrainer->SetInput(inputMemory.get());
+					highTrainer->SetTarget(targetMemory.get());
+
+					auto algorithmConfig = new GradientDescentConfig<float>();
+					algorithmConfig->SetBatchSize(5);
+					algorithmConfig->SetEpochs(2);
+					algorithmConfig->SetSamplesPerEpoch(5);
+					algorithmConfig->SetStepSizeCallback([] (int){ return 0.00001f;});
+
+					highMemoryConvNet->TrainNetwork2(unique_ptr<ConvNetTrainer<float>>(highTrainer), unique_ptr<IAlgorithmConfig>(algorithmConfig));
+
+					if (i == 0)
+						start = clock();
+				}
+
+
+				duration = (clock() - start) / (double) CLOCKS_PER_SEC;
+
+				cout << "Train duration, high memory: " << duration << endl;
+
+				auto highTrainedParameters = highMemoryConvNet->GetParameters();
 			}
 		}
 	}

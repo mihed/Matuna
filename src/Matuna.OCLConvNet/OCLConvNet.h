@@ -351,10 +351,21 @@ namespace Matuna
 				OCLDevice* device,
 				const vector<vector<OCLMemory*>>& accumulatedGradientsPointers);
 
+			void InnerLoopGDHighMemory(
+				size_t layerCount,
+				int sample,
+				LayerKernel<T>* vectorKernel,
+				OCLDevice* device,
+				const vector<OCLMemory*>& inputMemories,
+				const vector<OCLMemory*>& backPropMemories,
+				const vector<vector<OCLMemory*>>& gradientsPointers, 
+				const vector<vector<OCLMemory*>>& accumulatedGradientsPointers);
+
 			void UpdateGradient(size_t layerCount, const vector<vector<OCLMemory*>>& accumulatedGradientsPointers,
-				LayerKernel<T>* scalarKernel, OCLDevice* device);
+				LayerKernel<T>* scalarKernel, OCLDevice* device, bool blocking);
 
 			void TrainNetworkGDLowMemory(unique_ptr<GradientDescentConfig<T>> gdConfig, unique_ptr<ConvNetTrainer<T>> trainer);
+			void TrainNetworkGDHighMemory(unique_ptr<GradientDescentConfig<T>> gdConfig, unique_ptr<ConvNetTrainer<T>> trainer);
 			void ReadInputDataAsync(ConvNetTrainer<T>* trainer);
 		};
 

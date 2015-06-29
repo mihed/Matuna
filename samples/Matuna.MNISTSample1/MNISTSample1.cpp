@@ -187,6 +187,7 @@ int main(int, char**)
 	inputDesc.Units = 1;
 	inputDataDescriptions.push_back(inputDesc);
 	unique_ptr<ConvNetConfig> config(new ConvNetConfig(inputDataDescriptions));
+	config->SetLowMemoryUsage(false);
 	vector<OCLDeviceInfo> deviceInfos;
 	deviceInfos.push_back(deviceInfo);
 
@@ -212,7 +213,7 @@ int main(int, char**)
 	unique_ptr<ConvNetTrainer<float>> trainer(tempTrainer);
 
 	unique_ptr<GradientDescentConfig<float>> trainingConfig(new GradientDescentConfig<float>());
-	trainingConfig->SetBatchSize(13);
+	trainingConfig->SetBatchSize(20);
 	trainingConfig->SetEpochs(4);
 	auto callBack = [] (int) 
 	{ 
