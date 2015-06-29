@@ -29,7 +29,7 @@ namespace Matuna
 		}
 
 		template<class T> 
-		void TestConvNetTrainer<T>::MapInputAndTarget(int dataID, T*& input, T*& target,int& formatIndex)
+		void TestConvNetTrainer<T>::MapInputAndTarget(int, T*& input, T*& target,int& formatIndex)
 		{
 			target = this->target;
 			input = this->input;
@@ -45,7 +45,7 @@ namespace Matuna
 		}
 
 		template<class T> 
-		void TestConvNetTrainer<T>::UnmapInputAndTarget(int dataID, T*, T*, int)
+		void TestConvNetTrainer<T>::UnmapInputAndTarget(int, T*, T*, int)
 		{
 			//cout << "Unmaped" << endl;
 		}

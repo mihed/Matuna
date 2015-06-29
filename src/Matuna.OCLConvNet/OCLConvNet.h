@@ -343,6 +343,17 @@ namespace Matuna
 
 			T CalculateError(OCLMemory* lastOutput, int formatIndex, OCLMemory* target);
 
+			void InnerLoopGDLowMemory(
+				size_t layerCount,
+				int sample,
+				LayerKernel<T>* vectorKernel,
+				const vector<vector<OCLMemory*>>& gradientsPointers, 
+				OCLDevice* device,
+				const vector<vector<OCLMemory*>>& accumulatedGradientsPointers);
+
+			void UpdateGradient(size_t layerCount, const vector<vector<OCLMemory*>>& accumulatedGradientsPointers,
+				LayerKernel<T>* scalarKernel, OCLDevice* device);
+
 			void TrainNetworkGDLowMemory(unique_ptr<GradientDescentConfig<T>> gdConfig, unique_ptr<ConvNetTrainer<T>> trainer);
 			void ReadInputDataAsync(ConvNetTrainer<T>* trainer);
 		};

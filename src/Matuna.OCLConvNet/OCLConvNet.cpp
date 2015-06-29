@@ -16,6 +16,8 @@
 
 #include "LayerKernel.h"
 
+#include <functional>
+
 namespace Matuna 
 {
 	namespace MachineLearning 
@@ -756,6 +758,120 @@ namespace Matuna
 		}
 
 		template<class T>
+		void OCLConvNet<T>::InnerLoopGDLowMemory(size_t layerCount, int sample,
+			LayerKernel<T>* vectorKernel,
+			const vector<vector<OCLMemory*>>& gradientsPointers, 
+			OCLDevice* device,
+			const vector<vector<OCLMemory*>>& accumulatedGradientsPointers)
+		{
+			//Observe that the input data must live as long as we need it!
+			vector<unique_ptr<OCLMemory>> inputMemoriesHolder;
+			vector<OCLMemory*> inputMemories;
+			int formatIndex;
+			unique_ptr<OCLMemory> backPropOutputMemory;
+			try
+			{
+				auto inputData = inputDataBufferQueue->LockAndAcquire();
+				formatIndex = inputData.FormatIndex();
+				FeedForwardHighMemory(inputData.GetInput(), inputData.FormatIndex(), inputMemoriesHolder);
+				inputMemories.push_back(inputData.GetInput());
+				for (auto& holder : inputMemoriesHolder)
+					inputMemories.push_back(holder.get());
+
+				LayerMemoryDescription outBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
+				backPropOutputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * outBackPropMemoryDescription.TotalMemory());
+				outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], inputData.GetTarget(), backPropOutputMemory.get(), false);
+
+				if (layerCount != 0) 
+					layers[layerCount - 1]->EnqueueCalculateGradient(device, 0, inputMemories[inputMemories.size() - 2],
+					backPropOutputMemory.get(), gradientsPointers[layerCount - 1], false);
+
+				device->WaitForDeviceQueue(0);
+				inputMemoriesHolder[inputMemoriesHolder.size() - 1].reset();
+
+				for (int i = static_cast<int>(layerCount) - 1; i >= 1; i--) 
+				{
+					LayerMemoryDescription inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
+					unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
+					layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i], backPropOutputMemory.get(), outputMemory.get(), true);
+					backPropOutputMemory.reset();
+					backPropOutputMemory = move(outputMemory);
+					inputMemoriesHolder[i - 1].reset();
+					layers[i - 1]->EnqueueCalculateGradient(device, 0, inputMemories[i - 1], backPropOutputMemory.get(), gradientsPointers[i - 1], false);
+				}
+
+			}
+			catch(...)
+			{
+				inputDataBufferQueue->UnlockAcquire();
+				throw;
+			}
+
+			inputDataBufferQueue->UnlockAcquire();
+
+			//If this is the first sample, add the memory to the accumulator and continue
+			if (sample == 0) 
+			{
+				for (size_t i = 0; i < layerCount; i++) 
+				{
+					for (size_t j = 0; j < gradientsPointers[i].size(); j++) 
+					{
+						if (gradientsPointers[i][j]->ByteSize() == accumulatedGradientsPointers[i][j]->ByteSize())
+							device->CopyCLMemory(gradientsPointers[i][j], accumulatedGradientsPointers[i][j], 0, 0, gradientsPointers[i][j]->ByteSize(), 0, false);
+						else
+							throw runtime_error( "The memory does not match for the accumulated gradient.");
+					}
+				}
+			} 
+			else 
+			{
+				for (size_t i = 0; i < layerCount; i++) 
+				{
+					vector<size_t> parameterCount = layers[i]->GetMultipleParameterCount();
+					for (size_t j = 0; j < gradientsPointers[i].size(); j++) 
+					{
+						vectorKernel->SetMemoryArg(accumulatedGradientsPointers[i][j], 1);
+						vectorKernel->SetMemoryArg(gradientsPointers[i][j], 0);
+						vectorKernel->ClearGlobalSizes();
+						vectorKernel->AddGlobalSize(parameterCount[j]);
+						device->ExecuteKernel(vectorKernel, 0, false);
+					}
+				}
+			}
+
+			//We don't really need this one since the gradient memory will not be collected
+			device->WaitForDeviceQueue(0);
+		}
+
+		template<class T>
+		void OCLConvNet<T>::UpdateGradient(size_t layerCount, const vector<vector<OCLMemory*>>& accumulatedGradientsPointers,
+			LayerKernel<T>* scalarKernel, OCLDevice* device)
+		{
+			for (size_t i = 0; i < layerCount; i++) 
+			{
+				vector<OCLMemory*> parametersToUpdate = layers[i]->GetParameters();
+				vector<size_t> parameterCount = layers[i]->GetMultipleParameterCount();
+
+				if (parametersToUpdate.size() != accumulatedGradientsPointers[i].size())
+					throw runtime_error("The accumulated gradients do not match the layer parameters");
+
+				for (size_t j = 0; j < accumulatedGradientsPointers[i].size(); j++) 
+				{
+					if (parametersToUpdate[j]->ByteSize() != accumulatedGradientsPointers[i][j]->ByteSize())
+						throw runtime_error("The gradient and the parameter memories does not match");
+
+					scalarKernel->SetMemoryArg(accumulatedGradientsPointers[i][j], 0);
+					scalarKernel->SetMemoryArg(parametersToUpdate[j], 1);
+					scalarKernel->ClearGlobalSizes();
+					scalarKernel->AddGlobalSize(parameterCount[j]);
+					device->ExecuteKernel(scalarKernel, 0, false);
+				}
+			}
+
+			device->WaitForDeviceQueue(0);
+		}
+
+		template<class T>
 		void OCLConvNet<T>::TrainNetworkGDLowMemory(unique_ptr<GradientDescentConfig<T>> gdConfig, unique_ptr<ConvNetTrainer<T>> trainer)
 		{
 			//Pre-requisists
@@ -850,118 +966,19 @@ namespace Matuna
 								break;
 							}
 
-							//Observe that the input data must live as long as we need it!
-							vector<unique_ptr<OCLMemory>> inputMemoriesHolder;
-							vector<OCLMemory*> inputMemories;
-							int formatIndex;
-							unique_ptr<OCLMemory> backPropOutputMemory;
-							try
-							{
-								auto inputData = inputDataBufferQueue->LockAndAcquire();
-								formatIndex = inputData.FormatIndex();
-								FeedForwardHighMemory(inputData.GetInput(), inputData.FormatIndex(), inputMemoriesHolder);
-								inputMemories.push_back(inputData.GetInput());
-								for (auto& holder : inputMemoriesHolder)
-									inputMemories.push_back(holder.get());
-
-								LayerMemoryDescription outBackPropMemoryDescription = outputLayer->OutBackPropMemoryDescriptions()[formatIndex];
-								backPropOutputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * outBackPropMemoryDescription.TotalMemory());
-								outputLayer->EnqueueBackPropagation(device, 0, inputMemories[inputMemories.size() - 1], inputData.GetTarget(), backPropOutputMemory.get(), false);
-
-								if (layerCount != 0) 
-									layers[layerCount - 1]->EnqueueCalculateGradient(device, 0, inputMemories[inputMemories.size() - 2],
-									backPropOutputMemory.get(), gradientsPointers[layerCount - 1], false);
-
-								device->WaitForDeviceQueue(0);
-								inputMemoriesHolder[inputMemoriesHolder.size() - 1].reset();
-
-								for (int i = static_cast<int>(layerCount) - 1; i >= 1; i--) 
-								{
-									LayerMemoryDescription inBackPropMemoryDescription = layers[i]->OutBackPropMemoryDescriptions()[formatIndex];
-									unique_ptr<OCLMemory> outputMemory = contexts[0]->CreateMemory(CL_MEM_READ_WRITE, sizeof(T) * inBackPropMemoryDescription.TotalMemory());
-									layers[i]->EnqueueBackPropagation(device, 0, inputMemories[i], backPropOutputMemory.get(), outputMemory.get(), true);
-									backPropOutputMemory.reset();
-									backPropOutputMemory = move(outputMemory);
-									inputMemoriesHolder[i - 1].reset();
-									layers[i - 1]->EnqueueCalculateGradient(device, 0, inputMemories[i - 1], backPropOutputMemory.get(), gradientsPointers[i - 1], false);
-								}
-
-							}
-							catch(...)
-							{
-								inputDataBufferQueue->UnlockAcquire();
-								throw;
-							}
-
-							inputDataBufferQueue->UnlockAcquire();
-
-							//If this is the first sample, add the memory to the accumulator and continue
-							if (sample == 0) 
-							{
-								for (size_t i = 0; i < layerCount; i++) 
-								{
-									for (size_t j = 0; j < gradientsPointers[i].size(); j++) 
-									{
-										if (gradientsPointers[i][j]->ByteSize() == accumulatedGradientsPointers[i][j]->ByteSize())
-											device->CopyCLMemory(gradientsPointers[i][j], accumulatedGradientsPointers[i][j], 0, 0, gradientsPointers[i][j]->ByteSize(), 0, false);
-										else
-											throw runtime_error( "The memory does not match for the accumulated gradient.");
-									}
-								}
-							} 
-							else 
-							{
-								for (size_t i = 0; i < layerCount; i++) 
-								{
-									vector<size_t> parameterCount = layers[i]->GetMultipleParameterCount();
-									for (size_t j = 0; j < gradientsPointers[i].size(); j++) 
-									{
-										vectorKernel->SetMemoryArg(accumulatedGradientsPointers[i][j], 1);
-										vectorKernel->SetMemoryArg(gradientsPointers[i][j], 0);
-										vectorKernel->ClearGlobalSizes();
-										vectorKernel->AddGlobalSize(parameterCount[j]);
-										device->ExecuteKernel(vectorKernel, 0, false);
-									}
-								}
-							}
-
-							//We don't really need this one since the gradient memory will not be collected
-							device->WaitForDeviceQueue(0);
-
+							InnerLoopGDLowMemory(layerCount, sample, vectorKernel, gradientsPointers, device, accumulatedGradientsPointers);
 						}
 
 						if(stopped)
 							break;
 
-						//Fetch the parameters from the layers, accumulate with scalar and continue
 						if (stepSize != currentStepSize) 
 						{
 							scalarKernel->SetRealArg(stepSize, 2);
 							currentStepSize = stepSize;
 						}
 
-						for (size_t i = 0; i < layerCount; i++) 
-						{
-							vector<OCLMemory*> parametersToUpdate = layers[i]->GetParameters();
-							vector<size_t> parameterCount = layers[i]->GetMultipleParameterCount();
-
-							if (parametersToUpdate.size() != accumulatedGradientsPointers[i].size())
-								throw runtime_error("The accumulated gradients do not match the layer parameters");
-
-							for (size_t j = 0; j < accumulatedGradientsPointers[i].size(); j++) 
-							{
-								if (parametersToUpdate[j]->ByteSize() != accumulatedGradientsPointers[i][j]->ByteSize())
-									throw runtime_error("The gradient and the parameter memories does not match");
-
-								scalarKernel->SetMemoryArg(accumulatedGradientsPointers[i][j], 0);
-								scalarKernel->SetMemoryArg(parametersToUpdate[j], 1);
-								scalarKernel->ClearGlobalSizes();
-								scalarKernel->AddGlobalSize(parameterCount[j]);
-								device->ExecuteKernel(scalarKernel, 0, false);
-							}
-						}
-
-						device->WaitForDeviceQueue(0);
+						UpdateGradient(layerCount, accumulatedGradientsPointers, scalarKernel, device);
 
 						//TODO: Enable error reporting
 						trainer->BatchFinished(-1);
@@ -970,9 +987,35 @@ namespace Matuna
 					if(stopped)
 						break;
 
-					//TODO:
-					for (int k = 0; k < remainder; k++)
-						throw runtime_error("Non dividable batch size is not implemented yet");
+					if (remainder != 0)
+					{
+						trainer->BatchStarted();
+
+						for (int sample = 0; sample < remainder; sample++) 
+						{
+							if (trainer->Stopping()) 
+							{
+								stopped = true;
+								break;
+							}
+
+							InnerLoopGDLowMemory(layerCount, sample, vectorKernel, gradientsPointers, device, accumulatedGradientsPointers);
+						}
+
+						if (stopped)
+							break;
+
+						if (stepSize != currentStepSize) 
+						{
+							scalarKernel->SetRealArg(stepSize, 2);
+							currentStepSize = stepSize;
+						}
+
+						UpdateGradient(layerCount, accumulatedGradientsPointers, scalarKernel, device);
+
+						//TODO: Enable error reporting
+						trainer->BatchFinished(-1);
+					}
 
 					trainer->EpochFinished();
 				}

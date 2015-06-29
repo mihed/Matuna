@@ -157,10 +157,10 @@ public:
 int main(int, char**)
 {
 
-	auto trainingImages = MNISTAssetLoader<float>::ReadTrainingImages();
-	auto testImages = MNISTAssetLoader<float>::ReadTestImages(1000);
-	auto testTargets = MNISTAssetLoader<float>::ReadTestTargets(1000);
-	auto trainingTargets = MNISTAssetLoader<float>::ReadTrainingTargets();
+	auto trainingImages = MNISTAssetLoader<float>::ReadTrainingImages(1000);
+	auto testImages = MNISTAssetLoader<float>::ReadTestImages(100);
+	auto testTargets = MNISTAssetLoader<float>::ReadTestTargets(100);
+	auto trainingTargets = MNISTAssetLoader<float>::ReadTrainingTargets(1000);
 	auto platformInfos = OCLHelper::GetPlatformInfos();
 
 	if (platformInfos.size() == 0)
@@ -207,20 +207,20 @@ int main(int, char**)
 	tempTrainer->SetTargets(trainingTargets);
 	tempTrainer->SetTests(testImages);
 	tempTrainer->SetTestTargets(testTargets);
-	tempTrainer->SetBufferSize(60000);
+	tempTrainer->SetBufferSize(1000);
 
 	unique_ptr<ConvNetTrainer<float>> trainer(tempTrainer);
 
 	unique_ptr<GradientDescentConfig<float>> trainingConfig(new GradientDescentConfig<float>());
-	trainingConfig->SetBatchSize(60);
-	trainingConfig->SetEpochs(2);
+	trainingConfig->SetBatchSize(13);
+	trainingConfig->SetEpochs(4);
 	auto callBack = [] (int) 
 	{ 
 		return 0.001f;
 	};
 
 	trainingConfig->SetStepSizeCallback(callBack);
-	trainingConfig->SetSamplesPerEpoch(60000);
+	trainingConfig->SetSamplesPerEpoch(1000);
 
 	network.TrainNetwork2(move(trainer), move(trainingConfig));
 
