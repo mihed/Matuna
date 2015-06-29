@@ -57,9 +57,9 @@ namespace Matuna
 			{
 				this->formatIndex = formatIndex;
 				this->inputHandledMemory = move(inputHandledMemory);
-				this->inputMemoryPointer = inputHandledMemory.get();
+				this->inputMemoryPointer = this->inputHandledMemory.get();
 				this->targetHandledMemory = move(targetHandledMemory);
-				this->targetMemoryPointer = targetHandledMemory.get();
+				this->targetMemoryPointer = this->targetHandledMemory.get();
 			};
 
 			InputDataWrapper(OCLMemory* inputMemoryPointer, OCLMemory* targetMemoryPointer, int formatIndex)
@@ -73,9 +73,9 @@ namespace Matuna
 			{
 				this->formatIndex = original.formatIndex;
 				this->inputHandledMemory = move(original.inputHandledMemory);
-				this->inputMemoryPointer = this->inputHandledMemory.get();
+				this->inputMemoryPointer = original.inputMemoryPointer;
 				this->targetHandledMemory = move(original.targetHandledMemory);
-				this->targetMemoryPointer = this->targetHandledMemory.get();
+				this->targetMemoryPointer = original.targetMemoryPointer;
 			}
 
 			OCLMemory* GetInput() const { return inputMemoryPointer; };
@@ -108,7 +108,6 @@ namespace Matuna
 				this->maxBufferSize = maxBufferSize;
 			};
 
-			//Why don't we have a wait in here in case the queue is empty!?
 			InputDataWrapper Pop()
 			{
 				unique_lock<mutex> lock(mut);
@@ -203,6 +202,15 @@ namespace Matuna
 				notEmpty.notify_one();
 			}
 
+			void Clear()
+			{
+				unique_lock<mutex> lock(mut);
+				idAndInputData.clear();
+				queue<int> empty;
+				swap(dataIDQueue, empty);
+				notFull.notify_one();
+			};
+
 			//If this function returns 0, add the actual memory. Else increase the reference count of the dataID
 			int ReferenceCount(int dataID)
 			{
@@ -285,7 +293,6 @@ namespace Matuna
 			T CalculateError(OCLMemory* lastOutput, int formatIndex, OCLMemory* target);
 
 			void TrainNetworkGDLowMemory(unique_ptr<GradientDescentConfig<T>> gdConfig, unique_ptr<ConvNetTrainer<T>> trainer);
-			void InitializeGDProgram(OCLProgram*& programPointer, LayerKernel<T>*& vectorKernel, LayerKernel<T>*& scalarKernel);
 			void ReadInputDataAsync(ConvNetTrainer<T>* trainer);
 		};
 

@@ -228,6 +228,8 @@ SCENARIO("Testing the gradient descent training algorithm")
 				convolutionLayerGenerator, imageDimensionGenerator,
 				filterGenerator, dimensionGenerator, vanillaSamplingSizeGenerator, false, true);
 
+			cout << "Platform: " << deviceInfo[0].PlatformInfo().PlatformName() << endl << "Device: " << deviceInfo[0].DeviceName() << endl;
+
 			OCLConvNet<double> network(deviceInfo, move(config));
 
 			auto trainer = new TestConvNetTrainer<double>(&network);
@@ -291,7 +293,7 @@ SCENARIO("Testing the gradient descent training algorithm")
 			cout << "Error before iteration: " << errorBefore << endl;
 			trainer->SetInput(inputs.get());
 			trainer->SetTarget(target.get());
-			trainer->SetBufferSize(2);
+			trainer->SetBufferSize(10);
 			network.TrainNetwork2(unique_ptr<TestConvNetTrainer<double>>(trainer), unique_ptr<GradientDescentConfig<double>>(algorithmConfig));
 			double errorAfter = network.CalculateErrorUnaligned(inputs.get(), 0, target.get());
 			cout << "Error after iteration: " << errorAfter << endl;

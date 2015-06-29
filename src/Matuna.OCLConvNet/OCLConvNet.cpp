@@ -735,7 +735,7 @@ namespace Matuna
 				//If we don't have a reference, we are 100% sure that we need to read the data
 				if (referencesForID == 0)
 				{
-					printf("Writing data to device memory! \n");
+					//printf("Writing data to device memory! \n");
 
 					trainer->MapInputAndTarget(dataID, input, target, formatIndex);
 					if (formatIndex != 0)
@@ -755,7 +755,7 @@ namespace Matuna
 					//If we don't succeed to push the data, it means that the dataID has been removed since we checked for references
 					if(!inputDataBufferQueue->Push(dataID))
 					{
-						printf("Buffer miss, if this occurs often, increase the size! \n");
+						//printf("Buffer miss, if this occurs often, increase the size! \n");
 
 						trainer->MapInputAndTarget(dataID, input, target, formatIndex);
 						if (formatIndex != 0)

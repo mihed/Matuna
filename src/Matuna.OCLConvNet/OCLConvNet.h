@@ -57,9 +57,9 @@ namespace Matuna
 			{
 				this->formatIndex = formatIndex;
 				this->inputHandledMemory = move(inputHandledMemory);
-				this->inputMemoryPointer = inputHandledMemory.get();
+				this->inputMemoryPointer = this->inputHandledMemory.get();
 				this->targetHandledMemory = move(targetHandledMemory);
-				this->targetMemoryPointer = targetHandledMemory.get();
+				this->targetMemoryPointer = this->targetHandledMemory.get();
 			};
 
 			InputDataWrapper(OCLMemory* inputMemoryPointer, OCLMemory* targetMemoryPointer, int formatIndex)
