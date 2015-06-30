@@ -251,7 +251,7 @@ int main(int, char**)
 	trainingConfig->SetStepSizeCallback(callBack);
 	trainingConfig->SetSamplesPerEpoch(60000);
 
-	network.TrainNetwork(move(trainer), move(trainingConfig));
+	network.TrainNetwork2(move(trainer), move(trainingConfig));
 
 	return 0;
 }
