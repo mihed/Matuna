@@ -47,9 +47,9 @@ __global int* yMaxIndices
 	real_t tempValue;
 
 	#ifdef DOUBLE_PRECISION
-	real_t maxValue = -FLT_MAX;
-	#else
 	real_t maxValue = -DBL_MAX;
+	#else
+	real_t maxValue = -FLT_MAX;
 	#endif
 
 	int maxXIndex;
