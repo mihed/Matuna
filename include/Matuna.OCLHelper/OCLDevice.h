@@ -20,6 +20,7 @@
 #include "OCLKernel.h"
 #include "OCLProgram.h"
 #include "OCLKernelInfo.h"
+#include "OCLEvent.h"
 #include "OCLDeviceConfig.h"
 
 using namespace std;
@@ -73,6 +74,9 @@ final
 
 		void ExecuteTask(const OCLKernel* kernel, int queueIndex = 0,
 			bool blocking = true);
+
+		OCLEvent EnqueueMarker(int queueIndex = 0);
+
 
 		OCLKernelInfo GetKernelInfo(const OCLKernel* kernel);
 

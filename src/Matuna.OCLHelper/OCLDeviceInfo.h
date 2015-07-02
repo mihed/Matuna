@@ -1,11 +1,11 @@
 /*
- * OCLDeviceInfo.h
- *
- *  Created on: Apr 26, 2015
- *      Author: Mikael
- *
- * NOTE: Most of the comments here are directly taken from the OCL Specification.
- */
+* OCLDeviceInfo.h
+*
+*  Created on: Apr 26, 2015
+*      Author: Mikael
+*
+* NOTE: Most of the comments here are directly taken from the OCL Specification.
+*/
 
 #ifndef MATUNA_MATUNA_OCLHELPER_OCLDEVICEINFO_H_
 #define MATUNA_MATUNA_OCLHELPER_OCLDEVICEINFO_H_
@@ -60,6 +60,7 @@ namespace Matuna {
 			bool imageSupport;
 			size_t maxParametersSize;
 			unsigned long long globalMemoryCacheSize;
+			unsigned int globalMemoryCacheLine;
 			unsigned long long globalMemorySize;
 			unsigned long long maxConstantBufferSize;
 			unsigned int maxConstantArguments;
@@ -118,6 +119,7 @@ namespace Matuna {
 			*@param deviceVersion CL_DEVICE_VERSION
 			*@param deviceOCLVersion CL_DEVICE_OCL_C_VERSION
 			*@param deviceExtensions CL_DEVICE_EXTENSIONS
+			*@param globalMemoryCacheLine CL_GLOBAL_MEM_CACHE_LINE
 			*/
 		public:
 			OCLDeviceInfo(OCLPlatformInfo platformInfo,
@@ -161,7 +163,8 @@ namespace Matuna {
 				string deviceProfile,
 				string deviceVersion,
 				string deviceOCLVersion,
-				string deviceExtensions);
+				string deviceExtensions,
+				unsigned int globalMemoryCacheLine);
 			~OCLDeviceInfo();
 
 
@@ -541,6 +544,18 @@ namespace Matuna {
 			*/
 			unsigned long long GlobalMemorySize() const {
 				return globalMemorySize;
+			}
+			;
+
+			/**
+			*@brief CL_DEVICE_GLOBAL_MEM_CACHE_LINE
+			*
+			*Size of global device memory in bytes.
+			*
+			*@return Size of global device memory in bytes
+			*/
+			unsigned int GlobalMemoryCacheLine() const {
+				return globalMemoryCacheLine;
 			}
 			;
 

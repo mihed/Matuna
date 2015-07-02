@@ -111,6 +111,14 @@ namespace Matuna
 
 		}
 
+		OCLEvent OCLDevice::EnqueueMarker(int queueIndex)
+		{
+			cl_event oclEvent;
+			clEnqueueMarker(queues[queueIndex], &oclEvent);
+			OCLEvent result(oclEvent);
+			return move(result);
+		}
+
 		void OCLDevice::WaitForDeviceQueue(int queueIndex)
 		{
 			clFinish(queues[queueIndex]);

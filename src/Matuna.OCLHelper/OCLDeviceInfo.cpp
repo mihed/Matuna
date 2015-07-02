@@ -54,9 +54,11 @@ namespace Matuna {
 			string deviceProfile,
 			string deviceVersion, 
 			string deviceOCLVersion,
-			string deviceExtensions) : platformInfo(platformInfo)
+			string deviceExtensions,
+			unsigned int globalMemoryCacheLine) : platformInfo(platformInfo)
 
 		{
+			this->globalMemoryCacheLine = globalMemoryCacheLine;
 			this->deviceID=deviceID;
 			this->globalMemoryCacheType=globalMemoryCacheType;
 			this->localMemoryType=localMemoryType;
@@ -189,6 +191,8 @@ namespace Matuna {
 
 			stringStream << "CL_DEVICE_GLOBAL_MEM_CACHE_SIZE: \t"
 				<< globalMemoryCacheSize << "\n";
+			stringStream << "CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE: \t"
+				<< globalMemoryCacheLine << "\n";
 			stringStream << "CL_DEVICE_GLOBAL_MEM_SIZE: \t" << globalMemorySize << "\n";
 			stringStream << "CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: \t"
 				<< maxConstantBufferSize << "\n";
