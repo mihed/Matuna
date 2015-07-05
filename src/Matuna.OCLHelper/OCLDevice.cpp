@@ -159,7 +159,11 @@ namespace Matuna
 				CL_KERNEL_LOCAL_MEM_SIZE, sizeof(localMemorySize), &localMemorySize,
 				nullptr), "Could not get the kernel work group info");
 
-			return OCLKernelInfo(workGroupSize, workGroupSizes, localMemorySize);
+			size_t preferredWorkGroupMultiple;
+			CheckOCLError(clGetKernelWorkGroupInfo(kernel->GetKernel(), deviceID, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+				sizeof(preferredWorkGroupMultiple), &preferredWorkGroupMultiple, nullptr), "Could not fetch the preferred work group multiple");
+
+			return OCLKernelInfo(workGroupSize, workGroupSizes, localMemorySize, preferredWorkGroupMultiple);
 		}
 
 		void OCLDevice::CopyCLMemory(OCLMemory* source, OCLMemory* destination,

@@ -24,12 +24,16 @@ private:
 	size_t kernelWorkGroupSize;
 	vector<size_t> compileWorkGroupSize;
 	cl_ulong localMemorySize;
+	size_t preferredWorkGroupMultiple;
 public:
 	OCLKernelInfo(size_t kernelWorkGroupSize,
-			vector<size_t> compileWorkGroupSize, cl_ulong localMemorySize);
+			vector<size_t> compileWorkGroupSize,
+			cl_ulong localMemorySize,
+			size_t preferredWorkGroupMultiple);
 	~OCLKernelInfo();
 
 	size_t KernelWorkGroupSize() const;
+	size_t PreferredWorkGroupMultiple() const;
 	vector<size_t> CompileWorkGroupSize() const;
 	cl_ulong LocalMemorySize() const;
 };
