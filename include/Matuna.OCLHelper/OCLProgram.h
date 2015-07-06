@@ -93,6 +93,8 @@ namespace Matuna {
 			bool IncludePathAdded(string includePath) const;
 			void RemoveIncludePath(string includePath);
 
+			void AddProgramCode(string codePath, string code);
+
 			void AddProgramPath(string codePath);
 			void RemoveProgramPath(string codePath);
 

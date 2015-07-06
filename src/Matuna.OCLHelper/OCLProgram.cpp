@@ -146,6 +146,12 @@ namespace Matuna {
 				includePaths.erase(includePath);
 		}
 
+		void OCLProgram::AddProgramCode(string codePath, string code)
+		{
+			if (pathAndCodeFiles.find(codePath) == pathAndCodeFiles.end())
+				pathAndCodeFiles.insert(make_pair(codePath, code));
+		}
+
 		void OCLProgram::AddProgramPath(string codePath)
 		{
 			if (pathAndCodeFiles.find(codePath) == pathAndCodeFiles.end())
