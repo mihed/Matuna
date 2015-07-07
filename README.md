@@ -1,5 +1,7 @@
 # Matuna
-Machine learning with Automatically Tuned Algorithms
+Machine learning with Automatically Tuned Algorithms.
+
+The alpha versions runs OK on CPU but slow on GPU since no optimizations are made on these versions. (work in progress...)
 
 #Introduction
 This library was mainly an effort for testing new state-of-the-art machine learning algorithms. Since there's already plenty of libraries out there, I wanted to put some extra focus on applications and optimizations.
