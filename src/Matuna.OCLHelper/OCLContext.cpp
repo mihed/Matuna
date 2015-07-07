@@ -182,6 +182,8 @@ namespace Matuna
 
 				string buildLog = string(buildLogBuffer.get());
 
+				printf("Build log: \n %s", buildLog.c_str());
+
 				cl_build_status buildStatus;
 				error = clGetProgramBuildInfo(clProgram, deviceID,
 					CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &buildStatus,

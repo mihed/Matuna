@@ -209,6 +209,11 @@ namespace Matuna {
 			kernels.erase(kernelName);
 		}
 
+		void OCLProgram::AddCompilerOption(string option)
+		{
+			compilerOptions.push_back(option);
+		}
+
 		string OCLProgram::GetCompilerOptions() const
 		{
 			stringstream result;
@@ -228,6 +233,9 @@ namespace Matuna {
 
 			for(auto& includePath : includePaths)
 				result << " -I" << includePath;
+
+			for (auto& compilerOption : compilerOptions)
+				result << " " << compilerOption;
 
 			return result.str();
 		}

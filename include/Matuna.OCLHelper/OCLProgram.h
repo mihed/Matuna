@@ -48,6 +48,8 @@ namespace Matuna {
 			unordered_set<string> includePaths;
 			unordered_map<string, string> pathAndCodeFiles;
 
+			vector<string> compilerOptions;
+
 		public:
 			static string DefaultSourceLocation;
 			static const string MADCompilerOption;
@@ -84,6 +86,7 @@ namespace Matuna {
 			void SetName(string name);
 			string GetName() const;
 
+
 			void AddDefine(string name);
 			void AddDefine(string name, string value);
 
@@ -103,6 +106,8 @@ namespace Matuna {
 			void DetachKernel(OCLKernel* kernel);
 
 			void Reset();
+
+			void AddCompilerOption(string option);
 
 			string GetCompilerOptions() const;
 			vector<string> GetProgramCodeFiles() const;
