@@ -1,7 +1,7 @@
 # Matuna
 Machine learning with Automatically Tuned Algorithms.
 
-The alpha versions runs OK on CPU but slow on GPU since no optimizations are made on these versions. (work in progress...)
+The purpose of this library is mainly to investigate tuning and auto-tuning for GPU architectures and is not intended in its current form to be used in any real applications. It has been tested on Linux, OSX, Windows (all 32 and 64 bits), and runs on both CPU and GPU.
 
 #Introduction
 This library was mainly an effort for testing new state-of-the-art machine learning algorithms. Since there's already plenty of libraries out there, I wanted to put some extra focus on applications and optimizations.
